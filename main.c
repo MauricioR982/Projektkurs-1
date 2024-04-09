@@ -100,11 +100,7 @@ int main(int argc, char* args[])
     //Menu
     SDL_Texture *mMenu = NULL;
 
-    /*
-    Arrow
-    SDL_Texture *mArrow = NULL;
-    SDL_Rect gArrowClip;
-    */
+
    
     if (init(&gRenderer)) {
         printf("worked\n");
