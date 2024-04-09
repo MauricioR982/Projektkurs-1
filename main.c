@@ -10,7 +10,7 @@
 
 #include <stdio.h>
 //#include <SDL.h>
-//#include <SDL_image.h> 
+//#include <SDL_image.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h> 
 #include <stdbool.h>
@@ -76,7 +76,7 @@ int main(int argc, char* args[])
             switch( e.key.keysym.sym )
             {
                 case SDLK_UP:
-                    possition.y -= 8; // Ökad från 2 till 4 för snabbare rörelse
+                    possition.y -= 8;
                     flip = SDL_FLIP_NONE;
                     if(frame == 4)
                         frame = 5;
@@ -84,7 +84,7 @@ int main(int argc, char* args[])
                         frame = 4;
                     break;
                 case SDLK_DOWN:
-                    possition.y += 8; // Ökad från 2 till 4 för snabbare rörelse
+                    possition.y += 8;
                     flip = SDL_FLIP_NONE;
                     if(frame == 0)
                         frame = 1;
@@ -92,7 +92,7 @@ int main(int argc, char* args[])
                         frame = 0;
                     break;
                 case SDLK_LEFT:
-                    possition.x -= 8; // Ökad från 2 till 4 för snabbare rörelse
+                    possition.x -= 8;
                     flip = SDL_FLIP_HORIZONTAL;
                     if(frame == 2)
                         frame = 3;
@@ -100,7 +100,7 @@ int main(int argc, char* args[])
                         frame = 2;
                     break;
                 case SDLK_RIGHT:
-                    possition.x += 8;  // Ökad från 2 till 4 för snabbare rörelse
+                    possition.x += 8; 
                     flip = SDL_FLIP_NONE;
                     if(frame == 2)
                         frame = 3;
@@ -196,8 +196,8 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSpaceman, SDL_Rect gSprit
         gTiles[i].h = getTileHeight();
     }
     
-    SDL_Surface* gSAlien = IMG_Load("resources/ALIEN.PNG");
-    *mAlien = SDL_CreateTextureFromSurface(gRenderer, gSAlien);
+    //SDL_Surface* gSAlien = IMG_Load("resources/ALIEN.PNG");
+    //*mAlien = SDL_CreateTextureFromSurface(gRenderer, gSAlien);
     gAlien[ 0 ].x = 0;
     gAlien[ 0 ].y = 0;
     gAlien[ 0 ].w = 15;
@@ -207,6 +207,7 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSpaceman, SDL_Rect gSprit
     gAlien[ 1 ].y = 0;
     gAlien[ 1 ].w = 15;
     gAlien[ 1 ].h = 15;
+    
 
     SDL_Surface* gBackgroundSurface = IMG_Load("resources/Map.png");
     if(gBackgroundSurface == NULL) {
