@@ -118,16 +118,16 @@ int main(int argc, char* args[])
                     break;
             }
             if (position.x < 0) {
-    position.x = 0;
-} else if (position.x + position.w > WINDOW_WIDTH) {
-    position.x = WINDOW_WIDTH - position.w;
-}
+                position.x = 0;
+            } else if (position.x + position.w > WINDOW_WIDTH) {
+                position.x = WINDOW_WIDTH - position.w;
+            }
 
-if (position.y < 0) {
-    position.y = 0;
-} else if (position.y + position.h > WINDOW_HEIGHT) {
-    position.y = WINDOW_HEIGHT - position.h;
-}
+            if (position.y < 0) {
+                position.y = 0;
+            } else if (position.y + position.h > WINDOW_HEIGHT) {
+                position.y = WINDOW_HEIGHT - position.h;
+            }
         }
         
     }
