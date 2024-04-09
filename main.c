@@ -35,16 +35,6 @@ typedef struct {
 } hPosition; //hunter spawn position lägg till funktionalitet
 
 
-typedef enum {
-    MENU_START_GAME,
-    MENU_TUTORIAL,
-    MENU_EXIT,
-    MENU_TOTAL // Antal menyalternativ
-} MenuOption;
-
-MenuOption currentOption = MENU_START_GAME;
-
-
 int main(int argc, char* args[])
 {
     const int WINDOW_WIDTH = 1280;
@@ -93,10 +83,6 @@ int main(int argc, char* args[])
     // Background
     SDL_Texture *mTiles = NULL;
     SDL_Rect gTiles[16];
-
-    //Menu
-    SDL_Texture *mArrow = NULL;
-    SDL_Rect gArrowClip;
    
     if (init(&gRenderer)) {
         printf("worked\n");
@@ -197,11 +183,12 @@ void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mTiles, SDL_Rect gTi
 
 }
 
-void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSpaceman, SDL_Rect gSpriteClips[], SDL_Texture **mAlien, SDL_Rect gAlien[], SDL_Texture **mTiles, SDL_Rect gTiles[], SDL_Texture **mArrow, SDL_Rect *gArrowClip){
+void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSpaceman, SDL_Rect gSpriteClips[], SDL_Texture **mAlien, SDL_Rect gAlien[], SDL_Texture **mTiles, SDL_Rect gTiles[]){
     
     SDL_Surface* gSpacemanSurface = IMG_Load("resources/SPACEMAN.PNG");
     *mSpaceman = SDL_CreateTextureFromSurface(gRenderer, gSpacemanSurface);
   
+    
     gSpriteClips[ 0 ].x =   0;
     gSpriteClips[ 0 ].y =   0;
     gSpriteClips[ 0 ].w =  16;
@@ -242,6 +229,7 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSpaceman, SDL_Rect gSprit
     gSpriteClips[ 7 ].w =  16;
     gSpriteClips[ 7 ].h = 16;
     
+    
     SDL_Surface* gTilesSurface = IMG_Load("resources/TILES.PNG");
     *mTiles = SDL_CreateTextureFromSurface(gRenderer, gTilesSurface);
     for (int i = 0; i < 16; i++) {
@@ -269,26 +257,9 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSpaceman, SDL_Rect gSprit
         printf("Kunde inte ladda bakgrundsbild: %s\n", IMG_GetError());
     } else {
         *mTiles = SDL_CreateTextureFromSurface(gRenderer, gBackgroundSurface);
-        SDL_FreeSurface(gBackgroundSurface);
+        SDL_FreeSurface(gBackgroundSurface); // Glöm inte att frigöra minnet
     }
-
-    // SDL-game menu
-    SDL_Surface* gArrowSurface = IMG_Load("resources/arrow1.png");
-    if (gArrowSurface == NULL) {
-        printf("Unable to load arrow image: %s\n", IMG_GetError());
-        // Hantera fel här, exempelvis genom att avsluta funktionen eller programmet
-    } else {
-        *mArrow = SDL_CreateTextureFromSurface(gRenderer, gArrowSurface);
-        if (*mArrow == NULL) {
-            printf("Unable to create texture from arrow surface: %s\n", SDL_GetError());
-            // Hantera fel här
-        }
-        gArrowClip->x = 0;
-        gArrowClip->y = 0;
-        gArrowClip->w = gArrowSurface->w;
-        gArrowClip->h = gArrowSurface->h;
-        SDL_FreeSurface(gArrowSurface);
-    }
+    
     
 }
 
