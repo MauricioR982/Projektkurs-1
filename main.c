@@ -75,7 +75,7 @@ int main(int argc, char* args[])
             //Select surfaces based on key press
             switch( e.key.keysym.sym )
             {
-                case SDLK_UP:
+                case SDLK_w:
                     possition.y -= 8;
                     flip = SDL_FLIP_NONE;
                     if(frame == 4)
@@ -83,7 +83,7 @@ int main(int argc, char* args[])
                     else
                         frame = 4;
                     break;
-                case SDLK_DOWN:
+                case SDLK_s:
                     possition.y += 8;
                     flip = SDL_FLIP_NONE;
                     if(frame == 0)
@@ -91,7 +91,7 @@ int main(int argc, char* args[])
                     else
                         frame = 0;
                     break;
-                case SDLK_LEFT:
+                case SDLK_a:
                     possition.x -= 8;
                     flip = SDL_FLIP_HORIZONTAL;
                     if(frame == 2)
@@ -99,7 +99,7 @@ int main(int argc, char* args[])
                     else
                         frame = 2;
                     break;
-                case SDLK_RIGHT:
+                case SDLK_d:
                     possition.x += 8; 
                     flip = SDL_FLIP_NONE;
                     if(frame == 2)
