@@ -226,7 +226,7 @@ bool init(SDL_Renderer **gRenderer){
     bool test = true;
     SDL_Window  *gWindow = NULL;
     SDL_Init(SDL_INIT_VIDEO);
-    gWindow = SDL_CreateWindow("SDL Test", SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED, 400, 300, SDL_WINDOW_SHOWN);
+    gWindow = SDL_CreateWindow("SDL Test", SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED, 1280, 720, SDL_WINDOW_SHOWN);
     if(gWindow == NULL){
         printf("Fungerar ej\n");
         test = false;
