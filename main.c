@@ -17,11 +17,12 @@
 #include "world.h"
 #include "Alien.h"
 #include <time.h>
+#include "sprinter.h"
 
 #undef main
 
 bool init(SDL_Renderer **gRenderer);
-void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSpaceman, SDL_Rect gSpriteClips[], SDL_Texture **mAlien, SDL_Rect gAlien[], SDL_Texture **mTiles, SDL_Rect gTiles[]);
+void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSpriteClips[], SDL_Texture **mAlien, SDL_Rect gAlien[], SDL_Texture **mTiles, SDL_Rect gTiles[]);
 void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mTile, SDL_Rect gTiles[]);
 
 typedef struct {
@@ -59,7 +60,7 @@ int main(int argc, char* args[])
     bool quit = false;
     
     // Spaceman
-    SDL_Texture *mSpaceman = NULL;
+    SDL_Texture *mSprinter = NULL;
     SDL_Rect gSpriteClips[8];
     SDL_RendererFlip flip = SDL_FLIP_NONE;
     SDL_Rect position;
@@ -88,7 +89,7 @@ int main(int argc, char* args[])
         printf("worked\n");
     }
     
-    loadMedia(gRenderer, &mSpaceman, gSpriteClips, &mAlien, gAlien, &mTiles, gTiles);
+    loadMedia(gRenderer, &mSprinter, gSpriteClips, &mAlien, gAlien, &mTiles, gTiles);
     
     // Game loop - 1. Game Event 2. Game Logic 3. Render Game
     while (!quit) {
@@ -168,7 +169,7 @@ int main(int argc, char* args[])
         SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
         SDL_RenderClear(gRenderer);
         renderBackground(gRenderer, mTiles, gTiles);
-        SDL_RenderCopyEx(gRenderer, mSpaceman, &gSpriteClips[frame],&position , 0, NULL, flip);
+        SDL_RenderCopyEx(gRenderer, mSprinter, &gSpriteClips[frame],&position , 0, NULL, flip);
         SDL_RenderCopyEx(gRenderer, mAlien, &gAlien[getAlienFrame(a1)],&a1possition ,270, NULL, SDL_FLIP_NONE);
         SDL_RenderCopyEx(gRenderer, mAlien, &gAlien[getAlienFrame(a2)],&a2possition ,270, NULL, SDL_FLIP_NONE);
         SDL_RenderPresent(gRenderer);
@@ -183,10 +184,10 @@ void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mTiles, SDL_Rect gTi
 
 }
 
-void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSpaceman, SDL_Rect gSpriteClips[], SDL_Texture **mAlien, SDL_Rect gAlien[], SDL_Texture **mTiles, SDL_Rect gTiles[]){
+void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSpriteClips[], SDL_Texture **mAlien, SDL_Rect gAlien[], SDL_Texture **mTiles, SDL_Rect gTiles[]){
     
-    SDL_Surface* gSpacemanSurface = IMG_Load("resources/SPACEMAN.PNG");
-    *mSpaceman = SDL_CreateTextureFromSurface(gRenderer, gSpacemanSurface);
+    SDL_Surface* gSprinterSurface = IMG_Load("resources/SPACEMAN.PNG");
+    *mSprinter = SDL_CreateTextureFromSurface(gRenderer, gSprinterSurface);
   
     
     gSpriteClips[ 0 ].x =   0;
