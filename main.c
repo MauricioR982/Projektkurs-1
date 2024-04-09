@@ -38,7 +38,7 @@ int main(int argc, char* args[])
 
     sPosition startPos[] = {
     {110, 64},   // Forsta position
-    {200, 150},  // Andra position
+    {110, 550},  // Andra position
     {300, 200},  // Tredje position
     {400, 300}   // Fjarde position
     };
@@ -58,8 +58,10 @@ int main(int argc, char* args[])
     SDL_Rect gSpriteClips[8];
     SDL_RendererFlip flip = SDL_FLIP_NONE;
     SDL_Rect position;
-    position.x = startPos[index].x;
-    position.y = startPos[index].y;
+    //position.x = startPos[index].x;
+    //position.y = startPos[index].y;
+    position.x = startPos[1].x;
+    position.y = startPos[1].y;
     position.h = 32;
     position.w = 32;
     int frame = 6;
