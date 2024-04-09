@@ -29,6 +29,11 @@ typedef struct {
     int y;
 } sPosition;
 
+typedef struct {
+    int x;
+    int y;
+} hPosition; //hunter spawn position lägg till funktionalitet
+
 
 int main(int argc, char* args[])
 {
