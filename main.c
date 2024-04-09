@@ -37,8 +37,8 @@ int main(int argc, char* args[])
     SDL_Rect possition;
     possition.y = 64;
     possition.x = 110;
-    possition.h = 32;
-    possition.w = 32;
+    possition.h = 30;
+    possition.w = 30;
     int frame = 6;
     
     // Alien 1 and 2
