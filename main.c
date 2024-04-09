@@ -27,6 +27,8 @@ int main(int argc, char* args[])
 {
     const int WINDOW_WIDTH = 1280;
     const int WINDOW_HEIGHT = 720;
+    const int HORIZONTAL_MARGIN = 20; // vänster och höger kant kollision
+
 
     SDL_Event e;
     SDL_Renderer *gRenderer = NULL;
@@ -117,11 +119,11 @@ int main(int argc, char* args[])
                 default:
                     break;
             }
-            if (position.x < 0) {
-                position.x = 0;
-            } else if (position.x + position.w > WINDOW_WIDTH) {
-                position.x = WINDOW_WIDTH - position.w;
-            }
+            if (position.x < HORIZONTAL_MARGIN) {
+    position.x = HORIZONTAL_MARGIN;
+} else if (position.x + position.w > WINDOW_WIDTH - HORIZONTAL_MARGIN) {
+    position.x = WINDOW_WIDTH - position.w - HORIZONTAL_MARGIN;
+}
 
             if (position.y < 0) {
                 position.y = 0;
