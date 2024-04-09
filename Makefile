@@ -1,4 +1,6 @@
 # A simple Makefile for compiling small SDL projects
+SRCDIR=./SRCDIR
+LIBS=./include
 
 theGame: main.o spaceman.o Alien.o world.o
 	gcc -o theGame main.o spaceman.o Alien.o world.o -L/opt/homebrew/lib/ -lSDL2 -lSDL2_image
