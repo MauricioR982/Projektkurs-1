@@ -16,6 +16,7 @@
 #include <stdbool.h>
 #include "world.h"
 #include "Alien.h"
+#include <time.h>
 
 #undef main
 
@@ -23,12 +24,30 @@ bool init(SDL_Renderer **gRenderer);
 void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSpaceman, SDL_Rect gSpriteClips[], SDL_Texture **mAlien, SDL_Rect gAlien[], SDL_Texture **mTiles, SDL_Rect gTiles[]);
 void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mTile, SDL_Rect gTiles[]);
 
+typedef struct {
+    int x;
+    int y;
+} sPosition;
+
+
 int main(int argc, char* args[])
 {
     const int WINDOW_WIDTH = 1280;
     const int WINDOW_HEIGHT = 720;
     const int HORIZONTAL_MARGIN = 20; // vänster och höger kant kollision
 
+    sPosition startPos[] = {
+    {110, 64},   // Forsta position
+    {200, 150},  // Andra position
+    {300, 200},  // Tredje position
+    {400, 300}   // Fjarde position
+    };
+    
+    int numPositions = sizeof(startPos) / sizeof(startPos[0]);
+
+    // At the beginning of your main function
+    srand(time(NULL)); // Seed the random number generator
+    int index = rand() % numPositions; // Randomly select an index
 
     SDL_Event e;
     SDL_Renderer *gRenderer = NULL;
@@ -39,8 +58,8 @@ int main(int argc, char* args[])
     SDL_Rect gSpriteClips[8];
     SDL_RendererFlip flip = SDL_FLIP_NONE;
     SDL_Rect position;
-    position.y = 64;
-    position.x = 110;
+    position.x = startPos[index].x;
+    position.y = startPos[index].y;
     position.h = 32;
     position.w = 32;
     int frame = 6;
