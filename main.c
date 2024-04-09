@@ -91,6 +91,7 @@ int main(int argc, char* args[])
     
     loadMedia(gRenderer, &mSprinter, gSpriteClips, &mAlien, gAlien, &mTiles, gTiles);
     
+    bool keyUp = false, keyDown = false, keyLeft = false, keyRight = false;
     // Game loop - 1. Game Event 2. Game Logic 3. Render Game
     while (!quit) {
     
@@ -145,10 +146,10 @@ int main(int argc, char* args[])
                     break;
             }
             if (position.x < HORIZONTAL_MARGIN) {
-    position.x = HORIZONTAL_MARGIN;
-} else if (position.x + position.w > WINDOW_WIDTH - HORIZONTAL_MARGIN) {
-    position.x = WINDOW_WIDTH - position.w - HORIZONTAL_MARGIN;
-}
+                position.x = HORIZONTAL_MARGIN;
+            } else if (position.x + position.w > WINDOW_WIDTH - HORIZONTAL_MARGIN) {
+                position.x = WINDOW_WIDTH - position.w - HORIZONTAL_MARGIN;
+            }
 
             if (position.y < 0) {
                 position.y = 0;
