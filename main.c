@@ -138,20 +138,8 @@ int main(int argc, char* args[])
 
 void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mTiles, SDL_Rect gTiles[]){
     
-    SDL_Rect possition;
-    possition.y = 0;
-    possition.x = 0;
-    possition.h = getTileHeight();
-    possition.w = getTileWidth();
-    
-    for (int i = 0; i<getTileColumns(); i++) {
-        for (int j = 0; j<getTileRows(); j++) {
-            possition.y = i*getTileHeight();
-            possition.x = j*getTileWidth();
-            SDL_RenderCopyEx(gRenderer, mTiles, &gTiles[getTileGrid(i,j)],&possition , 0, NULL, SDL_FLIP_NONE);
-        }
-    }
-    
+    SDL_RenderCopy(gRenderer, mTiles, NULL, NULL);
+
 }
 
 void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSpaceman, SDL_Rect gSpriteClips[], SDL_Texture **mAlien, SDL_Rect gAlien[], SDL_Texture **mTiles, SDL_Rect gTiles[]){
@@ -221,6 +209,14 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSpaceman, SDL_Rect gSprit
     gAlien[ 1 ].y = 0;
     gAlien[ 1 ].w = 15;
     gAlien[ 1 ].h = 15;
+
+    SDL_Surface* gBackgroundSurface = IMG_Load("resources/Map.png");
+    if(gBackgroundSurface == NULL) {
+        printf("Kunde inte ladda bakgrundsbild: %s\n", IMG_GetError());
+    } else {
+        *mTiles = SDL_CreateTextureFromSurface(gRenderer, gBackgroundSurface);
+        SDL_FreeSurface(gBackgroundSurface); // Glöm inte att frigöra minnet
+    }
     
     
 }
@@ -243,6 +239,3 @@ bool init(SDL_Renderer **gRenderer){
     return test;
     
 }
-
-
-
