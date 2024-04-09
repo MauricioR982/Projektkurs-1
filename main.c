@@ -22,7 +22,7 @@
 #undef main
 
 bool init(SDL_Renderer **gRenderer);
-void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSpriteClips[], SDL_Texture **mAlien, SDL_Rect gAlien[], SDL_Texture **mTiles, SDL_Rect gTiles[], SDL_Texture *mMenu);
+void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSpriteClips[], SDL_Texture **mAlien, SDL_Rect gAlien[], SDL_Texture **mTiles, SDL_Rect gTiles[], SDL_Texture **mMenu);
 void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mTile, SDL_Rect gTiles[]);
 
 typedef struct {
@@ -232,7 +232,7 @@ void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mTiles, SDL_Rect gTi
 
 }
 
-void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSpriteClips[], SDL_Texture **mAlien, SDL_Rect gAlien[], SDL_Texture **mTiles, SDL_Rect gTiles[], SDL_Texture *mMenu){
+void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSpriteClips[], SDL_Texture **mAlien, SDL_Rect gAlien[], SDL_Texture **mTiles, SDL_Rect gTiles[], SDL_Texture **mMenu){
     
     SDL_Surface* gSprinterSurface = IMG_Load("resources/SPACEMAN.PNG");
     *mSprinter = SDL_CreateTextureFromSurface(gRenderer, gSprinterSurface);
@@ -307,15 +307,25 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprit
         SDL_FreeSurface(gBackgroundSurface);
     }
 
-    SDL_Surface* gMenuSurface = IMG_Load("resources/menu.png"); // Sätt in rätt sökväg till din menybild
-    if (gMenuSurface == NULL) {
-        printf("Unable to load menu image: %s\n", IMG_GetError());
-    } else {
-        mMenu = SDL_CreateTextureFromSurface(gRenderer, gMenuSurface);
-        if (mMenu == NULL) {
+    // Laddar menybilden
+    SDL_Surface* gMenuSurface = IMG_Load("resources/menu.png"); // Anpassa sökvägen till din menybild
+    if (gMenuSurface != NULL) {
+        *mMenu = SDL_CreateTextureFromSurface(gRenderer, gMenuSurface);
+        if (*mMenu == NULL) {
             printf("Unable to create texture from menu surface: %s\n", SDL_GetError());
+            // Eventuell ytterligare felhantering här
         }
-        SDL_FreeSurface(gMenuSurface); // Glöm inte att frigöra minnet
+        SDL_FreeSurface(gMenuSurface); // Frigör minnet använt av tillfällig yta
+    } else {
+        printf("Unable to load menu image: %s\n", IMG_GetError());
+        // Hantera fel lämpligt, t.ex. genom att stänga av programmet eller försöka igen, t.ex:
+        /* printf("Unable to load menu image: %s\n", IMG_GetError());
+        // Här skulle du frigöra alla andra resurser som redan laddats
+        SDL_DestroyTexture(*mSprinter); // Exempel på att frigöra en sprite-textur
+        SDL_DestroyRenderer(gRenderer); // Frigör renderaren
+        SDL_DestroyWindow(gWindow); // Frigör fönstret
+        SDL_Quit(); // Avsluta SDL
+        exit(1); // Avsluta programmet med ett felmeddelande*/
     }
     
 }
