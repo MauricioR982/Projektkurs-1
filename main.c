@@ -22,7 +22,7 @@
 #undef main
 
 bool init(SDL_Renderer **gRenderer);
-void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSpriteClips[], SDL_Texture **mAlien, SDL_Rect gAlien[], SDL_Texture **mTiles, SDL_Rect gTiles[]);
+void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSpriteClips[], SDL_Texture **mAlien, SDL_Rect gAlien[], SDL_Texture **mTiles, SDL_Rect gTiles[], SDL_Texture *mMenu);
 void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mTile, SDL_Rect gTiles[]);
 
 typedef struct {
@@ -35,7 +35,7 @@ typedef struct {
     int y;
 } hPosition; //hunter spawn position lägg till funktionalitet
 
-
+/*
 typedef enum {
     MENU_START_GAME,
     MENU_TUTORIAL,
@@ -44,6 +44,7 @@ typedef enum {
 } MenuOption;
 
 MenuOption currentOption = MENU_START_GAME;
+*/
 
 
 int main(int argc, char* args[])
@@ -97,15 +98,47 @@ int main(int argc, char* args[])
     SDL_Rect gTiles[16];
 
     //Menu
+    SDL_Texture *mMenu = NULL;
+
+    /*
+    Arrow
     SDL_Texture *mArrow = NULL;
     SDL_Rect gArrowClip;
+    */
    
     if (init(&gRenderer)) {
         printf("worked\n");
     }
     
-    loadMedia(gRenderer, &mSprinter, gSpriteClips, &mAlien, gAlien, &mTiles, gTiles);
+    loadMedia(gRenderer, &mSprinter, gSpriteClips, &mAlien, gAlien, &mTiles, gTiles, &mMenu);
     
+    bool showMenu = true; // En flagga för att kontrollera om menyn ska visas
+    while (showMenu && !quit) {
+        while (SDL_PollEvent(&e)) {
+            if (e.type == SDL_QUIT) {
+                quit = true;
+            }
+            else if (e.type == SDL_KEYDOWN) {
+                // Användarinmatning för menyn hanteras här (t.ex. starta spelet eller avsluta)
+                // t.ex, om användaren trycker enter, avsluta menyn:
+                if (e.key.keysym.sym == SDLK_RETURN) {
+                    showMenu = false; // Avslutar menyloopen och går till spelet
+                }
+                // Lägg till kod för andra menyval (som Tutorial, Exit, etc.) här
+            }
+        }
+
+        // Rensa skärm
+        SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF); // Vit bakgrundsfärg
+        SDL_RenderClear(gRenderer);
+
+        // Rita menybilden
+        SDL_RenderCopy(gRenderer, mMenu, NULL, NULL); // Anta att menybilden passar hela skärmen
+
+        // Uppdatera skärmen
+        SDL_RenderPresent(gRenderer);
+    }
+
     // Game loop - 1. Game Event 2. Game Logic 3. Render Game
     while (!quit) {
     
@@ -199,7 +232,7 @@ void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mTiles, SDL_Rect gTi
 
 }
 
-void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSpriteClips[], SDL_Texture **mAlien, SDL_Rect gAlien[], SDL_Texture **mTiles, SDL_Rect gTiles[]){
+void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSpriteClips[], SDL_Texture **mAlien, SDL_Rect gAlien[], SDL_Texture **mTiles, SDL_Rect gTiles[], SDL_Texture *mMenu){
     
     SDL_Surface* gSprinterSurface = IMG_Load("resources/SPACEMAN.PNG");
     *mSprinter = SDL_CreateTextureFromSurface(gRenderer, gSprinterSurface);
@@ -272,6 +305,17 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprit
     } else {
         *mTiles = SDL_CreateTextureFromSurface(gRenderer, gBackgroundSurface);
         SDL_FreeSurface(gBackgroundSurface);
+    }
+
+    SDL_Surface* gMenuSurface = IMG_Load("resources/menu.png"); // Sätt in rätt sökväg till din menybild
+    if (gMenuSurface == NULL) {
+        printf("Unable to load menu image: %s\n", IMG_GetError());
+    } else {
+        mMenu = SDL_CreateTextureFromSurface(gRenderer, gMenuSurface);
+        if (mMenu == NULL) {
+            printf("Unable to create texture from menu surface: %s\n", SDL_GetError());
+        }
+        SDL_FreeSurface(gMenuSurface); // Glöm inte att frigöra minnet
     }
     
 }
