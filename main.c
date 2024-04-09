@@ -76,6 +76,7 @@ int main(int argc, char* args[])
             switch( e.key.keysym.sym )
             {
                 case SDLK_w:
+                case SDLK_UP:
                     position.y -= 8;
                     flip = SDL_FLIP_NONE;
                     if(frame == 4)
@@ -83,6 +84,8 @@ int main(int argc, char* args[])
                     else
                         frame = 4;
                     break;
+
+                case SDLK_DOWN:    
                 case SDLK_s:
                     position.y += 8;
                     flip = SDL_FLIP_NONE;
@@ -91,6 +94,7 @@ int main(int argc, char* args[])
                     else
                         frame = 0;
                     break;
+                case SDLK_LEFT:    
                 case SDLK_a:
                     position.x -= 8;
                     flip = SDL_FLIP_HORIZONTAL;
@@ -99,6 +103,7 @@ int main(int argc, char* args[])
                     else
                         frame = 2;
                     break;
+                case SDLK_RIGHT:    
                 case SDLK_d:
                     position.x += 8; 
                     flip = SDL_FLIP_NONE;
@@ -108,7 +113,6 @@ int main(int argc, char* args[])
                         frame = 2;
                     break;
                 default:
-                    
                     break;
             }
         }
