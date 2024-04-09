@@ -59,6 +59,7 @@ int main(int argc, char* args[])
     SDL_Renderer *gRenderer = NULL;
     bool quit = false;
     
+    
     // Spaceman
     SDL_Texture *mSprinter = NULL;
     SDL_Rect gSpriteClips[8];
@@ -91,7 +92,6 @@ int main(int argc, char* args[])
     
     loadMedia(gRenderer, &mSprinter, gSpriteClips, &mAlien, gAlien, &mTiles, gTiles);
     
-    bool keyUp = false, keyDown = false, keyLeft = false, keyRight = false;
     // Game loop - 1. Game Event 2. Game Logic 3. Render Game
     while (!quit) {
     
