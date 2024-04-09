@@ -25,7 +25,9 @@ void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mTile, SDL_Rect gTil
 
 int main(int argc, char* args[])
 {
-    
+    const int WINDOW_WIDTH = 1280;
+    const int WINDOW_HEIGHT = 720;
+
     SDL_Event e;
     SDL_Renderer *gRenderer = NULL;
     bool quit = false;
@@ -115,6 +117,17 @@ int main(int argc, char* args[])
                 default:
                     break;
             }
+            if (position.x < 0) {
+    position.x = 0;
+} else if (position.x + position.w > WINDOW_WIDTH) {
+    position.x = WINDOW_WIDTH - position.w;
+}
+
+if (position.y < 0) {
+    position.y = 0;
+} else if (position.y + position.h > WINDOW_HEIGHT) {
+    position.y = WINDOW_HEIGHT - position.h;
+}
         }
         
     }
