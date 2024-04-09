@@ -64,58 +64,56 @@ int main(int argc, char* args[])
     
     // Game loop - 1. Game Event 2. Game Logic 3. Render Game
     while (!quit) {
-        
-        // Game event
-        while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT) {
-                quit = true;
-            }
-            else if( e.type == SDL_KEYDOWN )
-            {
-                //Select surfaces based on key press
-                switch( e.key.keysym.sym )
-                {
-                    case SDLK_UP:
-                        printf("UP\n");
-                        // should be in game logic
-                        possition.y -= 2;
-                        flip = SDL_FLIP_NONE;
-                        if(frame == 4)
-                            frame = 5;
-                        else
-                            frame = 4;
-                        break;
-                    case SDLK_DOWN:
-                        possition.y += 2;
-                        flip = SDL_FLIP_NONE;
-                        if(frame == 0)
-                            frame = 1;
-                        else
-                            frame = 0;
-                        break;
-                    case SDLK_LEFT:
-                        possition.x -= 2;
-                        flip = SDL_FLIP_HORIZONTAL;
-                        if(frame == 2)
-                            frame = 3;
-                        else
-                            frame = 2;
-                        break;
-                    case SDLK_RIGHT:
-                        possition.x += 2;
-                        flip = SDL_FLIP_NONE;
-                        if(frame == 2)
-                            frame = 3;
-                        else
-                            frame = 2;
-                        break;
-                    default:
-                        
-                        break;
-                }
-            }
-            
+    
+    // Game event
+    while (SDL_PollEvent(&e)) {
+        if (e.type == SDL_QUIT) {
+            quit = true;
         }
+        else if( e.type == SDL_KEYDOWN )
+        {
+            //Select surfaces based on key press
+            switch( e.key.keysym.sym )
+            {
+                case SDLK_UP:
+                    possition.y -= 4; // Ökad från 2 till 4 för snabbare rörelse
+                    flip = SDL_FLIP_NONE;
+                    if(frame == 4)
+                        frame = 5;
+                    else
+                        frame = 4;
+                    break;
+                case SDLK_DOWN:
+                    possition.y += 4; // Ökad från 2 till 4 för snabbare rörelse
+                    flip = SDL_FLIP_NONE;
+                    if(frame == 0)
+                        frame = 1;
+                    else
+                        frame = 0;
+                    break;
+                case SDLK_LEFT:
+                    possition.x -= 4; // Ökad från 2 till 4 för snabbare rörelse
+                    flip = SDL_FLIP_HORIZONTAL;
+                    if(frame == 2)
+                        frame = 3;
+                    else
+                        frame = 2;
+                    break;
+                case SDLK_RIGHT:
+                    possition.x += 4; // Ökad från 2 till 4 för snabbare rörelse
+                    flip = SDL_FLIP_NONE;
+                    if(frame == 2)
+                        frame = 3;
+                    else
+                        frame = 2;
+                    break;
+                default:
+                    
+                    break;
+            }
+        }
+        
+    }
         
         // Game logic use ATD 
         AlienTick(a1);
