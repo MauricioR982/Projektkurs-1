@@ -22,7 +22,7 @@
 #undef main
 
 bool init(SDL_Renderer **gRenderer);
-void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSpriteClips[], SDL_Texture **mAlien, SDL_Rect gAlien[], SDL_Texture **mTiles, SDL_Rect gTiles[], SDL_Texture **mMenu);
+void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSpriteClips[], SDL_Texture **mAlien, SDL_Rect gAlien[], SDL_Texture **mTiles, SDL_Rect gTiles[], SDL_Texture **mMenu, SDL_Texture **mArrow);
 void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mTile, SDL_Rect gTiles[]);
 
 typedef struct {
@@ -35,16 +35,16 @@ typedef struct {
     int y;
 } hPosition; //hunter spawn position lägg till funktionalitet
 
-/*
+
 typedef enum {
     MENU_START_GAME,
+    MENU_MULTIPLAYER,
     MENU_TUTORIAL,
     MENU_EXIT,
-    MENU_TOTAL // Antal menyalternativ
+    MENU_TOTAL //Antal menyalternativ
 } MenuOption;
 
 MenuOption currentOption = MENU_START_GAME;
-*/
 
 
 int main(int argc, char* args[])
@@ -100,14 +100,19 @@ int main(int argc, char* args[])
     //Menu
     SDL_Texture *mMenu = NULL;
 
+    //Arrow in menu
+    SDL_Texture *mArrow = NULL;
 
    
     if (init(&gRenderer)) {
         printf("worked\n");
     }
     
-    loadMedia(gRenderer, &mSprinter, gSpriteClips, &mAlien, gAlien, &mTiles, gTiles, &mMenu);
+    loadMedia(gRenderer, &mSprinter, gSpriteClips, &mAlien, gAlien, &mTiles, gTiles, &mMenu, &mArrow);
+
     
+    
+    //Menyloop
     bool showMenu = true; // En flagga för att kontrollera om menyn ska visas
     while (showMenu && !quit) {
         while (SDL_PollEvent(&e)) {
@@ -123,21 +128,17 @@ int main(int argc, char* args[])
                 // Lägg till kod för andra menyval (som Tutorial, Exit, etc.) här
             }
         }
-
-        // Rensa skärm
+        
         SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF); // Vit bakgrundsfärg
         SDL_RenderClear(gRenderer);
-
-        // Rita menybilden
         SDL_RenderCopy(gRenderer, mMenu, NULL, NULL); // Anta att menybilden passar hela skärmen
-
-        // Uppdatera skärmen
+        SDL_Rect testArrowPos = {400, 100, 40, 40}; // Testa med en liten rektangel för pilen
+        SDL_RenderCopy(gRenderer, mArrow, NULL, &testArrowPos);
         SDL_RenderPresent(gRenderer);
     }
 
     // Game loop - 1. Game Event 2. Game Logic 3. Render Game
     while (!quit) {
-    
     // Game event
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_QUIT) {
@@ -222,13 +223,12 @@ int main(int argc, char* args[])
     return 0;
 }
 
-void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mTiles, SDL_Rect gTiles[]){
-    
+void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mTiles, SDL_Rect gTiles[])
+{
     SDL_RenderCopy(gRenderer, mTiles, NULL, NULL);
-
 }
 
-void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSpriteClips[], SDL_Texture **mAlien, SDL_Rect gAlien[], SDL_Texture **mTiles, SDL_Rect gTiles[], SDL_Texture **mMenu){
+void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSpriteClips[], SDL_Texture **mAlien, SDL_Rect gAlien[], SDL_Texture **mTiles, SDL_Rect gTiles[], SDL_Texture **mMenu, SDL_Texture **mArrow){
     
     SDL_Surface* gSprinterSurface = IMG_Load("resources/SPACEMAN.PNG");
     *mSprinter = SDL_CreateTextureFromSurface(gRenderer, gSprinterSurface);
@@ -303,8 +303,22 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprit
         SDL_FreeSurface(gBackgroundSurface);
     }
 
+    // Laddar pilbilden för menyn
+    SDL_Surface* gArrowSurface = IMG_Load("resources/arrow1.png");
+    if (gArrowSurface == NULL) {
+        printf("Unable to load arrow image: %s\n", IMG_GetError());
+        // Eventuell felhantering här
+    } else {
+        *mArrow = SDL_CreateTextureFromSurface(gRenderer, gArrowSurface);
+        if (*mArrow == NULL) {
+            printf("Unable to create texture from arrow surface: %s\n", SDL_GetError());
+            // Eventuell felhantering här
+        }
+        SDL_FreeSurface(gArrowSurface);
+}
+
     // Laddar menybilden
-    SDL_Surface* gMenuSurface = IMG_Load("resources/MENU.png"); // Anpassa sökvägen till din menybild
+    SDL_Surface* gMenuSurface = IMG_Load("resources/MENU.png");
     if (gMenuSurface != NULL) {
         *mMenu = SDL_CreateTextureFromSurface(gRenderer, gMenuSurface);
         if (*mMenu == NULL) {
@@ -321,7 +335,8 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprit
         SDL_Quit();
         exit(1);*/
     }
-    
+
+
 }
 
 
