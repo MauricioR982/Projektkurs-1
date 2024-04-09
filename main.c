@@ -49,6 +49,13 @@ MenuOption currentOption = MENU_START_GAME;
 
 int main(int argc, char* args[])
 {
+    SDL_Rect arrowPositions[MENU_TOTAL] = {
+    {400, 220}, // Position för "START GAME"
+    {400, 320}, // Position för "3-5 Players"
+    {400, 420}, // Position för "Exit"
+    {400, 520}  // Position för "TUTORIAL"
+    };
+
     const int WINDOW_WIDTH = 1280;
     const int WINDOW_HEIGHT = 720;
     const int HORIZONTAL_MARGIN = 20; // vänster och höger kant kollision
@@ -109,8 +116,6 @@ int main(int argc, char* args[])
     }
     
     loadMedia(gRenderer, &mSprinter, gSpriteClips, &mAlien, gAlien, &mTiles, gTiles, &mMenu, &mArrow);
-
-    
     
     //Menyloop
     bool showMenu = true; // En flagga för att kontrollera om menyn ska visas
@@ -120,22 +125,54 @@ int main(int argc, char* args[])
                 quit = true;
             }
             else if (e.type == SDL_KEYDOWN) {
-                // Användarinmatning för menyn hanteras här (t.ex. starta spelet eller avsluta)
-                // t.ex, om användaren trycker enter, avsluta menyn:
-                if (e.key.keysym.sym == SDLK_RETURN) {
-                    showMenu = false; // Avslutar menyloopen och går till spelet
+                switch (e.key.keysym.sym) {
+                    case SDLK_UP:
+                        currentOption = (currentOption - 1 + MENU_TOTAL) % MENU_TOTAL;
+                        break;
+                    case SDLK_DOWN:
+                        currentOption = (currentOption + 1) % MENU_TOTAL;
+                        break;
+                    case SDLK_RETURN:
+                        switch (currentOption) {
+                            case MENU_START_GAME:
+                                // Starta spelet eller vad du nu vill göra här
+                                showMenu = false;
+                                break;
+                            case MENU_MULTIPLAYER:
+                                // Gå till multiplayer-spelet
+                                break;
+                            case MENU_TUTORIAL:
+                                // Visa tutorial
+                                break;
+                            case MENU_EXIT:
+                                quit = true; // Avsluta spelet
+                                break;
+                        }
+                        break;
                 }
-                // Lägg till kod för andra menyval (som Tutorial, Exit, etc.) här
-            }
         }
-        
-        SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF); // Vit bakgrundsfärg
-        SDL_RenderClear(gRenderer);
-        SDL_RenderCopy(gRenderer, mMenu, NULL, NULL); // Anta att menybilden passar hela skärmen
-        SDL_Rect testArrowPos = {400, 100, 40, 40}; // Testa med en liten rektangel för pilen
-        SDL_RenderCopy(gRenderer, mArrow, NULL, &testArrowPos);
-        SDL_RenderPresent(gRenderer);
     }
+
+    SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF); // Vit bakgrundsfärg
+    SDL_RenderClear(gRenderer); // Rensar renderaren
+    
+    if (mMenu != NULL) {
+        SDL_RenderCopy(gRenderer, mMenu, NULL, NULL); // Ritar ut menybilden
+    } else {
+        printf("Menu texture is not available.\n");
+    }
+
+    SDL_Rect arrowPos = arrowPositions[currentOption]; // Hämtar den nuvarande pilpositionen
+    if (mArrow != NULL) {
+        SDL_RenderCopy(gRenderer, mArrow, NULL, &arrowPos); // Ritar ut pilen
+    } else {
+        printf("Arrow texture is not available.\n");
+    }
+
+    SDL_RenderPresent(gRenderer); // Presenterar renderaren
+}
+
+
 
     // Game loop - 1. Game Event 2. Game Logic 3. Render Game
     while (!quit) {
