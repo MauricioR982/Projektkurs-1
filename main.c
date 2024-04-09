@@ -308,7 +308,7 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprit
     }
 
     // Laddar menybilden
-    SDL_Surface* gMenuSurface = IMG_Load("resources/menu.png"); // Anpassa sökvägen till din menybild
+    SDL_Surface* gMenuSurface = IMG_Load("resources/MENU.png"); // Anpassa sökvägen till din menybild
     if (gMenuSurface != NULL) {
         *mMenu = SDL_CreateTextureFromSurface(gRenderer, gMenuSurface);
         if (*mMenu == NULL) {
@@ -318,14 +318,12 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprit
         SDL_FreeSurface(gMenuSurface); // Frigör minnet använt av tillfällig yta
     } else {
         printf("Unable to load menu image: %s\n", IMG_GetError());
-        // Hantera fel lämpligt, t.ex. genom att stänga av programmet eller försöka igen, t.ex:
         /* printf("Unable to load menu image: %s\n", IMG_GetError());
-        // Här skulle du frigöra alla andra resurser som redan laddats
-        SDL_DestroyTexture(*mSprinter); // Exempel på att frigöra en sprite-textur
-        SDL_DestroyRenderer(gRenderer); // Frigör renderaren
-        SDL_DestroyWindow(gWindow); // Frigör fönstret
-        SDL_Quit(); // Avsluta SDL
-        exit(1); // Avsluta programmet med ett felmeddelande*/
+        SDL_DestroyTexture(*mSprinter);
+        SDL_DestroyRenderer(gRenderer);
+        SDL_DestroyWindow(gWindow);
+        SDL_Quit();
+        exit(1);*/
     }
     
 }
