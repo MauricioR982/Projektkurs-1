@@ -199,7 +199,7 @@ void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mTiles, SDL_Rect gTi
 
 }
 
-void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSpriteClips[], SDL_Texture **mAlien, SDL_Rect gAlien[], SDL_Texture **mTiles, SDL_Rect gTiles[], SDL_Texture **mArrow, SDL_Rect *gArrowClip){
+void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSpriteClips[], SDL_Texture **mAlien, SDL_Rect gAlien[], SDL_Texture **mTiles, SDL_Rect gTiles[]){
     
     SDL_Surface* gSprinterSurface = IMG_Load("resources/SPACEMAN.PNG");
     *mSprinter = SDL_CreateTextureFromSurface(gRenderer, gSprinterSurface);
@@ -272,24 +272,6 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprit
     } else {
         *mTiles = SDL_CreateTextureFromSurface(gRenderer, gBackgroundSurface);
         SDL_FreeSurface(gBackgroundSurface);
-    }
-
-    // SDL-game menu
-    SDL_Surface* gArrowSurface = IMG_Load("resources/arrow1.png");
-    if (gArrowSurface == NULL) {
-        printf("Unable to load arrow image: %s\n", IMG_GetError());
-        // Hantera fel här, exempelvis genom att avsluta funktionen eller programmet
-    } else {
-        *mArrow = SDL_CreateTextureFromSurface(gRenderer, gArrowSurface);
-        if (*mArrow == NULL) {
-            printf("Unable to create texture from arrow surface: %s\n", SDL_GetError());
-            // Hantera fel här
-        }
-        gArrowClip->x = 0;
-        gArrowClip->y = 0;
-        gArrowClip->w = gArrowSurface->w;
-        gArrowClip->h = gArrowSurface->h;
-        SDL_FreeSurface(gArrowSurface);
     }
     
 }
