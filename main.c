@@ -34,11 +34,11 @@ int main(int argc, char* args[])
     SDL_Texture *mSpaceman = NULL;
     SDL_Rect gSpriteClips[8];
     SDL_RendererFlip flip = SDL_FLIP_NONE;
-    SDL_Rect possition;
-    possition.y = 64;
-    possition.x = 110;
-    possition.h = 32;
-    possition.w = 32;
+    SDL_Rect position;
+    position.y = 64;
+    position.x = 110;
+    position.h = 32;
+    position.w = 32;
     int frame = 6;
     
     // Alien 1 and 2
@@ -76,7 +76,7 @@ int main(int argc, char* args[])
             switch( e.key.keysym.sym )
             {
                 case SDLK_w:
-                    possition.y -= 8;
+                    position.y -= 8;
                     flip = SDL_FLIP_NONE;
                     if(frame == 4)
                         frame = 5;
@@ -84,7 +84,7 @@ int main(int argc, char* args[])
                         frame = 4;
                     break;
                 case SDLK_s:
-                    possition.y += 8;
+                    position.y += 8;
                     flip = SDL_FLIP_NONE;
                     if(frame == 0)
                         frame = 1;
@@ -92,7 +92,7 @@ int main(int argc, char* args[])
                         frame = 0;
                     break;
                 case SDLK_a:
-                    possition.x -= 8;
+                    position.x -= 8;
                     flip = SDL_FLIP_HORIZONTAL;
                     if(frame == 2)
                         frame = 3;
@@ -100,7 +100,7 @@ int main(int argc, char* args[])
                         frame = 2;
                     break;
                 case SDLK_d:
-                    possition.x += 8; 
+                    position.x += 8; 
                     flip = SDL_FLIP_NONE;
                     if(frame == 2)
                         frame = 3;
@@ -119,13 +119,13 @@ int main(int argc, char* args[])
         AlienTick(a1);
         a1possition.x = getAlienPositionY(a1);
         a1possition.y = getAlienPositionX(a1);
-        int foo = collidesWithImpassableTile(possition.x, possition.y);
+        int foo = collidesWithImpassableTile(position.x, position.y);
         
         // Game renderer
         SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
         SDL_RenderClear(gRenderer);
         renderBackground(gRenderer, mTiles, gTiles);
-        SDL_RenderCopyEx(gRenderer, mSpaceman, &gSpriteClips[frame],&possition , 0, NULL, flip);
+        SDL_RenderCopyEx(gRenderer, mSpaceman, &gSpriteClips[frame],&position , 0, NULL, flip);
         SDL_RenderCopyEx(gRenderer, mAlien, &gAlien[getAlienFrame(a1)],&a1possition ,270, NULL, SDL_FLIP_NONE);
         SDL_RenderCopyEx(gRenderer, mAlien, &gAlien[getAlienFrame(a2)],&a2possition ,270, NULL, SDL_FLIP_NONE);
         SDL_RenderPresent(gRenderer);
