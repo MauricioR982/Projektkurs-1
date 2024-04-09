@@ -58,6 +58,7 @@ int main(int argc, char* args[])
     SDL_Renderer *gRenderer = NULL;
     bool quit = false;
     
+    
     // Spaceman
     SDL_Texture *mSpaceman = NULL;
     SDL_Rect gSpriteClips[8];
@@ -144,10 +145,10 @@ int main(int argc, char* args[])
                     break;
             }
             if (position.x < HORIZONTAL_MARGIN) {
-    position.x = HORIZONTAL_MARGIN;
-} else if (position.x + position.w > WINDOW_WIDTH - HORIZONTAL_MARGIN) {
-    position.x = WINDOW_WIDTH - position.w - HORIZONTAL_MARGIN;
-}
+                position.x = HORIZONTAL_MARGIN;
+            } else if (position.x + position.w > WINDOW_WIDTH - HORIZONTAL_MARGIN) {
+                position.x = WINDOW_WIDTH - position.w - HORIZONTAL_MARGIN;
+            }
 
             if (position.y < 0) {
                 position.y = 0;
