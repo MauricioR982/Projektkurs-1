@@ -33,7 +33,7 @@ typedef enum {
     MENU_MULTIPLAYER,
     MENU_EXIT,
     MENU_TUTORIAL,
-    MENU_TOTAL //Nr of menuoptions
+    MENU_TOTAL
 } MenuOption;
 
 MenuOption currentOption = MENU_START_GAME;
@@ -112,25 +112,17 @@ int main(int argc, char* args[])
                         }
                         break;
                     case SDLK_RETURN:
-                        // Add logic here to handle menuchoice based on arrowYPosIndex after Return-press
-                        
-                        //showMenu = false; // Example to start game when 'START GAME' is choosen f.e.
-
+                        // Logic to handle choice based on arrowYPosIndex after Return-press
                         switch (arrowYPosIndex) {
                         case MENU_START_GAME:
-                            // Starta spelet
-                            showMenu = false; // Stänger menyn och startar spelet
+                            showMenu = false; // Closing menu and starting game
                             break;
                         case MENU_EXIT:
-                            // Avsluta programmet
-                            quit = true;  // Sätter quit till true så att hela loopen avslutas
-                            showMenu = false; // Stänger menyn
+                            quit = true;
+                            showMenu = false;
                             break;
-                        // Hantera andra menyval här
                     }
-
                         break;
-
                     // ... other cases here ...
                 }
             }
