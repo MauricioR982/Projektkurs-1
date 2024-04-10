@@ -198,44 +198,44 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprit
     SDL_Surface* gSprinterSurface = IMG_Load("resources/SPACEMAN.PNG");
     *mSprinter = SDL_CreateTextureFromSurface(gRenderer, gSprinterSurface);
   
-    gSpriteClips[ 0 ].x =   0;
-    gSpriteClips[ 0 ].y =   0;
-    gSpriteClips[ 0 ].w =  16;
+    gSpriteClips[ 0 ].x = 0;
+    gSpriteClips[ 0 ].y = 0;
+    gSpriteClips[ 0 ].w = 16;
     gSpriteClips[ 0 ].h = 16;
     
-    gSpriteClips[ 1 ].x =  16;
-    gSpriteClips[ 1 ].y =   0;
-    gSpriteClips[ 1 ].w =  16;
+    gSpriteClips[ 1 ].x = 16;
+    gSpriteClips[ 1 ].y = 0;
+    gSpriteClips[ 1 ].w = 16;
     gSpriteClips[ 1 ].h = 16;
     
     gSpriteClips[ 2 ].x = 32;
-    gSpriteClips[ 2 ].y =   0;
-    gSpriteClips[ 2 ].w =  16;
+    gSpriteClips[ 2 ].y = 0;
+    gSpriteClips[ 2 ].w = 16;
     gSpriteClips[ 2 ].h = 16;
     
     gSpriteClips[ 3 ].x = 48;
-    gSpriteClips[ 3 ].y =   0;
-    gSpriteClips[ 3 ].w =  16;
+    gSpriteClips[ 3 ].y = 0;
+    gSpriteClips[ 3 ].w = 16;
     gSpriteClips[ 3 ].h = 16;
     
     gSpriteClips[ 4 ].x = 64;
-    gSpriteClips[ 4 ].y =   0;
-    gSpriteClips[ 4 ].w =  16;
+    gSpriteClips[ 4 ].y = 0;
+    gSpriteClips[ 4 ].w = 16;
     gSpriteClips[ 4 ].h = 16;
     
     gSpriteClips[ 5 ].x = 80;
-    gSpriteClips[ 5 ].y =   0;
-    gSpriteClips[ 5 ].w =  16;
+    gSpriteClips[ 5 ].y = 0;
+    gSpriteClips[ 5 ].w = 16;
     gSpriteClips[ 5 ].h = 16;
     
     gSpriteClips[ 6 ].x = 96;
-    gSpriteClips[ 6 ].y =   0;
-    gSpriteClips[ 6 ].w =  16;
+    gSpriteClips[ 6 ].y = 0;
+    gSpriteClips[ 6 ].w = 16;
     gSpriteClips[ 6 ].h = 16;
     
     gSpriteClips[ 7 ].x = 112;
-    gSpriteClips[ 7 ].y =   0;
-    gSpriteClips[ 7 ].w =  16;
+    gSpriteClips[ 7 ].y = 0;
+    gSpriteClips[ 7 ].w = 16;
     gSpriteClips[ 7 ].h = 16;
     
     SDL_Surface* gTilesSurface = IMG_Load("resources/TILES.PNG");
@@ -293,7 +293,7 @@ bool init(SDL_Renderer **gRenderer) {
         printf("Fungerar ej\n");
         test = false;
     }
-    *gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED| SDL_RENDERER_PRESENTVSYNC);
+    *gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if(*gRenderer == NULL) {
         printf("Fungerar ej\n");
         test = false;
