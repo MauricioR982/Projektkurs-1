@@ -1,6 +1,7 @@
 //
 //  'main.c'
 //  Developed by Grupp 10 - Datateknik, on 2024-04-09.
+//  !note!: "f.e." = for example
 //
 
 #include <stdio.h>
@@ -86,7 +87,7 @@ int main(int argc, char* args[])
     
     loadMedia(gRenderer, &mSprinter, gSpriteClips, &mTiles, gTiles, &mMenu, &mArrow);
 
-    int arrowYPosIndex = 0; // Index for arrows position in menu
+    int arrowYPosIndex = 0; // Index for the arrows position in menu
     SDL_Rect arrowPos = {400, arrowYPositions[arrowYPosIndex], 40, 40}; 
 
     // Menu-loop
@@ -101,18 +102,18 @@ int main(int argc, char* args[])
                     case SDLK_UP:
                         arrowYPosIndex--;
                         if (arrowYPosIndex < 0) {
-                            arrowYPosIndex = MENU_TOTAL - 1; // Loops back to last alternative
+                            arrowYPosIndex = MENU_TOTAL - 1; //Loops back to last alternative
                         }
                         break;
                     case SDLK_DOWN:
                         arrowYPosIndex++;
                         if (arrowYPosIndex >= MENU_TOTAL) {
-                            arrowYPosIndex = 0; // Loops back to first alternative
+                            arrowYPosIndex = 0; //Loops back to first alternative
                         }
                         break;
                     case SDLK_RETURN:
-                        // Här kan du lägga till logik för att hantera val av menyalternativ baserat på arrowYPosIndex
-                        showMenu = false; // exempel på att starta spelet när 'START GAME' är vald
+                        // Lägg till logik här för att hantera menyval baserat på arrowYPosIndex
+                        showMenu = false; // Example to start game when 'START GAME' is choosen f.e.
                         break;
                     // ... andra case här ...
                 }
@@ -190,7 +191,6 @@ int main(int argc, char* args[])
             }
         }
     }
-
         // Game renderer
         SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
         SDL_RenderClear(gRenderer);
