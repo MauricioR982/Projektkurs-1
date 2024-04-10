@@ -86,7 +86,7 @@ int main(int argc, char* args[])
     
     loadMedia(gRenderer, &mSprinter, gSpriteClips, &mTiles, gTiles, &mMenu, &mArrow);
 
-    int arrowYPosIndex = 0; // Index för pilens position i meny
+    int arrowYPosIndex = 0; // Index for arrows position in menu
     SDL_Rect arrowPos = {400, arrowYPositions[arrowYPosIndex], 40, 40}; 
 
     // Menu-loop
@@ -101,13 +101,13 @@ int main(int argc, char* args[])
                     case SDLK_UP:
                         arrowYPosIndex--;
                         if (arrowYPosIndex < 0) {
-                            arrowYPosIndex = MENU_TOTAL - 1; // Loopar tillbaka till sista alternativet
+                            arrowYPosIndex = MENU_TOTAL - 1; // Loops back to last alternative
                         }
                         break;
                     case SDLK_DOWN:
                         arrowYPosIndex++;
                         if (arrowYPosIndex >= MENU_TOTAL) {
-                            arrowYPosIndex = 0; // Loopar tillbaka till första alternativet
+                            arrowYPosIndex = 0; // Loops back to first alternative
                         }
                         break;
                     case SDLK_RETURN:
@@ -117,10 +117,9 @@ int main(int argc, char* args[])
                     // ... andra case här ...
                 }
             }
-            arrowPos.y = arrowYPositions[arrowYPosIndex]; // Uppdaterar pilens position baserat på användarens val
+            arrowPos.y = arrowYPositions[arrowYPosIndex]; // Updating the arrows position based on users choice
         }
-        
-        SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF); // Vit bakgrundsfärg
+        SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
         SDL_RenderClear(gRenderer);
         SDL_RenderCopy(gRenderer, mMenu, NULL, NULL);
         SDL_RenderCopy(gRenderer, mArrow, NULL, &arrowPos);
