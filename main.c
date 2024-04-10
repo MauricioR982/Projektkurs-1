@@ -46,8 +46,8 @@ int main(int argc, char* args[])
     const int HORIZONTAL_MARGIN = 20; // left & right boundary collision
 
     sPosition startPos[] = {
-    {110, 64},   //1st pos
-    {110, 550},  //2nd pos
+    {100, 64},   //1st pos
+    {100, 550},  //2nd pos
     {1100, 64},  //3rd pos
     {1100, 550}   //4th pos
     };
