@@ -1,15 +1,9 @@
+//
 //  main.c
-//  SDLtesta
-//
-//  Created by Jonas Willén on 2021-03-29.
-//
-// #include <SDL2/SDL.h>
-// #include <SDL2/SDL_image.h> 
+//  Created by Grupp 10 - Datateknik, on 2024-04-09.
 //
 
 #include <stdio.h>
-//#include <SDL.h>
-//#include <SDL_image.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h> 
 #include <stdbool.h>
@@ -32,7 +26,7 @@ typedef struct {
 typedef struct {
     int x;
     int y;
-} hPosition; //hunter spawn position lägg till funktionalitet
+} hPosition; //hunter spawn position add functionality
 
 
 typedef enum {
@@ -40,35 +34,32 @@ typedef enum {
     MENU_MULTIPLAYER,
     MENU_TUTORIAL,
     MENU_EXIT,
-    MENU_TOTAL //Antal menyalternativ
+    MENU_TOTAL //Nr of menuoptions
 } MenuOption;
 
 MenuOption currentOption = MENU_START_GAME;
-
 
 int main(int argc, char* args[])
 {
     const int WINDOW_WIDTH = 1280;
     const int WINDOW_HEIGHT = 720;
-    const int HORIZONTAL_MARGIN = 20; // vänster och höger kant kollision
+    const int HORIZONTAL_MARGIN = 20; // left & right boundary collision
 
     sPosition startPos[] = {
-    {110, 64},   // Forsta position
-    {110, 550},  // Andra position
-    {1100, 64},  // Tredje position
-    {1100, 550}   // Fjarde position
+    {110, 64},   // 1st pos
+    {110, 550},  // 2nd pos
+    {1100, 64},  // 3rd pos
+    {1100, 550}   // 4th pos
     };
     
     int numPositions = sizeof(startPos) / sizeof(startPos[0]);
 
-    // At the beginning of your main function
-    srand(time(NULL)); // Seed the random number generator
-    int index = rand() % numPositions; // Randomly select an index
+    srand(time(NULL));
+    int index = rand() % numPositions;
 
     SDL_Event e;
     SDL_Renderer *gRenderer = NULL;
     bool quit = false;
-    
     
     // Spaceman
     SDL_Texture *mSprinter = NULL;
@@ -81,7 +72,6 @@ int main(int argc, char* args[])
     position.w = 32;
     int frame = 6;
     
-   
     // Background
     SDL_Texture *mTiles = NULL;
     SDL_Rect gTiles[16];
@@ -92,15 +82,12 @@ int main(int argc, char* args[])
     //Arrow in menu
     SDL_Texture *mArrow = NULL;
 
-   
     if (init(&gRenderer)) {
         printf("worked\n");
     }
     
     loadMedia(gRenderer, &mSprinter, gSpriteClips, &mTiles, gTiles, &mMenu, &mArrow);
 
-    
-    
     //Menyloop
     bool showMenu = true; // En flagga för att kontrollera om menyn ska visas
     while (showMenu && !quit) {
@@ -263,7 +250,7 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprit
         gTiles[i].h = getTileHeight();
     }
     
-
+    //Loading picture-file for Map
     SDL_Surface* gBackgroundSurface = IMG_Load("resources/Map.png");
     if(gBackgroundSurface == NULL) {
         printf("Kunde inte ladda bakgrundsbild: %s\n", IMG_GetError());
@@ -272,7 +259,7 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprit
         SDL_FreeSurface(gBackgroundSurface);
     }
 
-    // Laddar pilbilden för menyn
+    // Loading picture-file for arrow in menu
     SDL_Surface* gArrowSurface = IMG_Load("resources/arrow1.png");
     if (gArrowSurface == NULL) {
         printf("Unable to load arrow image: %s\n", IMG_GetError());
@@ -284,9 +271,9 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprit
             // Eventuell felhantering här
         }
         SDL_FreeSurface(gArrowSurface);
-}
+    }
 
-    // Laddar menybilden
+    // Loading picture-file for menu
     SDL_Surface* gMenuSurface = IMG_Load("resources/MENU.png");
     if (gMenuSurface != NULL) {
         *mMenu = SDL_CreateTextureFromSurface(gRenderer, gMenuSurface);
@@ -301,7 +288,6 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprit
 
 
 }
-
 
 bool init(SDL_Renderer **gRenderer){
     bool test = true;
@@ -318,5 +304,4 @@ bool init(SDL_Renderer **gRenderer){
         test = false;
     }
     return test;
-    
 }
