@@ -112,7 +112,7 @@ int main(int argc, char* args[])
                         }
                         break;
                     case SDLK_RETURN:
-                        // Lägg till logik här för att hantera menyval baserat på arrowYPosIndex
+                        // Add logic here to handle menuchoice based on arrowYPosIndex after Return-press
                         showMenu = false; // Example to start game when 'START GAME' is choosen f.e.
                         break;
                     // ... andra case här ...
