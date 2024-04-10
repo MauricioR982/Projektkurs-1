@@ -115,7 +115,7 @@ int main(int argc, char* args[])
                         // Add logic here to handle menuchoice based on arrowYPosIndex after Return-press
                         showMenu = false; // Example to start game when 'START GAME' is choosen f.e.
                         break;
-                    // ... andra case här ...
+                    // ... other cases here ...
                 }
             }
             arrowPos.y = arrowYPositions[arrowYPosIndex]; // Updating the arrows position based on users choice
