@@ -46,10 +46,10 @@ int main(int argc, char* args[])
     const int HORIZONTAL_MARGIN = 20; // left & right boundary collision
 
     sPosition startPos[] = {
-    {110, 64},   // 1st pos
-    {110, 550},  // 2nd pos
-    {1100, 64},  // 3rd pos
-    {1100, 550}   // 4th pos
+    {110, 64},   //1st pos
+    {110, 550},  //2nd pos
+    {1100, 64},  //3rd pos
+    {1100, 550}   //4th pos
     };
     
     int numPositions = sizeof(startPos) / sizeof(startPos[0]);
@@ -88,8 +88,8 @@ int main(int argc, char* args[])
     
     loadMedia(gRenderer, &mSprinter, gSpriteClips, &mTiles, gTiles, &mMenu, &mArrow);
 
-    //Menyloop
-    bool showMenu = true; // En flagga för att kontrollera om menyn ska visas
+    //Menu-loop
+    bool showMenu = true; // A flag to check if menu is to be shown
     while (showMenu && !quit) {
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) {
@@ -97,23 +97,23 @@ int main(int argc, char* args[])
             }
             else if (e.type == SDL_KEYDOWN) {
                 // Användarinmatning för menyn hanteras här (t.ex. starta spelet eller avsluta)
-                // t.ex, om användaren trycker enter, avsluta menyn:
+                // if user presses Enter, close the menu:
                 if (e.key.keysym.sym == SDLK_RETURN) {
-                    showMenu = false; // Avslutar menyloopen och går till spelet
+                    showMenu = false; // Closing the menu-loop & goto the game
                 }
                 // Lägg till kod för andra menyval (som Tutorial, Exit, etc.) här
             }
         }
         
-        SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF); // Vit bakgrundsfärg
+        SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF); // White background-color
         SDL_RenderClear(gRenderer);
-        SDL_RenderCopy(gRenderer, mMenu, NULL, NULL); // Anta att menybilden passar hela skärmen
-        SDL_Rect testArrowPos = {400, 100, 40, 40}; // Testa med en liten rektangel för pilen
+        SDL_RenderCopy(gRenderer, mMenu, NULL, NULL);
+        SDL_Rect testArrowPos = {400, 100, 40, 40}; // Little rectangle for the arrow
         SDL_RenderCopy(gRenderer, mArrow, NULL, &testArrowPos);
         SDL_RenderPresent(gRenderer);
     }
 
-    // Game loop - 1. Game Event 2. Game Logic 3. Render Game
+    // Game loop
     while (!quit) {
     // Game event
     while (SDL_PollEvent(&e)) {
@@ -179,7 +179,6 @@ int main(int argc, char* args[])
         }
         
     }
-        
         // Game renderer
         SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
         SDL_RenderClear(gRenderer);
@@ -263,12 +262,12 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprit
     SDL_Surface* gArrowSurface = IMG_Load("resources/arrow1.png");
     if (gArrowSurface == NULL) {
         printf("Unable to load arrow image: %s\n", IMG_GetError());
-        // Eventuell felhantering här
+        // Ev. felhantering här
     } else {
         *mArrow = SDL_CreateTextureFromSurface(gRenderer, gArrowSurface);
         if (*mArrow == NULL) {
             printf("Unable to create texture from arrow surface: %s\n", SDL_GetError());
-            // Eventuell felhantering här
+            // Ev. felhantering här
         }
         SDL_FreeSurface(gArrowSurface);
     }
@@ -279,14 +278,12 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprit
         *mMenu = SDL_CreateTextureFromSurface(gRenderer, gMenuSurface);
         if (*mMenu == NULL) {
             printf("Unable to create texture from menu surface: %s\n", SDL_GetError());
-            // Eventuell ytterligare felhantering här
+            // Ev.felhantering här
         }
-        SDL_FreeSurface(gMenuSurface); // Frigör minnet använt av tillfällig yta
+        SDL_FreeSurface(gMenuSurface);
     } else {
         printf("Unable to load menu image: %s\n", IMG_GetError());
     }
-
-
 }
 
 bool init(SDL_Renderer **gRenderer){
