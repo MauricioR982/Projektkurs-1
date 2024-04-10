@@ -1,5 +1,5 @@
 //
-//  main.c
+//  'main.c'
 //  Developed by Grupp 10 - Datateknik, on 2024-04-09.
 //
 
@@ -235,14 +235,6 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprit
     gSpriteClips[ 7 ].w = 16;
     gSpriteClips[ 7 ].h = 16;
     
-    SDL_Surface* gTilesSurface = IMG_Load("resources/TILES.PNG");
-    *mTiles = SDL_CreateTextureFromSurface(gRenderer, gTilesSurface);
-    for (int i = 0; i < 16; i++) {
-        gTiles[i].x = i*getTileWidth();
-        gTiles[i].y = 0;
-        gTiles[i].w = getTileWidth();
-        gTiles[i].h = getTileHeight();
-    }
     
     //Loading picture-file for Map
     SDL_Surface* gBackgroundSurface = IMG_Load("resources/MAP.png");
