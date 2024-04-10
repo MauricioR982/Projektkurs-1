@@ -110,15 +110,15 @@ int main(int argc, char* args[])
     //Arrow in menu
     SDL_Texture *mArrow = NULL;
 
-   
+
     if (init(&gRenderer)) {
         printf("worked\n");
     }
     
     loadMedia(gRenderer, &mSprinter, gSpriteClips, &mAlien, gAlien, &mTiles, gTiles, &mMenu, &mArrow);
     
-    //Menyloop
-    bool showMenu = true; // En flagga för att kontrollera om menyn ska visas
+    //Menu-loop
+    bool showMenu = true;   // A boolean flag to assure that the menu is shown
     while (showMenu && !quit) {
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) {
@@ -340,7 +340,7 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprit
         SDL_FreeSurface(gBackgroundSurface);
     }
 
-    // Laddar pilbilden för menyn
+    // Load arrow for menu
     SDL_Surface* gArrowSurface = IMG_Load("resources/arrow1.png");
     if (gArrowSurface == NULL) {
         printf("Unable to load arrow image: %s\n", IMG_GetError());
@@ -354,7 +354,7 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprit
         SDL_FreeSurface(gArrowSurface);
 }
 
-    // Laddar menybilden
+    // Load picture-file for menu
     SDL_Surface* gMenuSurface = IMG_Load("resources/MENU.png");
     if (gMenuSurface != NULL) {
         *mMenu = SDL_CreateTextureFromSurface(gRenderer, gMenuSurface);
@@ -362,15 +362,9 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprit
             printf("Unable to create texture from menu surface: %s\n", SDL_GetError());
             // Eventuell ytterligare felhantering här
         }
-        SDL_FreeSurface(gMenuSurface); // Frigör minnet använt av tillfällig yta
+        SDL_FreeSurface(gMenuSurface);
     } else {
         printf("Unable to load menu image: %s\n", IMG_GetError());
-        /* printf("Unable to load menu image: %s\n", IMG_GetError());
-        SDL_DestroyTexture(*mSprinter);
-        SDL_DestroyRenderer(gRenderer);
-        SDL_DestroyWindow(gWindow);
-        SDL_Quit();
-        exit(1);*/
     }
 
 
