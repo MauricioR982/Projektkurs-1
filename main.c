@@ -26,8 +26,7 @@ typedef struct {
 typedef struct {
     int x;
     int y;
-} hPosition; //Hunter spawn position, add functionality
-
+} hPosition; //Hunter spawn position
 
 typedef enum {
     MENU_START_GAME,
