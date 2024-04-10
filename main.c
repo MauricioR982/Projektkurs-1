@@ -1,6 +1,7 @@
 //
-//  main.c
-//  Created by Grupp 10 - Datateknik, on 2024-04-09.
+//  'main.c'
+//  Developed by Grupp 10 - Datateknik, on 2024-04-09.
+//  !note!: "f.e." = for example
 //
 
 #include <stdio.h>
@@ -8,7 +9,6 @@
 #include <SDL2/SDL_image.h> 
 #include <stdbool.h>
 #include "world.h"
-#include "Alien.h"
 #include <time.h>
 #include "sprinter.h"
 
@@ -26,18 +26,18 @@ typedef struct {
 typedef struct {
     int x;
     int y;
-} hPosition; //Hunter spawn position, add functionality
-
+} hPosition; //Hunter spawn position
 
 typedef enum {
     MENU_START_GAME,
     MENU_MULTIPLAYER,
-    MENU_TUTORIAL,
     MENU_EXIT,
-    MENU_TOTAL //Nr of menuoptions
+    MENU_TUTORIAL,
+    MENU_TOTAL
 } MenuOption;
 
 MenuOption currentOption = MENU_START_GAME;
+const int arrowYPositions[] = {100, 165, 220, 290}; // Y-positions for our menu-options
 
 int main(int argc, char* args[])
 {
@@ -60,7 +60,7 @@ int main(int argc, char* args[])
     SDL_Renderer *gRenderer = NULL;
     bool quit = false;
     
-    // Spaceman
+    // Sprinter
     SDL_Texture *mSprinter = NULL;
     SDL_Rect gSpriteClips[8];
     SDL_RendererFlip flip = SDL_FLIP_NONE;
@@ -87,28 +87,51 @@ int main(int argc, char* args[])
     
     loadMedia(gRenderer, &mSprinter, gSpriteClips, &mTiles, gTiles, &mMenu, &mArrow);
 
-    //Menu-loop
-    bool showMenu = true; // A flag to make shure menu shall be shown
+    int arrowYPosIndex = 0; // Index for the arrows position in menu
+    SDL_Rect arrowPos = {400, arrowYPositions[arrowYPosIndex], 40, 40}; 
+
+    // Menu-loop
+    bool showMenu = true;
     while (showMenu && !quit) {
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) {
                 quit = true;
             }
             else if (e.type == SDL_KEYDOWN) {
-                // User-input for the menu is handled here (f.e. start game or quit)
-                // if user presses Enter, close the menu:
-                if (e.key.keysym.sym == SDLK_RETURN) {
-                    showMenu = false; // Closing the menu-loop & on to the game
+                switch (e.key.keysym.sym) {
+                    case SDLK_UP:
+                        arrowYPosIndex--;
+                        if (arrowYPosIndex < 0) {
+                            arrowYPosIndex = MENU_TOTAL - 1; //Loops back to last alternative
+                        }
+                        break;
+                    case SDLK_DOWN:
+                        arrowYPosIndex++;
+                        if (arrowYPosIndex >= MENU_TOTAL) {
+                            arrowYPosIndex = 0; //Loops back to first alternative
+                        }
+                        break;
+                    case SDLK_RETURN:
+                        // Logic to handle choice based on arrowYPosIndex after Return-press
+                        switch (arrowYPosIndex) {
+                        case MENU_START_GAME:
+                            showMenu = false; // Closing menu and starting game
+                            break;
+                        case MENU_EXIT:
+                            quit = true;
+                            showMenu = false;
+                            break;
+                    }
+                        break;
+                    // ... other cases here ...
                 }
-                // Add code here for other menuoptions (Tutorial, Exit ...)
             }
+            arrowPos.y = arrowYPositions[arrowYPosIndex]; // Updating the arrows position based on users choice
         }
-        
-        SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF); // White background-color
+        SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
         SDL_RenderClear(gRenderer);
         SDL_RenderCopy(gRenderer, mMenu, NULL, NULL);
-        SDL_Rect testArrowPos = {400, 100, 40, 40}; // Little rectangle for the arrow
-        SDL_RenderCopy(gRenderer, mArrow, NULL, &testArrowPos);
+        SDL_RenderCopy(gRenderer, mArrow, NULL, &arrowPos);
         SDL_RenderPresent(gRenderer);
     }
 
@@ -133,7 +156,6 @@ int main(int argc, char* args[])
                     else
                         frame = 4;
                     break;
-
                 case SDLK_DOWN:    
                 case SDLK_s:
                     position.y += 8;
@@ -177,12 +199,11 @@ int main(int argc, char* args[])
             }
         }
     }
-
         // Game renderer
         SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
         SDL_RenderClear(gRenderer);
         renderBackground(gRenderer, mTiles, gTiles);
-        SDL_RenderCopyEx(gRenderer, mSprinter, &gSpriteClips[frame],&position , 0, NULL, flip);
+        SDL_RenderCopyEx(gRenderer, mSprinter, &gSpriteClips[frame], &position , 0, NULL, flip);
         SDL_RenderPresent(gRenderer);
     }
     return 0;
@@ -195,47 +216,47 @@ void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mTiles, SDL_Rect gTi
 
 void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSpriteClips[], SDL_Texture **mTiles, SDL_Rect gTiles[], SDL_Texture **mMenu, SDL_Texture **mArrow){
     
-    SDL_Surface* gSprinterSurface = IMG_Load("resources/SPACEMAN.PNG");
+    SDL_Surface* gSprinterSurface = IMG_Load("resources/SPRINTER.PNG");
     *mSprinter = SDL_CreateTextureFromSurface(gRenderer, gSprinterSurface);
   
-    gSpriteClips[ 0 ].x =   0;
-    gSpriteClips[ 0 ].y =   0;
-    gSpriteClips[ 0 ].w =  16;
+    gSpriteClips[ 0 ].x = 0;
+    gSpriteClips[ 0 ].y = 0;
+    gSpriteClips[ 0 ].w = 16;
     gSpriteClips[ 0 ].h = 16;
     
-    gSpriteClips[ 1 ].x =  16;
-    gSpriteClips[ 1 ].y =   0;
-    gSpriteClips[ 1 ].w =  16;
+    gSpriteClips[ 1 ].x = 16;
+    gSpriteClips[ 1 ].y = 0;
+    gSpriteClips[ 1 ].w = 16;
     gSpriteClips[ 1 ].h = 16;
     
     gSpriteClips[ 2 ].x = 32;
-    gSpriteClips[ 2 ].y =   0;
-    gSpriteClips[ 2 ].w =  16;
+    gSpriteClips[ 2 ].y = 0;
+    gSpriteClips[ 2 ].w = 16;
     gSpriteClips[ 2 ].h = 16;
     
     gSpriteClips[ 3 ].x = 48;
-    gSpriteClips[ 3 ].y =   0;
-    gSpriteClips[ 3 ].w =  16;
+    gSpriteClips[ 3 ].y = 0;
+    gSpriteClips[ 3 ].w = 16;
     gSpriteClips[ 3 ].h = 16;
     
     gSpriteClips[ 4 ].x = 64;
-    gSpriteClips[ 4 ].y =   0;
-    gSpriteClips[ 4 ].w =  16;
+    gSpriteClips[ 4 ].y = 0;
+    gSpriteClips[ 4 ].w = 16;
     gSpriteClips[ 4 ].h = 16;
     
     gSpriteClips[ 5 ].x = 80;
-    gSpriteClips[ 5 ].y =   0;
-    gSpriteClips[ 5 ].w =  16;
+    gSpriteClips[ 5 ].y = 0;
+    gSpriteClips[ 5 ].w = 16;
     gSpriteClips[ 5 ].h = 16;
     
     gSpriteClips[ 6 ].x = 96;
-    gSpriteClips[ 6 ].y =   0;
-    gSpriteClips[ 6 ].w =  16;
+    gSpriteClips[ 6 ].y = 0;
+    gSpriteClips[ 6 ].w = 16;
     gSpriteClips[ 6 ].h = 16;
     
     gSpriteClips[ 7 ].x = 112;
-    gSpriteClips[ 7 ].y =   0;
-    gSpriteClips[ 7 ].w =  16;
+    gSpriteClips[ 7 ].y = 0;
+    gSpriteClips[ 7 ].w = 16;
     gSpriteClips[ 7 ].h = 16;
     
     SDL_Surface* gTilesSurface = IMG_Load("resources/TILES.PNG");
@@ -248,7 +269,7 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprit
     }
     
     //Loading picture-file for Map
-    SDL_Surface* gBackgroundSurface = IMG_Load("resources/Map.png");
+    SDL_Surface* gBackgroundSurface = IMG_Load("resources/MAP.png");
     if(gBackgroundSurface == NULL) {
         printf("Kunde inte ladda bakgrundsbild: %s\n", IMG_GetError());
     } else {
@@ -257,7 +278,7 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprit
     }
 
     // Loading picture-file for arrow in menu
-    SDL_Surface* gArrowSurface = IMG_Load("resources/arrow1.png");
+    SDL_Surface* gArrowSurface = IMG_Load("resources/ARROW.png");
     if (gArrowSurface == NULL) {
         printf("Unable to load arrow image: %s\n", IMG_GetError());
         // Ev. error handling here
@@ -293,7 +314,7 @@ bool init(SDL_Renderer **gRenderer) {
         printf("Fungerar ej\n");
         test = false;
     }
-    *gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED| SDL_RENDERER_PRESENTVSYNC);
+    *gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if(*gRenderer == NULL) {
         printf("Fungerar ej\n");
         test = false;
