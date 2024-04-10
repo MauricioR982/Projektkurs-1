@@ -11,6 +11,7 @@
 #include "world.h"
 #include <time.h>
 #include "sprinter.h"
+#include "hunter.h"
 
 #undef main
 
