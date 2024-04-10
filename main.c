@@ -53,7 +53,6 @@ int main(int argc, char* args[])
     };
     
     int numPositions = sizeof(startPos) / sizeof(startPos[0]);
-
     srand(time(NULL));
     int index = rand() % numPositions;
 
@@ -178,7 +177,7 @@ int main(int argc, char* args[])
             }
         }
     }
-    
+
         // Game renderer
         SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
         SDL_RenderClear(gRenderer);
