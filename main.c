@@ -100,7 +100,7 @@ int main(int argc, char* args[])
                 if (e.key.keysym.sym == SDLK_RETURN) {
                     showMenu = false; // Closing the menu-loop & on to the game
                 }
-                // Add code here for other menuoptions (Tutorial, Exit ...)
+                // Add code here for the other menuoptions (Tutorial, Exit ...)
             }
         }
         
@@ -133,7 +133,6 @@ int main(int argc, char* args[])
                     else
                         frame = 4;
                     break;
-
                 case SDLK_DOWN:    
                 case SDLK_s:
                     position.y += 8;
