@@ -31,8 +31,8 @@ typedef struct {
 typedef enum {
     MENU_START_GAME,
     MENU_MULTIPLAYER,
-    MENU_TUTORIAL,
     MENU_EXIT,
+    MENU_TUTORIAL,
     MENU_TOTAL //Nr of menuoptions
 } MenuOption;
 
@@ -113,8 +113,24 @@ int main(int argc, char* args[])
                         break;
                     case SDLK_RETURN:
                         // Add logic here to handle menuchoice based on arrowYPosIndex after Return-press
-                        showMenu = false; // Example to start game when 'START GAME' is choosen f.e.
+                        
+                        //showMenu = false; // Example to start game when 'START GAME' is choosen f.e.
+
+                        switch (arrowYPosIndex) {
+                        case MENU_START_GAME:
+                            // Starta spelet
+                            showMenu = false; // Stänger menyn och startar spelet
+                            break;
+                        case MENU_EXIT:
+                            // Avsluta programmet
+                            quit = true;  // Sätter quit till true så att hela loopen avslutas
+                            showMenu = false; // Stänger menyn
+                            break;
+                        // Hantera andra menyval här
+                    }
+
                         break;
+
                     // ... other cases here ...
                 }
             }
