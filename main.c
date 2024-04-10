@@ -1,6 +1,6 @@
 //
 //  main.c
-//  Created by Grupp 10 - Datateknik, on 2024-04-09.
+//  Developed by Grupp 10 - Datateknik, on 2024-04-09.
 //
 
 #include <stdio.h>
