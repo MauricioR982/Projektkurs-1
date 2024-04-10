@@ -36,6 +36,7 @@ typedef enum {
 } MenuOption;
 
 MenuOption currentOption = MENU_START_GAME;
+const int arrowYPositions[] = {100, 140, 180, 220}; // Anta att dessa är korrekta Y-positioner för dina menyval
 
 int main(int argc, char* args[])
 {
@@ -85,28 +86,44 @@ int main(int argc, char* args[])
     
     loadMedia(gRenderer, &mSprinter, gSpriteClips, &mTiles, gTiles, &mMenu, &mArrow);
 
-    //Menu-loop
-    bool showMenu = true; // A flag to make shure menu shall be shown
+    int arrowYPosIndex = 0; // Index för pilens position i meny
+    SDL_Rect arrowPos = {400, arrowYPositions[arrowYPosIndex], 40, 40}; 
+
+    // Menu-loop
+    bool showMenu = true;
     while (showMenu && !quit) {
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) {
                 quit = true;
             }
             else if (e.type == SDL_KEYDOWN) {
-                // User-input for the menu is handled here (f.e. start game or quit)
-                // if user presses Enter, close the menu:
-                if (e.key.keysym.sym == SDLK_RETURN) {
-                    showMenu = false; // Closing the menu-loop & on to the game
+                switch (e.key.keysym.sym) {
+                    case SDLK_UP:
+                        arrowYPosIndex--;
+                        if (arrowYPosIndex < 0) {
+                            arrowYPosIndex = MENU_TOTAL - 1; // Loopar tillbaka till sista alternativet
+                        }
+                        break;
+                    case SDLK_DOWN:
+                        arrowYPosIndex++;
+                        if (arrowYPosIndex >= MENU_TOTAL) {
+                            arrowYPosIndex = 0; // Loopar tillbaka till första alternativet
+                        }
+                        break;
+                    case SDLK_RETURN:
+                        // Här kan du lägga till logik för att hantera val av menyalternativ baserat på arrowYPosIndex
+                        showMenu = false; // exempel på att starta spelet när 'START GAME' är vald
+                        break;
+                    // ... andra case här ...
                 }
-                // Add code here for the other menuoptions (Tutorial, Exit ...)
             }
+            arrowPos.y = arrowYPositions[arrowYPosIndex]; // Uppdaterar pilens position baserat på användarens val
         }
         
-        SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF); // White background-color
+        SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF); // Vit bakgrundsfärg
         SDL_RenderClear(gRenderer);
         SDL_RenderCopy(gRenderer, mMenu, NULL, NULL);
-        SDL_Rect testArrowPos = {400, 100, 40, 40}; // Little rectangle for the arrow
-        SDL_RenderCopy(gRenderer, mArrow, NULL, &testArrowPos);
+        SDL_RenderCopy(gRenderer, mArrow, NULL, &arrowPos);
         SDL_RenderPresent(gRenderer);
     }
 
@@ -179,7 +196,7 @@ int main(int argc, char* args[])
         SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
         SDL_RenderClear(gRenderer);
         renderBackground(gRenderer, mTiles, gTiles);
-        SDL_RenderCopyEx(gRenderer, mSprinter, &gSpriteClips[frame],&position , 0, NULL, flip);
+        SDL_RenderCopyEx(gRenderer, mSprinter, &gSpriteClips[frame], &position , 0, NULL, flip);
         SDL_RenderPresent(gRenderer);
     }
     return 0;
