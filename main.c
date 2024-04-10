@@ -21,7 +21,7 @@
 #undef main
 
 bool init(SDL_Renderer **gRenderer);
-void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSpriteClips[], SDL_Texture **mAlien, SDL_Rect gAlien[], SDL_Texture **mTiles, SDL_Rect gTiles[], SDL_Texture **mMenu, SDL_Texture **mArrow);
+void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSpriteClips[], SDL_Texture **mTiles, SDL_Rect gTiles[], SDL_Texture **mMenu, SDL_Texture **mArrow);
 void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mTile, SDL_Rect gTiles[]);
 
 typedef struct {
@@ -81,16 +81,6 @@ int main(int argc, char* args[])
     position.w = 32;
     int frame = 6;
     
-    // Alien 1 and 2
-    SDL_Texture *mAlien = NULL;
-    SDL_Rect gAlien[2];
-    Alien a1;
-    a1 = createAlien(41, 100);
-    SDL_Rect a1possition = {getAlienPositionY(a1),getAlienPositionX(a1),15,15};
-    
-    Alien a2;
-    a2 = createAlien(80, 100);
-    SDL_Rect a2possition = {getAlienPositionY(a1),getAlienPositionX(a1),15,15};
    
     // Background
     SDL_Texture *mTiles = NULL;
@@ -107,7 +97,7 @@ int main(int argc, char* args[])
         printf("worked\n");
     }
     
-    loadMedia(gRenderer, &mSprinter, gSpriteClips, &mAlien, gAlien, &mTiles, gTiles, &mMenu, &mArrow);
+    loadMedia(gRenderer, &mSprinter, gSpriteClips, &mTiles, gTiles, &mMenu, &mArrow);
 
     
     
@@ -203,19 +193,11 @@ int main(int argc, char* args[])
         
     }
         
-        // Game logic use ATD 
-        AlienTick(a1);
-        a1possition.x = getAlienPositionY(a1);
-        a1possition.y = getAlienPositionX(a1);
-        int foo = collidesWithImpassableTile(position.x, position.y);
-        
         // Game renderer
         SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
         SDL_RenderClear(gRenderer);
         renderBackground(gRenderer, mTiles, gTiles);
         SDL_RenderCopyEx(gRenderer, mSprinter, &gSpriteClips[frame],&position , 0, NULL, flip);
-        SDL_RenderCopyEx(gRenderer, mAlien, &gAlien[getAlienFrame(a1)],&a1possition ,270, NULL, SDL_FLIP_NONE);
-        SDL_RenderCopyEx(gRenderer, mAlien, &gAlien[getAlienFrame(a2)],&a2possition ,270, NULL, SDL_FLIP_NONE);
         SDL_RenderPresent(gRenderer);
     }
     
@@ -227,7 +209,7 @@ void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mTiles, SDL_Rect gTi
     SDL_RenderCopy(gRenderer, mTiles, NULL, NULL);
 }
 
-void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSpriteClips[], SDL_Texture **mAlien, SDL_Rect gAlien[], SDL_Texture **mTiles, SDL_Rect gTiles[], SDL_Texture **mMenu, SDL_Texture **mArrow){
+void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSpriteClips[], SDL_Texture **mTiles, SDL_Rect gTiles[], SDL_Texture **mMenu, SDL_Texture **mArrow){
     
     SDL_Surface* gSprinterSurface = IMG_Load("resources/SPACEMAN.PNG");
     *mSprinter = SDL_CreateTextureFromSurface(gRenderer, gSprinterSurface);
@@ -281,18 +263,6 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprit
         gTiles[i].h = getTileHeight();
     }
     
-    //SDL_Surface* gSAlien = IMG_Load("resources/ALIEN.PNG");
-    //*mAlien = SDL_CreateTextureFromSurface(gRenderer, gSAlien);
-    gAlien[ 0 ].x = 0;
-    gAlien[ 0 ].y = 0;
-    gAlien[ 0 ].w = 15;
-    gAlien[ 0 ].h = 15;
-    
-    gAlien[ 1 ].x = 15;
-    gAlien[ 1 ].y = 0;
-    gAlien[ 1 ].w = 15;
-    gAlien[ 1 ].h = 15;
-    
 
     SDL_Surface* gBackgroundSurface = IMG_Load("resources/Map.png");
     if(gBackgroundSurface == NULL) {
@@ -327,12 +297,6 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprit
         SDL_FreeSurface(gMenuSurface); // Frigör minnet använt av tillfällig yta
     } else {
         printf("Unable to load menu image: %s\n", IMG_GetError());
-        /* printf("Unable to load menu image: %s\n", IMG_GetError());
-        SDL_DestroyTexture(*mSprinter);
-        SDL_DestroyRenderer(gRenderer);
-        SDL_DestroyWindow(gWindow);
-        SDL_Quit();
-        exit(1);*/
     }
 
 
