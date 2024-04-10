@@ -26,7 +26,7 @@ typedef struct {
 typedef struct {
     int x;
     int y;
-} hPosition; //hunter spawn position add functionality
+} hPosition; //Hunter spawn position, add functionality
 
 
 typedef enum {
@@ -88,19 +88,19 @@ int main(int argc, char* args[])
     loadMedia(gRenderer, &mSprinter, gSpriteClips, &mTiles, gTiles, &mMenu, &mArrow);
 
     //Menu-loop
-    bool showMenu = true; // A flag to check if menu is to be shown
+    bool showMenu = true; // A flag to make shure menu shall be shown
     while (showMenu && !quit) {
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) {
                 quit = true;
             }
             else if (e.type == SDL_KEYDOWN) {
-                // Användarinmatning för menyn hanteras här (t.ex. starta spelet eller avsluta)
+                // User-input for the menu is handled here (f.e. start game or quit)
                 // if user presses Enter, close the menu:
                 if (e.key.keysym.sym == SDLK_RETURN) {
-                    showMenu = false; // Closing the menu-loop & goto the game
+                    showMenu = false; // Closing the menu-loop & on to the game
                 }
-                // Lägg till kod för andra menyval (som Tutorial, Exit, etc.) här
+                // Add code here for other menuoptions (Tutorial, Exit ...)
             }
         }
         
@@ -112,7 +112,7 @@ int main(int argc, char* args[])
         SDL_RenderPresent(gRenderer);
     }
 
-    // Game loop
+    // Game-loop
     while (!quit) {
     // Game event
     while (SDL_PollEvent(&e)) {
@@ -121,7 +121,7 @@ int main(int argc, char* args[])
         }
         else if( e.type == SDL_KEYDOWN )
         {
-            //Select surfaces based on key press
+            //Select surfaces based on keypress
             switch( e.key.keysym.sym )
             {
                 case SDLK_w:
@@ -260,12 +260,12 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprit
     SDL_Surface* gArrowSurface = IMG_Load("resources/arrow1.png");
     if (gArrowSurface == NULL) {
         printf("Unable to load arrow image: %s\n", IMG_GetError());
-        // Ev. felhantering här
+        // Ev. error handling here
     } else {
         *mArrow = SDL_CreateTextureFromSurface(gRenderer, gArrowSurface);
         if (*mArrow == NULL) {
             printf("Unable to create texture from arrow surface: %s\n", SDL_GetError());
-            // Ev. felhantering här
+            // Ev. error handling here
         }
         SDL_FreeSurface(gArrowSurface);
     }
@@ -276,7 +276,7 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprit
         *mMenu = SDL_CreateTextureFromSurface(gRenderer, gMenuSurface);
         if (*mMenu == NULL) {
             printf("Unable to create texture from menu surface: %s\n", SDL_GetError());
-            // Ev.felhantering här
+            // Ev. error handling here
         }
         SDL_FreeSurface(gMenuSurface);
     } else {
@@ -284,17 +284,17 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprit
     }
 }
 
-bool init(SDL_Renderer **gRenderer){
+bool init(SDL_Renderer **gRenderer) {
     bool test = true;
     SDL_Window  *gWindow = NULL;
     SDL_Init(SDL_INIT_VIDEO);
     gWindow = SDL_CreateWindow("SDL Test", SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED, 1280, 720, SDL_WINDOW_SHOWN);
-    if(gWindow == NULL){
+    if(gWindow == NULL) {
         printf("Fungerar ej\n");
         test = false;
     }
     *gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED| SDL_RENDERER_PRESENTVSYNC);
-    if(*gRenderer == NULL){
+    if(*gRenderer == NULL) {
         printf("Fungerar ej\n");
         test = false;
     }
