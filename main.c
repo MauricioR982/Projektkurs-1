@@ -186,7 +186,6 @@ int main(int argc, char* args[])
         SDL_RenderCopyEx(gRenderer, mSprinter, &gSpriteClips[frame],&position , 0, NULL, flip);
         SDL_RenderPresent(gRenderer);
     }
-    
     return 0;
 }
 
