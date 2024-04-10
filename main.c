@@ -37,7 +37,7 @@ typedef enum {
 } MenuOption;
 
 MenuOption currentOption = MENU_START_GAME;
-const int arrowYPositions[] = {100, 140, 180, 220}; // Anta att dessa är korrekta Y-positioner för dina menyval
+const int arrowYPositions[] = {100, 165, 220, 290}; // Y-positions for our menu-options
 
 int main(int argc, char* args[])
 {
