@@ -60,7 +60,7 @@ int main(int argc, char* args[])
     SDL_Renderer *gRenderer = NULL;
     bool quit = false;
     
-    // Spaceman
+    // Sprinter
     SDL_Texture *mSprinter = NULL;
     SDL_Rect gSpriteClips[8];
     SDL_RendererFlip flip = SDL_FLIP_NONE;
@@ -216,7 +216,7 @@ void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mTiles, SDL_Rect gTi
 
 void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSpriteClips[], SDL_Texture **mTiles, SDL_Rect gTiles[], SDL_Texture **mMenu, SDL_Texture **mArrow){
     
-    SDL_Surface* gSprinterSurface = IMG_Load("resources/SPACEMAN.PNG");
+    SDL_Surface* gSprinterSurface = IMG_Load("resources/SPRINTER.PNG");
     *mSprinter = SDL_CreateTextureFromSurface(gRenderer, gSprinterSurface);
   
     gSpriteClips[ 0 ].x = 0;
