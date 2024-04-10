@@ -246,7 +246,7 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprit
     }
     
     //Loading picture-file for Map
-    SDL_Surface* gBackgroundSurface = IMG_Load("resources/Map.png");
+    SDL_Surface* gBackgroundSurface = IMG_Load("resources/MAP.png");
     if(gBackgroundSurface == NULL) {
         printf("Kunde inte ladda bakgrundsbild: %s\n", IMG_GetError());
     } else {
@@ -255,7 +255,7 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprit
     }
 
     // Loading picture-file for arrow in menu
-    SDL_Surface* gArrowSurface = IMG_Load("resources/arrow1.png");
+    SDL_Surface* gArrowSurface = IMG_Load("resources/ARROW.png");
     if (gArrowSurface == NULL) {
         printf("Unable to load arrow image: %s\n", IMG_GetError());
         // Ev. error handling here
