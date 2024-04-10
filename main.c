@@ -26,7 +26,7 @@ typedef struct {
 typedef struct {
     int x;
     int y;
-} hPosition; //hunter spawn position, add functionality
+} hPosition; //Hunter spawn position, add functionality
 
 
 typedef enum {
@@ -98,9 +98,9 @@ int main(int argc, char* args[])
                 // User-input for the menu is handled here (f.e. start game or quit)
                 // if user presses Enter, close the menu:
                 if (e.key.keysym.sym == SDLK_RETURN) {
-                    showMenu = false; // Closing the menu-loop & goto the game
+                    showMenu = false; // Closing the menu-loop & on to the game
                 }
-                // Add code here for other menuoptions (Tutorial, Exit, etc.)
+                // Add code here for other menuoptions (Tutorial, Exit ...)
             }
         }
         
