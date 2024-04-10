@@ -292,7 +292,7 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprit
     }
 
     // Loading picture-file for menu
-    SDL_Surface* gMenuSurface = IMG_Load("resources/MENU.png");
+    SDL_Surface* gMenuSurface = IMG_Load("resources/NEWMENU.png");
     if (gMenuSurface != NULL) {
         *mMenu = SDL_CreateTextureFromSurface(gRenderer, gMenuSurface);
         if (*mMenu == NULL) {
