@@ -262,13 +262,11 @@ int main(int argc, char* args[])
         SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
         SDL_RenderClear(gRenderer);
         renderBackground(gRenderer, mTiles, gTiles);
-       if (playerRole == ROLE_SPRINTER) {
-        // Render Sprinter
-        SDL_RenderCopyEx(gRenderer, mSprinter, &gSpriteClips[frame], &position, 0, NULL, flip);
-    } else if (playerRole == ROLE_HUNTER) {
-        // Render Hunter
-        SDL_RenderCopyEx(gRenderer, mHunter, &gHunterSpriteClips[hunterFrame], &hunterPosition, 0, NULL, flipHunter);
-    }
+        if (playerRole == ROLE_SPRINTER) {
+            SDL_RenderCopyEx(gRenderer, mSprinter, &gSpriteClips[frame], &position, 0, NULL, flip);
+        } else if (playerRole == ROLE_HUNTER) {
+            SDL_RenderCopyEx(gRenderer, mHunter, &gHunterSpriteClips[hunterFrame], &hunterPosition, 0, NULL, flipHunter);
+        }
 
     SDL_RenderPresent(gRenderer);
     }
