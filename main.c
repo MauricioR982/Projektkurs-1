@@ -18,6 +18,7 @@
 bool init(SDL_Renderer **gRenderer);
 void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprinterSpriteClips[], SDL_Texture **mHunter, SDL_Rect gHunterSpriteClips[], SDL_Texture **mTiles, SDL_Rect gTiles[], SDL_Texture **mMenu, SDL_Texture **mArrow);
 void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mTile, SDL_Rect gTiles[]);
+void showTutorial(SDL_Renderer *gRenderer);
 
 typedef struct {
     int x;
@@ -58,6 +59,7 @@ int main(int argc, char* args[])
     int index = rand() % numPositions;
 
     SDL_Event e;
+    SDL_Window* gWindow = NULL;
     SDL_Renderer *gRenderer = NULL;
     bool quit = false;
     
@@ -224,6 +226,7 @@ int main(int argc, char* args[])
         SDL_RenderCopyEx(gRenderer, mHunter, &gHunterSpriteClips[hunterFrame], &hunterPosition, 0, NULL, flip);
         SDL_RenderPresent(gRenderer);
     }
+    closeSDL(gRenderer, gWindow);
     return 0;
 }
 
@@ -429,4 +432,22 @@ void showTutorial(SDL_Renderer *gRenderer) {
 
     // Clean up
     SDL_DestroyTexture(tutorialTexture);
+}
+
+void closeSDL(SDL_Renderer* renderer, SDL_Window* window) {
+    // Rensa upp renderaren
+    if (renderer != NULL) {
+        SDL_DestroyRenderer(renderer);
+    }
+
+    // Rensa upp fönstret
+    if (window != NULL) {
+        SDL_DestroyWindow(window);
+    }
+
+    // Avsluta SDL_image
+    IMG_Quit();
+
+    // Avsluta SDL
+    SDL_Quit();
 }
