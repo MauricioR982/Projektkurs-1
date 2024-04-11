@@ -277,6 +277,7 @@ void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mTiles, SDL_Rect gTi
 {
     SDL_RenderCopy(gRenderer, mTiles, NULL, NULL);
 }
+
 void showTutorial(SDL_Renderer *gRenderer) {
     // Load the tutorial image
     SDL_Surface* tutorialSurface = IMG_Load("resources/TUTORIALBACKGROUND.png");
