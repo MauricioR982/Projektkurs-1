@@ -82,6 +82,7 @@ int main(int argc, char* args[])
     // Hunter
     SDL_Texture *mHunter = NULL;
     SDL_Rect gHunterSpriteClips[8];  // Assuming 8 frames like Sprinter
+    SDL_RendererFlip flipHunter = SDL_FLIP_NONE;
     SDL_Rect hunterPosition;
     hunterPosition.x = 600;
     hunterPosition.y = 300;
@@ -179,7 +180,7 @@ int main(int argc, char* args[])
                             frame = 4;
                     } else if (playerRole == ROLE_HUNTER) {
                         hunterPosition.y -= 8;
-                        flip = SDL_FLIP_NONE;
+                        flipHunter = SDL_FLIP_NONE;
                         if (hunterFrame == 4)
                             hunterFrame = 5;
                         else
@@ -197,7 +198,7 @@ int main(int argc, char* args[])
                             frame = 0;
                     } else if (playerRole == ROLE_HUNTER) {
                         hunterPosition.y += 8;
-                        flip = SDL_FLIP_NONE;
+                        flipHunter = SDL_FLIP_NONE;
                         if (hunterFrame == 0)
                             hunterFrame = 1;
                         else
@@ -215,7 +216,7 @@ int main(int argc, char* args[])
                             frame = 2;
                     } else if (playerRole == ROLE_HUNTER) {
                         hunterPosition.x -= 8;
-                        flip = SDL_FLIP_HORIZONTAL;
+                        flipHunter = SDL_FLIP_HORIZONTAL;
                         if (hunterFrame == 2)
                             hunterFrame = 3;
                         else
@@ -233,7 +234,7 @@ int main(int argc, char* args[])
                             frame = 2;
                     } else if (playerRole == ROLE_HUNTER) {
                         hunterPosition.x += 8;
-                        mHunter = SDL_FLIP_NONE;
+                        flipHunter = SDL_FLIP_NONE;
                         if (hunterFrame == 2)
                             hunterFrame = 3;
                         else
@@ -261,9 +262,15 @@ int main(int argc, char* args[])
         SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
         SDL_RenderClear(gRenderer);
         renderBackground(gRenderer, mTiles, gTiles);
+       if (playerRole == ROLE_SPRINTER) {
+        // Render Sprinter
         SDL_RenderCopyEx(gRenderer, mSprinter, &gSpriteClips[frame], &position, 0, NULL, flip);
-        SDL_RenderCopyEx(gRenderer, mHunter, &gHunterSpriteClips[hunterFrame], &hunterPosition, 0, NULL, flip);
-        SDL_RenderPresent(gRenderer);
+    } else if (playerRole == ROLE_HUNTER) {
+        // Render Hunter
+        SDL_RenderCopyEx(gRenderer, mHunter, &gHunterSpriteClips[hunterFrame], &hunterPosition, 0, NULL, flipHunter);
+    }
+
+    SDL_RenderPresent(gRenderer);
     }
     return 0;
 }
