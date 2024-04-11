@@ -381,6 +381,10 @@ bool init(SDL_Renderer **gRenderer) {
         printf("Fungerar ej\n");
         test = false;
     }
+    if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
+        printf("SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError());
+        test = false;
+    }
     return test;
 }
 
