@@ -134,10 +134,10 @@ int main(int argc, char* args[])
                             quit = true;
                             showMenu = false;
                             break;
-                    case MENU_TUTORIAL:
+                        case MENU_TUTORIAL:
                             showTutorial(gRenderer);
                             showMenu = true; // This will be your new tutorial function
-                        break;
+                            break;
                     }
                         break;
                     // ... other cases here ...
