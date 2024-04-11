@@ -19,6 +19,7 @@ bool init(SDL_Renderer **gRenderer);
 void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprinterSpriteClips[], SDL_Texture **mHunter, SDL_Rect gHunterSpriteClips[], SDL_Texture **mTiles, SDL_Rect gTiles[], SDL_Texture **mMenu, SDL_Texture **mArrow);
 void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mTile, SDL_Rect gTiles[]);
 void showTutorial(SDL_Renderer *gRenderer);
+void closeSDL(SDL_Renderer* renderer, SDL_Window* window);
 
 typedef struct {
     int x;
@@ -32,9 +33,9 @@ typedef struct {
 
 typedef enum {
     MENU_START_GAME,
-    MENU_MULTIPLAYER,
-    MENU_EXIT,
     MENU_TUTORIAL,
+    MENU_EXIT,
+    MENU_MULTIPLAYER,
     MENU_TOTAL
 } MenuOption;
 
@@ -132,13 +133,19 @@ int main(int argc, char* args[])
                         case MENU_START_GAME:
                             showMenu = false; // Closing menu and starting game
                             break;
-                        case MENU_EXIT:
-                            quit = true;
-                            showMenu = false;
-                            break;
+                        
+                        
                         case MENU_TUTORIAL:
                             showTutorial(gRenderer);
                             showMenu = true; // This will be your new tutorial function
+                            break;
+                            
+                        case MENU_MULTIPLAYER:
+                            quit = true;
+                            break;
+                        case MENU_EXIT:
+                            quit = true;
+                            showMenu = false;
                             break;
                     }
                         break;
@@ -375,6 +382,10 @@ bool init(SDL_Renderer **gRenderer) {
     SDL_Window  *gWindow = NULL;
     SDL_Init(SDL_INIT_VIDEO);
     gWindow = SDL_CreateWindow("SDL Test", SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED, 1280, 720, SDL_WINDOW_SHOWN);
+    if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
+        printf("SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError());
+        test = false;
+    }
     if(gWindow == NULL) {
         printf("Fungerar ej\n");
         test = false;
@@ -384,22 +395,27 @@ bool init(SDL_Renderer **gRenderer) {
         printf("Fungerar ej\n");
         test = false;
     }
-    if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
-        printf("SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError());
-        test = false;
-    }
+    
     return test;
 }
 
 void showTutorial(SDL_Renderer *gRenderer) {
+    printf("Entering showTutorial\n"); // Debugging log
+
     // Load tutorial image or text
     SDL_Surface* tutorialSurface = IMG_Load("resources/TUTORIAL.png");
     if (!tutorialSurface) {
         printf("Unable to load tutorial image: %s\n", IMG_GetError());
-        return; // Add error handling as appropriate
+        return; // Exit if the image failed to load
     }
+
     SDL_Texture* tutorialTexture = SDL_CreateTextureFromSurface(gRenderer, tutorialSurface);
     SDL_FreeSurface(tutorialSurface); // We can free the surface as we don't need it after texture creation
+
+    if (!tutorialTexture) {
+        printf("Unable to create texture from tutorial surface: %s\n", SDL_GetError());
+        return; // Exit if the texture creation failed
+    }
 
     SDL_Rect tutorialRect = {0, 0, 1280, 720}; // Assuming the tutorial is full screen
 
@@ -410,6 +426,7 @@ void showTutorial(SDL_Renderer *gRenderer) {
     while (!exitTutorial) {
         while (SDL_PollEvent(&e) != 0) {
             if (e.type == SDL_QUIT) {
+                printf("SDL_QUIT event triggered\n"); // Debugging log
                 exitTutorial = true;
             } else if (e.type == SDL_KEYDOWN) {
                 // Assuming pressing ESCAPE will exit the tutorial
@@ -428,10 +445,12 @@ void showTutorial(SDL_Renderer *gRenderer) {
 
         // Update the screen
         SDL_RenderPresent(gRenderer);
+        printf("Tutorial image should be on the screen\n"); // Debugging log
     }
 
     // Clean up
     SDL_DestroyTexture(tutorialTexture);
+    printf("Exiting showTutorial\n"); // Debugging log
 }
 
 void closeSDL(SDL_Renderer* renderer, SDL_Window* window) {
