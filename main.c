@@ -136,7 +136,7 @@ int main(int argc, char* args[])
                             break;
                         case MENU_TUTORIAL:
                             showTutorial(gRenderer);
-                            showMenu = true; // This will be your new tutorial function
+                            showMenu = false; // This will be your new tutorial function
                             break;
                     }
                         break;
