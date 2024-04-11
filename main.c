@@ -216,6 +216,7 @@ int main(int argc, char* args[])
         SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
         SDL_RenderClear(gRenderer);
         renderBackground(gRenderer, mTiles, gTiles);
+        SDL_RenderCopyEx(gRenderer, mSprinter, &gSpriteClips[frame], &position, 0, NULL, SDL_FLIP_NONE);
         SDL_RenderCopyEx(gRenderer, mHunter, &gHunterSpriteClips[hunterFrame], &hunterPosition, 0, NULL, SDL_FLIP_NONE);
         SDL_RenderPresent(gRenderer);
     }
@@ -231,6 +232,9 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprin
     
     SDL_Surface* gSprinterSurface = IMG_Load("resources/SPRINTER.PNG");
     *mSprinter = SDL_CreateTextureFromSurface(gRenderer, gSprinterSurface);
+
+    SDL_Surface* gHunterSurface = IMG_Load("resources/HUNTER.PNG");
+    *mHunter = SDL_CreateTextureFromSurface(gRenderer, gHunterSurface);
   
     gSprinterSpriteClips[ 0 ].x = 0;
     gSprinterSpriteClips[ 0 ].y = 0;
