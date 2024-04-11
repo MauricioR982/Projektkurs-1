@@ -38,7 +38,7 @@ PUBLIC int getHunterWidth(){
     return WIDTH;
 }
 
-PUBLIC void tick(int direction){
+PUBLIC void hunterTick(Hunter h, int direction){
     
     
 }

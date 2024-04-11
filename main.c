@@ -16,7 +16,7 @@
 #undef main
 
 bool init(SDL_Renderer **gRenderer);
-void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSpriteClips[], SDL_Texture **mTiles, SDL_Rect gTiles[], SDL_Texture **mMenu, SDL_Texture **mArrow);
+void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprinterSpriteClips[], SDL_Texture **mHunter, SDL_Rect gHunterSpriteClips[], SDL_Texture **mTiles, SDL_Rect gTiles[], SDL_Texture **mMenu, SDL_Texture **mArrow);
 void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mTile, SDL_Rect gTiles[]);
 
 typedef struct {
@@ -71,6 +71,17 @@ int main(int argc, char* args[])
     position.h = 32;
     position.w = 32;
     int frame = 6;
+
+    // Hunter
+    SDL_Texture *mHunter = NULL;
+    SDL_Rect gHunterSpriteClips[8];  // Assuming 8 frames like Sprinter
+    SDL_Rect hunterPosition;
+    hunterPosition.x = 0;
+    hunterPosition.y = 0;
+    hunterPosition.h = 32;
+    hunterPosition.w = 32;
+    int hunterFrame = 0;
+
     
     // Background
     SDL_Texture *mTiles = NULL;
@@ -86,7 +97,8 @@ int main(int argc, char* args[])
         printf("worked\n");
     }
     
-    loadMedia(gRenderer, &mSprinter, gSpriteClips, &mTiles, gTiles, &mMenu, &mArrow);
+    loadMedia(gRenderer, &mSprinter, gSpriteClips, &mHunter, gHunterSpriteClips, &mTiles, gTiles, &mMenu, &mArrow);
+
 
     int arrowYPosIndex = 0; // Index for the arrows position in menu
     SDL_Rect arrowPos = {400, arrowYPositions[arrowYPosIndex], 40, 40}; 
@@ -204,7 +216,7 @@ int main(int argc, char* args[])
         SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
         SDL_RenderClear(gRenderer);
         renderBackground(gRenderer, mTiles, gTiles);
-        SDL_RenderCopyEx(gRenderer, mSprinter, &gSpriteClips[frame], &position , 0, NULL, flip);
+        SDL_RenderCopyEx(gRenderer, mHunter, &gHunterSpriteClips[hunterFrame], &hunterPosition, 0, NULL, SDL_FLIP_NONE);
         SDL_RenderPresent(gRenderer);
     }
     return 0;
@@ -215,51 +227,52 @@ void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mTiles, SDL_Rect gTi
     SDL_RenderCopy(gRenderer, mTiles, NULL, NULL);
 }
 
-void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSpriteClips[], SDL_Texture **mTiles, SDL_Rect gTiles[], SDL_Texture **mMenu, SDL_Texture **mArrow){
+void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprinterSpriteClips[], SDL_Texture **mHunter, SDL_Rect gHunterSpriteClips[], SDL_Texture **mTiles, SDL_Rect gTiles[], SDL_Texture **mMenu, SDL_Texture **mArrow){
     
     SDL_Surface* gSprinterSurface = IMG_Load("resources/SPRINTER.PNG");
     *mSprinter = SDL_CreateTextureFromSurface(gRenderer, gSprinterSurface);
   
-    gSpriteClips[ 0 ].x = 0;
-    gSpriteClips[ 0 ].y = 0;
-    gSpriteClips[ 0 ].w = 16;
-    gSpriteClips[ 0 ].h = 16;
+    gSprinterSpriteClips[ 0 ].x = 0;
+    gSprinterSpriteClips[ 0 ].y = 0;
+    gSprinterSpriteClips[ 0 ].w = 16;
+    gSprinterSpriteClips[ 0 ].h = 16;
     
-    gSpriteClips[ 1 ].x = 16;
-    gSpriteClips[ 1 ].y = 0;
-    gSpriteClips[ 1 ].w = 16;
-    gSpriteClips[ 1 ].h = 16;
+    gSprinterSpriteClips[ 1 ].x = 16;
+    gSprinterSpriteClips[ 1 ].y = 0;
+    gSprinterSpriteClips[ 1 ].w = 16;
+    gSprinterSpriteClips[ 1 ].h = 16;
     
-    gSpriteClips[ 2 ].x = 32;
-    gSpriteClips[ 2 ].y = 0;
-    gSpriteClips[ 2 ].w = 16;
-    gSpriteClips[ 2 ].h = 16;
+    gSprinterSpriteClips[ 2 ].x = 32;
+    gSprinterSpriteClips[ 2 ].y = 0;
+    gSprinterSpriteClips[ 2 ].w = 16;
+    gSprinterSpriteClips[ 2 ].h = 16;
     
-    gSpriteClips[ 3 ].x = 48;
-    gSpriteClips[ 3 ].y = 0;
-    gSpriteClips[ 3 ].w = 16;
-    gSpriteClips[ 3 ].h = 16;
+    gSprinterSpriteClips[ 3 ].x = 48;
+    gSprinterSpriteClips[ 3 ].y = 0;
+    gSprinterSpriteClips[ 3 ].w = 16;
+    gSprinterSpriteClips[ 3 ].h = 16;
     
-    gSpriteClips[ 4 ].x = 64;
-    gSpriteClips[ 4 ].y = 0;
-    gSpriteClips[ 4 ].w = 16;
-    gSpriteClips[ 4 ].h = 16;
+    gSprinterSpriteClips[ 4 ].x = 64;
+    gSprinterSpriteClips[ 4 ].y = 0;
+    gSprinterSpriteClips[ 4 ].w = 16;
+    gSprinterSpriteClips[ 4 ].h = 16;
     
-    gSpriteClips[ 5 ].x = 80;
-    gSpriteClips[ 5 ].y = 0;
-    gSpriteClips[ 5 ].w = 16;
-    gSpriteClips[ 5 ].h = 16;
+    gSprinterSpriteClips[ 5 ].x = 80;
+    gSprinterSpriteClips[ 5 ].y = 0;
+    gSprinterSpriteClips[ 5 ].w = 16;
+    gSprinterSpriteClips[ 5 ].h = 16;
     
-    gSpriteClips[ 6 ].x = 96;
-    gSpriteClips[ 6 ].y = 0;
-    gSpriteClips[ 6 ].w = 16;
-    gSpriteClips[ 6 ].h = 16;
+    gSprinterSpriteClips[ 6 ].x = 96;
+    gSprinterSpriteClips[ 6 ].y = 0;
+    gSprinterSpriteClips[ 6 ].w = 16;
+    gSprinterSpriteClips[ 6 ].h = 16;
     
-    gSpriteClips[ 7 ].x = 112;
-    gSpriteClips[ 7 ].y = 0;
-    gSpriteClips[ 7 ].w = 16;
-    gSpriteClips[ 7 ].h = 16;
+    gSprinterSpriteClips[ 7 ].x = 112;
+    gSprinterSpriteClips[ 7 ].y = 0;
+    gSprinterSpriteClips[ 7 ].w = 16;
+    gSprinterSpriteClips[ 7 ].h = 16;
     
+
     SDL_Surface* gTilesSurface = IMG_Load("resources/TILES.PNG");
     *mTiles = SDL_CreateTextureFromSurface(gRenderer, gTilesSurface);
     for (int i = 0; i < 16; i++) {

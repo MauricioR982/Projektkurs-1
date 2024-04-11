@@ -39,7 +39,7 @@ PUBLIC int getSprinterWidth(){
     return WIDTH;
 }
 
-PUBLIC void tick(int direction){
+PUBLIC void sprinterTick(Sprinter s, int direction){
     
     
 }
