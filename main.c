@@ -42,6 +42,12 @@ typedef enum {
     MENU_TOTAL
 } MenuOption;
 
+typedef enum {
+    ROLE_SPRINTER,
+    ROLE_HUNTER
+} PlayerRole;
+
+
 MenuOption currentOption = MENU_START_GAME;
 const int arrowYPositions[] = {100, 165, 228, 287}; // Y-positions for our menu-options
 
@@ -150,6 +156,8 @@ int main(int argc, char* args[])
         SDL_RenderCopy(gRenderer, mArrow, NULL, &arrowPos);
         SDL_RenderPresent(gRenderer);
     }
+
+    PlayerRole playerRole = (rand() % 2 == 0) ? ROLE_SPRINTER : ROLE_HUNTER;
 
     // Game-loop
     while (!quit) {
