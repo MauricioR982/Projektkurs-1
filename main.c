@@ -1,6 +1,6 @@
 //
 //  'main.c'
-//  Developed by Grupp 10 - Datateknik, on 2024-04-09.
+//  Developed by Grupp 10 - Datateknik, project-start at 2024-03.
 //  @"f.e." = for example
 //
 
@@ -101,8 +101,6 @@ int main(int argc, char* args[])
 
     int arrowYPosIndex = 0; // Index for the arrows position in menu
     SDL_Rect arrowPos = {400, arrowYPositions[arrowYPosIndex], 40, 40}; 
-
-   
 
     // Menu-loop
     bool showMenu = true;
@@ -241,7 +239,7 @@ void showTutorial(SDL_Renderer *gRenderer) {
     }
     SDL_Texture* tutorialTexture = SDL_CreateTextureFromSurface(gRenderer, tutorialSurface);
     SDL_FreeSurface(tutorialSurface);
-    SDL_Rect tutorialRect = {(1280-WINDOW_WIDTH) / 2 , (720 - WINDOW_HEIGHT) / 2, (WINDOW_WIDTH/2), (WINDOW_HEIGHT/2)};
+    SDL_Rect tutorialRect = {0, 0, 1280, 720};
     SDL_Event e;
     bool exitTutorial = false;
     // Tutorial event loop
