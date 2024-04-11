@@ -1,7 +1,7 @@
 //
 //  'main.c'
 //  Developed by Grupp 10 - Datateknik, on 2024-04-09.
-//  !note!: "f.e." = for example
+//  @"f.e." = for example
 //
 
 #include <stdio.h>
@@ -15,11 +15,14 @@
 
 #undef main
 
+#define WINDOW_WIDTH 1280
+#define WINDOW_HEIGHT 720
+#define HORIZONTAL_MARGIN 20 // left & right boundary collision
+
 bool init(SDL_Renderer **gRenderer);
 void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprinterSpriteClips[], SDL_Texture **mHunter, SDL_Rect gHunterSpriteClips[], SDL_Texture **mTiles, SDL_Rect gTiles[], SDL_Texture **mMenu, SDL_Texture **mArrow);
 void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mTile, SDL_Rect gTiles[]);
 void showTutorial(SDL_Renderer *gRenderer);
-void closeSDL(SDL_Renderer* renderer, SDL_Window* window);
 
 typedef struct {
     int x;
@@ -33,21 +36,17 @@ typedef struct {
 
 typedef enum {
     MENU_START_GAME,
+    MENU_MULTIPLAYER,
     MENU_TUTORIAL,
     MENU_EXIT,
-    MENU_MULTIPLAYER,
     MENU_TOTAL
 } MenuOption;
 
 MenuOption currentOption = MENU_START_GAME;
-const int arrowYPositions[] = {100, 165, 220, 290}; // Y-positions for our menu-options
+const int arrowYPositions[] = {100, 165, 228, 287}; // Y-positions for our menu-options
 
 int main(int argc, char* args[])
 {
-    const int WINDOW_WIDTH = 1280;
-    const int WINDOW_HEIGHT = 720;
-    const int HORIZONTAL_MARGIN = 20; // left & right boundary collision
-
     sPosition startPos[] = {
     {100, 64},   //1st pos
     {100, 550},  //2nd pos
@@ -60,7 +59,6 @@ int main(int argc, char* args[])
     int index = rand() % numPositions;
 
     SDL_Event e;
-    SDL_Window* gWindow = NULL;
     SDL_Renderer *gRenderer = NULL;
     bool quit = false;
     
@@ -84,7 +82,6 @@ int main(int argc, char* args[])
     hunterPosition.h = 32;
     hunterPosition.w = 32;
     int hunterFrame = 0;
-
     
     // Background
     SDL_Texture *mTiles = NULL;
@@ -102,9 +99,10 @@ int main(int argc, char* args[])
     
     loadMedia(gRenderer, &mSprinter, gSpriteClips, &mHunter, gHunterSpriteClips, &mTiles, gTiles, &mMenu, &mArrow);
 
-
     int arrowYPosIndex = 0; // Index for the arrows position in menu
     SDL_Rect arrowPos = {400, arrowYPositions[arrowYPosIndex], 40, 40}; 
+
+   
 
     // Menu-loop
     bool showMenu = true;
@@ -133,15 +131,9 @@ int main(int argc, char* args[])
                         case MENU_START_GAME:
                             showMenu = false; // Closing menu and starting game
                             break;
-                        
-                        
                         case MENU_TUTORIAL:
                             showTutorial(gRenderer);
-                            showMenu = true; // This will be your new tutorial function
-                            break;
-                            
-                        case MENU_MULTIPLAYER:
-                            quit = true;
+                            //showMenu = true;
                             break;
                         case MENU_EXIT:
                             quit = true;
@@ -233,7 +225,6 @@ int main(int argc, char* args[])
         SDL_RenderCopyEx(gRenderer, mHunter, &gHunterSpriteClips[hunterFrame], &hunterPosition, 0, NULL, flip);
         SDL_RenderPresent(gRenderer);
     }
-    closeSDL(gRenderer, gWindow);
     return 0;
 }
 
@@ -241,12 +232,39 @@ void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mTiles, SDL_Rect gTi
 {
     SDL_RenderCopy(gRenderer, mTiles, NULL, NULL);
 }
+void showTutorial(SDL_Renderer *gRenderer) {
+    // Load the tutorial image
+    SDL_Surface* tutorialSurface = IMG_Load("resources/TUTORIAL.png");
+    if (!tutorialSurface) {
+        printf("Unable to load tutorial image: %s\n", IMG_GetError());
+        return; // Ideally, add error handling as appropriate
+    }
+    SDL_Texture* tutorialTexture = SDL_CreateTextureFromSurface(gRenderer, tutorialSurface);
+    SDL_FreeSurface(tutorialSurface);
+    SDL_Rect tutorialRect = {(1280-WINDOW_WIDTH) / 2 , (720 - WINDOW_HEIGHT) / 2, (WINDOW_WIDTH/2), (WINDOW_HEIGHT/2)};
+    SDL_Event e;
+    bool exitTutorial = false;
+    // Tutorial event loop
+    while (!exitTutorial) {
+        while (SDL_PollEvent(&e) != 0) {
+            if (e.type == SDL_QUIT) {
+                exitTutorial = true;
+            } else if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE) {
+                exitTutorial = true; // Exit the tutorial on ESCAPE key
+            }
+        }
+        SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+        SDL_RenderClear(gRenderer);
+        SDL_RenderCopy(gRenderer, tutorialTexture, NULL, &tutorialRect);
+        SDL_RenderPresent(gRenderer);
+    }
+    SDL_DestroyTexture(tutorialTexture); // Clean up the tutorial texture
+}
 
-void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprinterSpriteClips[], SDL_Texture **mHunter, SDL_Rect gHunterSpriteClips[], SDL_Texture **mTiles, SDL_Rect gTiles[], SDL_Texture **mMenu, SDL_Texture **mArrow){
+void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprinterSpriteClips[], SDL_Texture **mHunter, SDL_Rect gHunterSpriteClips[], SDL_Texture **mTiles, SDL_Rect gTiles[], SDL_Texture **mMenu, SDL_Texture **mArrow){    
     
     SDL_Surface* gSprinterSurface = IMG_Load("resources/SPRINTER.PNG");
     *mSprinter = SDL_CreateTextureFromSurface(gRenderer, gSprinterSurface);
-
     SDL_Surface* gHunterSurface = IMG_Load("resources/HUNTER.PNG");
     *mHunter = SDL_CreateTextureFromSurface(gRenderer, gHunterSurface);
   
@@ -254,37 +272,37 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprin
     gSprinterSpriteClips[ 0 ].y = 0;
     gSprinterSpriteClips[ 0 ].w = 16;
     gSprinterSpriteClips[ 0 ].h = 16;
-    
+
     gSprinterSpriteClips[ 1 ].x = 16;
     gSprinterSpriteClips[ 1 ].y = 0;
     gSprinterSpriteClips[ 1 ].w = 16;
     gSprinterSpriteClips[ 1 ].h = 16;
-    
+
     gSprinterSpriteClips[ 2 ].x = 32;
     gSprinterSpriteClips[ 2 ].y = 0;
     gSprinterSpriteClips[ 2 ].w = 16;
     gSprinterSpriteClips[ 2 ].h = 16;
-    
+
     gSprinterSpriteClips[ 3 ].x = 48;
     gSprinterSpriteClips[ 3 ].y = 0;
     gSprinterSpriteClips[ 3 ].w = 16;
     gSprinterSpriteClips[ 3 ].h = 16;
-    
+
     gSprinterSpriteClips[ 4 ].x = 64;
     gSprinterSpriteClips[ 4 ].y = 0;
     gSprinterSpriteClips[ 4 ].w = 16;
     gSprinterSpriteClips[ 4 ].h = 16;
-    
+
     gSprinterSpriteClips[ 5 ].x = 80;
     gSprinterSpriteClips[ 5 ].y = 0;
     gSprinterSpriteClips[ 5 ].w = 16;
     gSprinterSpriteClips[ 5 ].h = 16;
-    
+
     gSprinterSpriteClips[ 6 ].x = 96;
     gSprinterSpriteClips[ 6 ].y = 0;
     gSprinterSpriteClips[ 6 ].w = 16;
     gSprinterSpriteClips[ 6 ].h = 16;
-    
+
     gSprinterSpriteClips[ 7 ].x = 112;
     gSprinterSpriteClips[ 7 ].y = 0;
     gSprinterSpriteClips[ 7 ].w = 16;
@@ -330,7 +348,6 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprin
     gHunterSpriteClips[ 7 ].w = 16;
     gHunterSpriteClips[ 7 ].h = 16;
     
-
     SDL_Surface* gTilesSurface = IMG_Load("resources/TILES.PNG");
     *mTiles = SDL_CreateTextureFromSurface(gRenderer, gTilesSurface);
     for (int i = 0; i < 16; i++) {
@@ -364,7 +381,7 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprin
     }
 
     // Loading picture-file for menu
-    SDL_Surface* gMenuSurface = IMG_Load("resources/NEWMENU.png");
+    SDL_Surface* gMenuSurface = IMG_Load("resources/newMenu.png");
     if (gMenuSurface != NULL) {
         *mMenu = SDL_CreateTextureFromSurface(gRenderer, gMenuSurface);
         if (*mMenu == NULL) {
@@ -382,10 +399,6 @@ bool init(SDL_Renderer **gRenderer) {
     SDL_Window  *gWindow = NULL;
     SDL_Init(SDL_INIT_VIDEO);
     gWindow = SDL_CreateWindow("SDL Test", SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED, 1280, 720, SDL_WINDOW_SHOWN);
-    if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
-        printf("SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError());
-        test = false;
-    }
     if(gWindow == NULL) {
         printf("Fungerar ej\n");
         test = false;
@@ -395,78 +408,5 @@ bool init(SDL_Renderer **gRenderer) {
         printf("Fungerar ej\n");
         test = false;
     }
-    
     return test;
-}
-
-void showTutorial(SDL_Renderer *gRenderer) {
-    printf("Entering showTutorial\n"); // Debugging log
-
-    // Load tutorial image or text
-    SDL_Surface* tutorialSurface = IMG_Load("resources/TUTORIAL.png");
-    if (!tutorialSurface) {
-        printf("Unable to load tutorial image: %s\n", IMG_GetError());
-        return; // Exit if the image failed to load
-    }
-
-    SDL_Texture* tutorialTexture = SDL_CreateTextureFromSurface(gRenderer, tutorialSurface);
-    SDL_FreeSurface(tutorialSurface); // We can free the surface as we don't need it after texture creation
-
-    if (!tutorialTexture) {
-        printf("Unable to create texture from tutorial surface: %s\n", SDL_GetError());
-        return; // Exit if the texture creation failed
-    }
-
-    SDL_Rect tutorialRect = {0, 0, 1280, 720}; // Assuming the tutorial is full screen
-
-    SDL_Event e;
-    bool exitTutorial = false;
-
-    // Tutorial event loop
-    while (!exitTutorial) {
-        while (SDL_PollEvent(&e) != 0) {
-            if (e.type == SDL_QUIT) {
-                printf("SDL_QUIT event triggered\n"); // Debugging log
-                exitTutorial = true;
-            } else if (e.type == SDL_KEYDOWN) {
-                // Assuming pressing ESCAPE will exit the tutorial
-                if (e.key.keysym.sym == SDLK_ESCAPE) {
-                    exitTutorial = true;
-                }
-            }
-        }
-
-        // Clear the screen
-        SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
-        SDL_RenderClear(gRenderer);
-
-        // Render tutorial texture
-        SDL_RenderCopy(gRenderer, tutorialTexture, NULL, &tutorialRect);
-
-        // Update the screen
-        SDL_RenderPresent(gRenderer);
-        printf("Tutorial image should be on the screen\n"); // Debugging log
-    }
-
-    // Clean up
-    SDL_DestroyTexture(tutorialTexture);
-    printf("Exiting showTutorial\n"); // Debugging log
-}
-
-void closeSDL(SDL_Renderer* renderer, SDL_Window* window) {
-    // Rensa upp renderaren
-    if (renderer != NULL) {
-        SDL_DestroyRenderer(renderer);
-    }
-
-    // Rensa upp fönstret
-    if (window != NULL) {
-        SDL_DestroyWindow(window);
-    }
-
-    // Avsluta SDL_image
-    IMG_Quit();
-
-    // Avsluta SDL
-    SDL_Quit();
 }
