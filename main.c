@@ -47,7 +47,6 @@ typedef enum {
     ROLE_HUNTER
 } PlayerRole;
 
-
 MenuOption currentOption = MENU_START_GAME;
 const int arrowYPositions[] = {100, 165, 228, 287}; // Y-positions for our menu-options
 
