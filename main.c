@@ -76,8 +76,8 @@ int main(int argc, char* args[])
     SDL_Texture *mHunter = NULL;
     SDL_Rect gHunterSpriteClips[8];  // Assuming 8 frames like Sprinter
     SDL_Rect hunterPosition;
-    hunterPosition.x = 0;
-    hunterPosition.y = 0;
+    hunterPosition.x = 600;
+    hunterPosition.y = 300;
     hunterPosition.h = 32;
     hunterPosition.w = 32;
     int hunterFrame = 0;
@@ -275,6 +275,46 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprin
     gSprinterSpriteClips[ 7 ].y = 0;
     gSprinterSpriteClips[ 7 ].w = 16;
     gSprinterSpriteClips[ 7 ].h = 16;
+
+    gHunterSpriteClips[ 0 ].x = 0;
+    gHunterSpriteClips[ 0 ].y = 0;
+    gHunterSpriteClips[ 0 ].w = 16;
+    gHunterSpriteClips[ 0 ].h = 16;
+    
+    gHunterSpriteClips[ 1 ].x = 16;
+    gHunterSpriteClips[ 1 ].y = 0;
+    gHunterSpriteClips[ 1 ].w = 16;
+    gHunterSpriteClips[ 1 ].h = 16;
+    
+    gHunterSpriteClips[ 2 ].x = 32;
+    gHunterSpriteClips[ 2 ].y = 0;
+    gHunterSpriteClips[ 2 ].w = 16;
+    gHunterSpriteClips[ 2 ].h = 16;
+    
+    gHunterSpriteClips[ 3 ].x = 48;
+    gHunterSpriteClips[ 3 ].y = 0;
+    gHunterSpriteClips[ 3 ].w = 16;
+    gHunterSpriteClips[ 3 ].h = 16;
+    
+    gHunterSpriteClips[ 4 ].x = 64;
+    gHunterSpriteClips[ 4 ].y = 0;
+    gHunterSpriteClips[ 4 ].w = 16;
+    gHunterSpriteClips[ 4 ].h = 16;
+    
+    gHunterSpriteClips[ 5 ].x = 80;
+    gHunterSpriteClips[ 5 ].y = 0;
+    gHunterSpriteClips[ 5 ].w = 16;
+    gHunterSpriteClips[ 5 ].h = 16;
+    
+    gHunterSpriteClips[ 6 ].x = 96;
+    gHunterSpriteClips[ 6 ].y = 0;
+    gHunterSpriteClips[ 6 ].w = 16;
+    gHunterSpriteClips[ 6 ].h = 16;
+    
+    gHunterSpriteClips[ 7 ].x = 112;
+    gHunterSpriteClips[ 7 ].y = 0;
+    gHunterSpriteClips[ 7 ].w = 16;
+    gHunterSpriteClips[ 7 ].h = 16;
     
 
     SDL_Surface* gTilesSurface = IMG_Load("resources/TILES.PNG");
