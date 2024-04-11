@@ -279,7 +279,7 @@ void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mTiles, SDL_Rect gTi
 
 void showTutorial(SDL_Renderer *gRenderer) {
     // Load the tutorial image
-    SDL_Surface* tutorialSurface = IMG_Load("resources/TUTORIALBACKGROUND.png");
+    SDL_Surface* tutorialSurface = IMG_Load("resources/BACKGROUND2.png");
     if (!tutorialSurface) {
         printf("Unable to load tutorial image: %s\n", IMG_GetError());
         return; // Ideally, add error handling as appropriate
