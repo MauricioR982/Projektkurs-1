@@ -134,6 +134,9 @@ int main(int argc, char* args[])
                             quit = true;
                             showMenu = false;
                             break;
+                    case MENU_TUTORIAL:
+                            showTutorial(gRenderer); // This will be your new tutorial function
+                        break;
                     }
                         break;
                     // ... other cases here ...
@@ -378,4 +381,47 @@ bool init(SDL_Renderer **gRenderer) {
         test = false;
     }
     return test;
+}
+
+void showTutorial(SDL_Renderer *gRenderer) {
+    // Load tutorial image or text
+    SDL_Surface* tutorialSurface = IMG_Load("resources/TUTORIAL.png");
+    if (!tutorialSurface) {
+        printf("Unable to load tutorial image: %s\n", IMG_GetError());
+        return; // Add error handling as appropriate
+    }
+    SDL_Texture* tutorialTexture = SDL_CreateTextureFromSurface(gRenderer, tutorialSurface);
+    SDL_FreeSurface(tutorialSurface); // We can free the surface as we don't need it after texture creation
+
+    SDL_Rect tutorialRect = {0, 0, 1280, 720}; // Assuming the tutorial is full screen
+
+    SDL_Event e;
+    bool exitTutorial = false;
+
+    // Tutorial event loop
+    while (!exitTutorial) {
+        while (SDL_PollEvent(&e) != 0) {
+            if (e.type == SDL_QUIT) {
+                exitTutorial = true;
+            } else if (e.type == SDL_KEYDOWN) {
+                // Assuming pressing ESCAPE will exit the tutorial
+                if (e.key.keysym.sym == SDLK_ESCAPE) {
+                    exitTutorial = true;
+                }
+            }
+        }
+
+        // Clear the screen
+        SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+        SDL_RenderClear(gRenderer);
+
+        // Render tutorial texture
+        SDL_RenderCopy(gRenderer, tutorialTexture, NULL, &tutorialRect);
+
+        // Update the screen
+        SDL_RenderPresent(gRenderer);
+    }
+
+    // Clean up
+    SDL_DestroyTexture(tutorialTexture);
 }
