@@ -166,60 +166,94 @@ int main(int argc, char* args[])
         if (e.type == SDL_QUIT) {
             quit = true;
         }
-        else if( e.type == SDL_KEYDOWN )
-        {
-            //Select surfaces based on keypress
-            switch( e.key.keysym.sym )
-            {
+        else if (e.type == SDL_KEYDOWN) {
+            switch (e.key.keysym.sym) {
                 case SDLK_w:
                 case SDLK_UP:
-                    position.y -= 8;
-                    flip = SDL_FLIP_NONE;
-                    if(frame == 4)
-                        frame = 5;
-                    else
-                        frame = 4;
+                    if (playerRole == ROLE_SPRINTER) {
+                        position.y -= 8;
+                        flip = SDL_FLIP_NONE;
+                        if (frame == 4)
+                            frame = 5;
+                        else
+                            frame = 4;
+                    } else if (playerRole == ROLE_HUNTER) {
+                        hunterPosition.y -= 8;
+                        flip = SDL_FLIP_NONE;
+                        if (hunterFrame == 4)
+                            hunterFrame = 5;
+                        else
+                            hunterFrame = 4;
+                    }
                     break;
-                case SDLK_DOWN:    
                 case SDLK_s:
-                    position.y += 8;
-                    flip = SDL_FLIP_NONE;
-                    if(frame == 0)
-                        frame = 1;
-                    else
-                        frame = 0;
+                case SDLK_DOWN:
+                    if (playerRole == ROLE_SPRINTER) {
+                        position.y += 8;
+                        flip = SDL_FLIP_NONE;
+                        if (frame == 0)
+                            frame = 1;
+                        else
+                            frame = 0;
+                    } else if (playerRole == ROLE_HUNTER) {
+                        hunterPosition.y += 8;
+                        flip = SDL_FLIP_NONE;
+                        if (hunterFrame == 0)
+                            hunterFrame = 1;
+                        else
+                            hunterFrame = 0;
+                    }
                     break;
-                case SDLK_LEFT:    
                 case SDLK_a:
-                    position.x -= 8;
-                    flip = SDL_FLIP_HORIZONTAL;
-                    if(frame == 2)
-                        frame = 3;
-                    else
-                        frame = 2;
+                case SDLK_LEFT:
+                    if (playerRole == ROLE_SPRINTER) {
+                        position.x -= 8;
+                        flip = SDL_FLIP_HORIZONTAL;
+                        if (frame == 2)
+                            frame = 3;
+                        else
+                            frame = 2;
+                    } else if (playerRole == ROLE_HUNTER) {
+                        hunterPosition.x -= 8;
+                        flip = SDL_FLIP_HORIZONTAL;
+                        if (hunterFrame == 2)
+                            hunterFrame = 3;
+                        else
+                            hunterFrame = 2;
+                    }
                     break;
-                case SDLK_RIGHT:    
                 case SDLK_d:
-                    position.x += 8; 
-                    flip = SDL_FLIP_NONE;
-                    if(frame == 2)
-                        frame = 3;
-                    else
-                        frame = 2;
+                case SDLK_RIGHT:
+                    if (playerRole == ROLE_SPRINTER) {
+                        position.x += 8;
+                        flip = SDL_FLIP_NONE;
+                        if (frame == 2)
+                            frame = 3;
+                        else
+                            frame = 2;
+                    } else if (playerRole == ROLE_HUNTER) {
+                        hunterPosition.x += 8;
+                        mHunter = SDL_FLIP_NONE;
+                        if (hunterFrame == 2)
+                            hunterFrame = 3;
+                        else
+                            hunterFrame = 2;
+                    }
                     break;
                 default:
                     break;
             }
-            if (position.x < HORIZONTAL_MARGIN) {
-                position.x = HORIZONTAL_MARGIN;
-            } else if (position.x + position.w > WINDOW_WIDTH - HORIZONTAL_MARGIN) {
-                position.x = WINDOW_WIDTH - position.w - HORIZONTAL_MARGIN;
+
+            // Boundaries for Sprinter
+            if (playerRole == ROLE_SPRINTER) {
+                position.x = SDL_clamp(position.x, HORIZONTAL_MARGIN, WINDOW_WIDTH - position.w - HORIZONTAL_MARGIN);
+                position.y = SDL_clamp(position.y, 0, WINDOW_HEIGHT - position.h);
             }
 
-            if (position.y < 0) {
-                position.y = 0;
-            } else if (position.y + position.h > WINDOW_HEIGHT) {
-                position.y = WINDOW_HEIGHT - position.h;
+            // Boundaries for Hunter
+            if (playerRole == ROLE_HUNTER) {
+                hunterPosition.x = SDL_clamp(hunterPosition.x, HORIZONTAL_MARGIN, WINDOW_WIDTH - hunterPosition.w - HORIZONTAL_MARGIN);
+                hunterPosition.y = SDL_clamp(hunterPosition.y, 0, WINDOW_HEIGHT - hunterPosition.h);
             }
         }
     }
