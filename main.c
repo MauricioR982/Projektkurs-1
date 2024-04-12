@@ -62,7 +62,7 @@ const int arrowYPositions[] = {100, 198, 286}; // Y-positions for our menu-optio
 // Example obstacles
 Obstacle obstacles[] = {
     {{445, 50, 60, 43}}, // Covering the 2 stones, 1 mushroom close to center top from left
-    {{220, 540, 50, 50}}, // Covering the 3 stones down left
+    {{220, 545, 50, 50}}, // Covering the 3 stones down left
     {{145, 76, 53, 42}}, // Covering the upper tree at top left
     // Add more as needed
 };
