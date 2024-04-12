@@ -202,13 +202,21 @@ int main(int argc, char* args[])
                 case SDLK_a:
                 case SDLK_LEFT:
                     moveCharacter(playerRole == ROLE_SPRINTER ? &position : &hunterPosition, -8, 0, playerRole);
-                    flip = SDL_FLIP_HORIZONTAL; // For Sprinter, update this for Hunter as needed
+                    if (playerRole == ROLE_SPRINTER) {
+                        flip = SDL_FLIP_HORIZONTAL;
+                    } else if (playerRole == ROLE_HUNTER) {
+                        flipHunter = SDL_FLIP_HORIZONTAL;
+                    }
                     updateFrame(&frame, playerRole, 2, 3);
                     break;
                 case SDLK_d:
                 case SDLK_RIGHT:
                     moveCharacter(playerRole == ROLE_SPRINTER ? &position : &hunterPosition, 8, 0, playerRole);
-                    flip = SDL_FLIP_NONE; // For Sprinter, update this for Hunter as needed
+                    if (playerRole == ROLE_SPRINTER) {
+                        flip = SDL_FLIP_NONE;
+                    } else if (playerRole == ROLE_HUNTER) {
+                        flipHunter = SDL_FLIP_NONE;
+                    }
                     updateFrame(&frame, playerRole, 2, 3);
                     break;
                 default:
