@@ -32,7 +32,6 @@ typedef struct {
 
 typedef enum {
     MENU_START_GAME,
-    MENU_MULTIPLAYER,
     MENU_TUTORIAL,
     MENU_EXIT,
     MENU_TOTAL
@@ -59,7 +58,7 @@ void updateFrame(int *frame, PlayerRole role, int frame1, int frame2);
 void drawDebugInfo(SDL_Renderer *gRenderer);
 
 MenuOption currentOption = MENU_START_GAME;
-const int arrowYPositions[] = {100, 165, 228, 287}; // Y-positions for our menu-options
+const int arrowYPositions[] = {100, 198, 286}; // Y-positions for our menu-options
 
 // Example obstacles
 Obstacle obstacles[] = {
