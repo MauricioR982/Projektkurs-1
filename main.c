@@ -63,6 +63,7 @@ Obstacle obstacles[] = {
     {{445, 50, 60, 43}}, // Covering the 2 stones, 1 mushroom close to center top from left
     {{220, 545, 40, 40}}, // Covering the 3 stones down left
     {{145, 76, 103, 42}}, // Covering the upper tree at top left
+    {{180, 90, 50, 50}}, // Covering the upper tree at top left, smaller box down in the middle
     // Add more as needed
 };
 int numObstacles = sizeof(obstacles) / sizeof(obstacles[0]);
