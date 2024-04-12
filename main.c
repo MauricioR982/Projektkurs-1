@@ -282,7 +282,7 @@ void showTutorial(SDL_Renderer *gRenderer) {
     SDL_Surface* tutorialSurface = IMG_Load("resources/BACKGROUND2.png");
     if (!tutorialSurface) {
         printf("Unable to load tutorial image: %s\n", IMG_GetError());
-        return; // Ideally, add error handling as appropriate
+        return;
     }
     SDL_Texture* tutorialTexture = SDL_CreateTextureFromSurface(gRenderer, tutorialSurface);
     SDL_FreeSurface(tutorialSurface);
@@ -303,7 +303,7 @@ void showTutorial(SDL_Renderer *gRenderer) {
         SDL_RenderCopy(gRenderer, tutorialTexture, NULL, &tutorialRect);
         SDL_RenderPresent(gRenderer);
     }
-    SDL_DestroyTexture(tutorialTexture); // Clean up the tutorial texture
+    SDL_DestroyTexture(tutorialTexture);
 }
 
 void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprinterSpriteClips[], SDL_Texture **mHunter, SDL_Rect gHunterSpriteClips[], SDL_Texture **mTiles, SDL_Rect gTiles[], SDL_Texture **mMenu, SDL_Texture **mArrow){    
@@ -415,12 +415,10 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprin
     SDL_Surface* gArrowSurface = IMG_Load("resources/ARROW.png");
     if (gArrowSurface == NULL) {
         printf("Unable to load arrow image: %s\n", IMG_GetError());
-        // Ev. error handling here
     } else {
         *mArrow = SDL_CreateTextureFromSurface(gRenderer, gArrowSurface);
         if (*mArrow == NULL) {
             printf("Unable to create texture from arrow surface: %s\n", SDL_GetError());
-            // Ev. error handling here
         }
         SDL_FreeSurface(gArrowSurface);
     }
@@ -431,7 +429,6 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprin
         *mMenu = SDL_CreateTextureFromSurface(gRenderer, gMenuSurface);
         if (*mMenu == NULL) {
             printf("Unable to create texture from menu surface: %s\n", SDL_GetError());
-            // Ev. error handling here
         }
         SDL_FreeSurface(gMenuSurface);
     } else {
