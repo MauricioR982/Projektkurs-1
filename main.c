@@ -18,14 +18,11 @@
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
 #define HORIZONTAL_MARGIN 20 // left & right boundary collision
-#define TOTAL_OBSTACLES 6
 
 bool init(SDL_Renderer **gRenderer);
 void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprinterSpriteClips[], SDL_Texture **mHunter, SDL_Rect gHunterSpriteClips[], SDL_Texture **mTiles, SDL_Rect gTiles[], SDL_Texture **mMenu, SDL_Texture **mArrow);
 void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mTile, SDL_Rect gTiles[]);
 void showTutorial(SDL_Renderer *gRenderer);
-void movePlayer(SDL_Rect *playerPosition, SDL_Rect direction, SDL_Rect *obstacles, int numObstacles);
-bool checkCollision(SDL_Rect a, SDL_Rect b);
 
 typedef struct {
     int x;
@@ -52,15 +49,6 @@ typedef enum {
 
 MenuOption currentOption = MENU_START_GAME;
 const int arrowYPositions[] = {100, 165, 228, 287}; // Y-positions for our menu-options
-
-SDL_Rect obstacles[TOTAL_OBSTACLES] = {
-    {160, 90, 100, 50},  // Tree 1
-    {400, 300, 50, 50},  // Tree 2
-    {400, 350, 50, 50},  // Tree 3
-    {400, 400, 50, 50},  // Tree 4
-    {600, 400, 50, 50},  // Rock 1
-    {800, 200, 50, 50}   // Rock 2
-};
 
 int main(int argc, char* args[])
 {
@@ -178,67 +166,107 @@ int main(int argc, char* args[])
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_QUIT) {
             quit = true;
-        } else if (e.type == SDL_KEYDOWN) {
-            SDL_Rect moveDirection = {0, 0, 0, 0}; // Initialize move direction
-            bool isSprinter = (playerRole == ROLE_SPRINTER);
-            SDL_Rect* currentPosition = isSprinter ? &position : &hunterPosition;
-            SDL_RendererFlip* currentFlip = isSprinter ? &flip : &flipHunter;
-            int* currentFrame = isSprinter ? &frame : &hunterFrame;
-            //SDL_Rect* obstacles = isSprinter ? trees : rocks;
-            //int numObstacles = isSprinter ? sizeof(trees) / sizeof(trees[0]) : sizeof(rocks) / sizeof(rocks[0]);
-            SDL_Rect* obstacles = obstacles;  // Redundant but shows intention
-            int numObstacles = TOTAL_OBSTACLES;
+        }
+        else if (e.type == SDL_KEYDOWN) {
             switch (e.key.keysym.sym) {
                 case SDLK_w:
                 case SDLK_UP:
-                    moveDirection.y = -8;
-                    movePlayer(currentPosition, moveDirection, obstacles, numObstacles);
-                    *currentFlip = SDL_FLIP_NONE;
-                    *currentFrame = (*currentFrame == 4) ? 5 : 4;
+                    if (playerRole == ROLE_SPRINTER) {
+                        position.y -= 8;
+                        flip = SDL_FLIP_NONE;
+                        if (frame == 4)
+                            frame = 5;
+                        else
+                            frame = 4;
+                    } else if (playerRole == ROLE_HUNTER) {
+                        hunterPosition.y -= 8;
+                        flipHunter = SDL_FLIP_NONE;
+                        if (hunterFrame == 4)
+                            hunterFrame = 5;
+                        else
+                            hunterFrame = 4;
+                    }
                     break;
                 case SDLK_s:
                 case SDLK_DOWN:
-                    moveDirection.y = 8;
-                    movePlayer(currentPosition, moveDirection, obstacles, numObstacles);
-                    *currentFlip = SDL_FLIP_NONE;
-                    *currentFrame = (*currentFrame == 0) ? 1 : 0;
+                    if (playerRole == ROLE_SPRINTER) {
+                        position.y += 8;
+                        flip = SDL_FLIP_NONE;
+                        if (frame == 0)
+                            frame = 1;
+                        else
+                            frame = 0;
+                    } else if (playerRole == ROLE_HUNTER) {
+                        hunterPosition.y += 8;
+                        flipHunter = SDL_FLIP_NONE;
+                        if (hunterFrame == 0)
+                            hunterFrame = 1;
+                        else
+                            hunterFrame = 0;
+                    }
                     break;
                 case SDLK_a:
                 case SDLK_LEFT:
-                    moveDirection.x = -8;
-                    movePlayer(currentPosition, moveDirection, obstacles, numObstacles);
-                    *currentFlip = SDL_FLIP_HORIZONTAL;
-                    *currentFrame = (*currentFrame == 2) ? 3 : 2;
+                    if (playerRole == ROLE_SPRINTER) {
+                        position.x -= 8;
+                        flip = SDL_FLIP_HORIZONTAL;
+                        if (frame == 2)
+                            frame = 3;
+                        else
+                            frame = 2;
+                    } else if (playerRole == ROLE_HUNTER) {
+                        hunterPosition.x -= 8;
+                        flipHunter = SDL_FLIP_HORIZONTAL;
+                        if (hunterFrame == 2)
+                            hunterFrame = 3;
+                        else
+                            hunterFrame = 2;
+                    }
                     break;
                 case SDLK_d:
                 case SDLK_RIGHT:
-                    moveDirection.x = 8;
-                    movePlayer(currentPosition, moveDirection, obstacles, numObstacles);
-                    *currentFlip = SDL_FLIP_NONE;
-                    *currentFrame = (*currentFrame == 2) ? 3 : 2;
+                    if (playerRole == ROLE_SPRINTER) {
+                        position.x += 8;
+                        flip = SDL_FLIP_NONE;
+                        if (frame == 2)
+                            frame = 3;
+                        else
+                            frame = 2;
+                    } else if (playerRole == ROLE_HUNTER) {
+                        hunterPosition.x += 8;
+                        flipHunter = SDL_FLIP_NONE;
+                        if (hunterFrame == 2)
+                            hunterFrame = 3;
+                        else
+                            hunterFrame = 2;
+                    }
+                    break;
+                default:
                     break;
             }
 
-            // Check for screen boundary limits
-            currentPosition->x = SDL_clamp(currentPosition->x, HORIZONTAL_MARGIN, WINDOW_WIDTH - currentPosition->w - HORIZONTAL_MARGIN);
-            currentPosition->y = SDL_clamp(currentPosition->y, 0, WINDOW_HEIGHT - currentPosition->h);
+            // Boundaries for Sprinter
+            if (playerRole == ROLE_SPRINTER) {
+                position.x = SDL_clamp(position.x, HORIZONTAL_MARGIN, WINDOW_WIDTH - position.w - HORIZONTAL_MARGIN);
+                position.y = SDL_clamp(position.y, 0, WINDOW_HEIGHT - position.h);
+            }
+
+            // Boundaries for Hunter
+            if (playerRole == ROLE_HUNTER) {
+                hunterPosition.x = SDL_clamp(hunterPosition.x, HORIZONTAL_MARGIN, WINDOW_WIDTH - hunterPosition.w - HORIZONTAL_MARGIN);
+                hunterPosition.y = SDL_clamp(hunterPosition.y, 0, WINDOW_HEIGHT - hunterPosition.h);
+            }
         }
     }
-
-    // Render updates
-    SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
-    SDL_RenderClear(gRenderer);
-    renderBackground(gRenderer, mTiles, gTiles);
-    if (playerRole == ROLE_SPRINTER) {
-        SDL_RenderCopyEx(gRenderer, mSprinter, &gSpriteClips[frame], &position, 0, NULL, flip);
-    } else if (playerRole == ROLE_HUNTER) {
-        SDL_RenderCopyEx(gRenderer, mHunter, &gHunterSpriteClips[hunterFrame], &hunterPosition, 0, NULL, flipHunter);
-    }
-
-    SDL_SetRenderDrawColor(gRenderer, 34, 139, 34, 255);  // Assuming you want a green color for all obstacles
-        for (int i = 0; i < TOTAL_OBSTACLES; i++) {
-            SDL_RenderFillRect(gRenderer, &obstacles[i]);
-}
+        // Game renderer
+        SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+        SDL_RenderClear(gRenderer);
+        renderBackground(gRenderer, mTiles, gTiles);
+        if (playerRole == ROLE_SPRINTER) {
+            SDL_RenderCopyEx(gRenderer, mSprinter, &gSpriteClips[frame], &position, 0, NULL, flip);
+        } else if (playerRole == ROLE_HUNTER) {
+            SDL_RenderCopyEx(gRenderer, mHunter, &gHunterSpriteClips[hunterFrame], &hunterPosition, 0, NULL, flipHunter);
+        }
 
     SDL_RenderPresent(gRenderer);
     }
@@ -409,25 +437,6 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprin
     }
 }
 
-void movePlayer(SDL_Rect *playerPosition, SDL_Rect direction, SDL_Rect *obstacles, int numObstacles) {
-    SDL_Rect newPosition = *playerPosition;
-    newPosition.x += direction.x;
-    newPosition.y += direction.y;
-
-    for (int i = 0; i < numObstacles; i++) {
-        if (checkCollision(newPosition, obstacles[i])) {
-            printf("Collision with obstacle %d\n", i);
-            return;  // Collision detected, do not update player position
-        }
-    }
-
-    // No collision, update player position
-    playerPosition->x = newPosition.x;
-    playerPosition->y = newPosition.y;
-}
-
-
-
 bool init(SDL_Renderer **gRenderer) {
     bool test = true;
     SDL_Window  *gWindow = NULL;
@@ -443,8 +452,4 @@ bool init(SDL_Renderer **gRenderer) {
         test = false;
     }
     return test;
-}
-
-bool checkCollision(SDL_Rect a, SDL_Rect b) {
-    return SDL_HasIntersection(&a, &b);
 }
