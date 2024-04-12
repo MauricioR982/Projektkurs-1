@@ -18,6 +18,7 @@
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
 #define HORIZONTAL_MARGIN 20 // left & right boundary collision
+#define TOTAL_OBSTACLES 6
 
 bool init(SDL_Renderer **gRenderer);
 void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprinterSpriteClips[], SDL_Texture **mHunter, SDL_Rect gHunterSpriteClips[], SDL_Texture **mTiles, SDL_Rect gTiles[], SDL_Texture **mMenu, SDL_Texture **mArrow);
@@ -52,16 +53,14 @@ typedef enum {
 MenuOption currentOption = MENU_START_GAME;
 const int arrowYPositions[] = {100, 165, 228, 287}; // Y-positions for our menu-options
 
-    SDL_Rect trees[] = {
-        {200, 150, 50, 50},  // x position, y position, width, height
-        {400, 300, 50, 50}
-    };
-
-    SDL_Rect rocks[] = {
-        {600, 400, 50, 50},
-        {800, 200, 50, 50}
-    };
-
+SDL_Rect obstacles[TOTAL_OBSTACLES] = {
+    {160, 90, 100, 50},  // Tree 1
+    {400, 300, 50, 50},  // Tree 2
+    {400, 350, 50, 50},  // Tree 3
+    {400, 400, 50, 50},  // Tree 4
+    {600, 400, 50, 50},  // Rock 1
+    {800, 200, 50, 50}   // Rock 2
+};
 
 int main(int argc, char* args[])
 {
@@ -185,9 +184,10 @@ int main(int argc, char* args[])
             SDL_Rect* currentPosition = isSprinter ? &position : &hunterPosition;
             SDL_RendererFlip* currentFlip = isSprinter ? &flip : &flipHunter;
             int* currentFrame = isSprinter ? &frame : &hunterFrame;
-            SDL_Rect* obstacles = isSprinter ? trees : rocks;
-            int numObstacles = isSprinter ? sizeof(trees) / sizeof(trees[0]) : sizeof(rocks) / sizeof(rocks[0]);
-
+            //SDL_Rect* obstacles = isSprinter ? trees : rocks;
+            //int numObstacles = isSprinter ? sizeof(trees) / sizeof(trees[0]) : sizeof(rocks) / sizeof(rocks[0]);
+            SDL_Rect* obstacles = obstacles;  // Redundant but shows intention
+            int numObstacles = TOTAL_OBSTACLES;
             switch (e.key.keysym.sym) {
                 case SDLK_w:
                 case SDLK_UP:
@@ -235,13 +235,10 @@ int main(int argc, char* args[])
         SDL_RenderCopyEx(gRenderer, mHunter, &gHunterSpriteClips[hunterFrame], &hunterPosition, 0, NULL, flipHunter);
     }
 
-    for (int i = 0; i < sizeof(trees) / sizeof(trees[0]); i++) {
-        SDL_RenderFillRect(gRenderer, &trees[i]);
-    }
-
-    for (int i = 0; i < sizeof(rocks) / sizeof(rocks[0]); i++) {
-        SDL_RenderFillRect(gRenderer, &rocks[i]);
-    }
+    SDL_SetRenderDrawColor(gRenderer, 34, 139, 34, 255);  // Assuming you want a green color for all obstacles
+        for (int i = 0; i < TOTAL_OBSTACLES; i++) {
+            SDL_RenderFillRect(gRenderer, &obstacles[i]);
+}
 
     SDL_RenderPresent(gRenderer);
     }
@@ -419,6 +416,7 @@ void movePlayer(SDL_Rect *playerPosition, SDL_Rect direction, SDL_Rect *obstacle
 
     for (int i = 0; i < numObstacles; i++) {
         if (checkCollision(newPosition, obstacles[i])) {
+            printf("Collision with obstacle %d\n", i);
             return;  // Collision detected, do not update player position
         }
     }
@@ -427,6 +425,7 @@ void movePlayer(SDL_Rect *playerPosition, SDL_Rect direction, SDL_Rect *obstacle
     playerPosition->x = newPosition.x;
     playerPosition->y = newPosition.y;
 }
+
 
 
 bool init(SDL_Renderer **gRenderer) {
