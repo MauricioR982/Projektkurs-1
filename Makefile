@@ -6,8 +6,6 @@ main.o: main.c
 	gcc -c main.c -I/opt/homebrew/include/SDL2
 sprinter.o: sprinter.c
 	gcc -c sprinter.c
-world.o: world.c
-	gcc -c world.c
 hunter.o: hunter.c
 	gcc -c hunter.c
 clean:
