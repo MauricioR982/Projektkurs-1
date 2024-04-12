@@ -36,7 +36,6 @@ typedef struct {
 
 typedef enum {
     MENU_START_GAME,
-    MENU_MULTIPLAYER,
     MENU_TUTORIAL,
     MENU_EXIT,
     MENU_TOTAL
@@ -48,7 +47,7 @@ typedef enum {
 } PlayerRole;
 
 MenuOption currentOption = MENU_START_GAME;
-const int arrowYPositions[] = {100, 165, 228, 287}; // Y-positions for our menu-options
+const int arrowYPositions[] = {100, 198, 286}; // Y-positions for our menu-options
 
 int main(int argc, char* args[])
 {
