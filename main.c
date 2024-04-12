@@ -20,8 +20,8 @@
 #define HORIZONTAL_MARGIN 20 // left & right boundary collision
 
 bool init(SDL_Renderer **gRenderer);
-void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprinterSpriteClips[], SDL_Texture **mHunter, SDL_Rect gHunterSpriteClips[], SDL_Texture **mBackground, SDL_Texture **mMenu, SDL_Texture **mArrow);
-void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mBackground);
+void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprinterSpriteClips[], SDL_Texture **mHunter, SDL_Rect gHunterSpriteClips[], SDL_Texture **mTiles, SDL_Rect gTiles[], SDL_Texture **mMenu, SDL_Texture **mArrow);
+void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mTile, SDL_Rect gTiles[]);
 void showTutorial(SDL_Renderer *gRenderer);
 
 typedef struct {
@@ -34,9 +34,9 @@ typedef struct {
     int y;
 } hPosition; //Hunter spawn position
 
-
 typedef enum {
     MENU_START_GAME,
+    MENU_MULTIPLAYER,
     MENU_TUTORIAL,
     MENU_EXIT,
     MENU_TOTAL
@@ -48,7 +48,7 @@ typedef enum {
 } PlayerRole;
 
 MenuOption currentOption = MENU_START_GAME;
-const int arrowYPositions[] = {100, 198, 286}; // Y-positions for our menu-options
+const int arrowYPositions[] = {100, 165, 228, 287}; // Y-positions for our menu-options
 
 int main(int argc, char* args[])
 {
@@ -56,7 +56,7 @@ int main(int argc, char* args[])
     {100, 64},   //1st pos
     {100, 550},  //2nd pos
     {1100, 64},  //3rd pos
-    {1100, 550}   //3rd pos
+    {1100, 550}   //4th pos
     };
     
     
@@ -79,9 +79,6 @@ int main(int argc, char* args[])
     position.w = 32;
     int frame = 6;
 
-    //Background
-    SDL_Texture *mBackground = NULL;
-
     // Hunter
     SDL_Texture *mHunter = NULL;
     SDL_Rect gHunterSpriteClips[8];  // Assuming 8 frames like Sprinter
@@ -93,6 +90,9 @@ int main(int argc, char* args[])
     hunterPosition.w = 32;
     int hunterFrame = 0;
     
+    // Background
+    SDL_Texture *mTiles = NULL;
+    SDL_Rect gTiles[16];
 
     //Menu
     SDL_Texture *mMenu = NULL;
@@ -104,7 +104,7 @@ int main(int argc, char* args[])
         printf("worked\n");
     }
     
-    loadMedia(gRenderer, &mSprinter, gSpriteClips, &mHunter, gHunterSpriteClips, &mBackground, &mMenu, &mArrow);
+    loadMedia(gRenderer, &mSprinter, gSpriteClips, &mHunter, gHunterSpriteClips, &mTiles, gTiles, &mMenu, &mArrow);
 
     int arrowYPosIndex = 0; // Index for the arrows position in menu
     SDL_Rect arrowPos = {400, arrowYPositions[arrowYPosIndex], 40, 40}; 
@@ -261,7 +261,7 @@ int main(int argc, char* args[])
         // Game renderer
         SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
         SDL_RenderClear(gRenderer);
-        renderBackground(gRenderer, mBackground);
+        renderBackground(gRenderer, mTiles, gTiles);
         if (playerRole == ROLE_SPRINTER) {
             SDL_RenderCopyEx(gRenderer, mSprinter, &gSpriteClips[frame], &position, 0, NULL, flip);
         } else if (playerRole == ROLE_HUNTER) {
@@ -273,10 +273,10 @@ int main(int argc, char* args[])
     return 0;
 }
 
-void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mBackground) {
-    SDL_RenderCopy(gRenderer, mBackground, NULL, NULL);
+void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mTiles, SDL_Rect gTiles[])
+{
+    SDL_RenderCopy(gRenderer, mTiles, NULL, NULL);
 }
-
 
 void showTutorial(SDL_Renderer *gRenderer) {
     // Load the tutorial image
@@ -307,8 +307,7 @@ void showTutorial(SDL_Renderer *gRenderer) {
     SDL_DestroyTexture(tutorialTexture);
 }
 
-void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprinterSpriteClips[], SDL_Texture **mHunter, SDL_Rect gHunterSpriteClips[], SDL_Texture **mBackground, SDL_Texture **mMenu, SDL_Texture **mArrow)
-{    
+void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprinterSpriteClips[], SDL_Texture **mHunter, SDL_Rect gHunterSpriteClips[], SDL_Texture **mTiles, SDL_Rect gTiles[], SDL_Texture **mMenu, SDL_Texture **mArrow){    
     
     SDL_Surface* gSprinterSurface = IMG_Load("resources/SPRINTER.PNG");
     *mSprinter = SDL_CreateTextureFromSurface(gRenderer, gSprinterSurface);
@@ -394,20 +393,24 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprin
     gHunterSpriteClips[ 7 ].y = 0;
     gHunterSpriteClips[ 7 ].w = 16;
     gHunterSpriteClips[ 7 ].h = 16;
-
     
-    SDL_Surface* gBackgroundSurface = IMG_Load("resources/MAP.png");
-    if (gBackgroundSurface == NULL) {
-        printf("Unable to load background image: %s\n", IMG_GetError());
-        // Handle the error, perhaps exit the function
-    } else {
-        *mBackground = SDL_CreateTextureFromSurface(gRenderer, gBackgroundSurface);
-        SDL_FreeSurface(gBackgroundSurface);
-        if (*mBackground == NULL) {
-            printf("Unable to create background texture: %s\n", SDL_GetError());
-        }
+    SDL_Surface* gTilesSurface = IMG_Load("resources/TILES.PNG");
+    *mTiles = SDL_CreateTextureFromSurface(gRenderer, gTilesSurface);
+    for (int i = 0; i < 16; i++) {
+        gTiles[i].x = i*getTileWidth();
+        gTiles[i].y = 0;
+        gTiles[i].w = getTileWidth();
+        gTiles[i].h = getTileHeight();
     }
-
+    
+    //Loading picture-file for Map
+    SDL_Surface* gBackgroundSurface = IMG_Load("resources/MAP.png");
+    if(gBackgroundSurface == NULL) {
+        printf("Kunde inte ladda bakgrundsbild: %s\n", IMG_GetError());
+    } else {
+        *mTiles = SDL_CreateTextureFromSurface(gRenderer, gBackgroundSurface);
+        SDL_FreeSurface(gBackgroundSurface);
+    }
 
     // Loading picture-file for arrow in menu
     SDL_Surface* gArrowSurface = IMG_Load("resources/ARROW.png");
