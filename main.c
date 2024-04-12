@@ -34,6 +34,7 @@ typedef struct {
     int y;
 } hPosition; //Hunter spawn position
 
+
 typedef enum {
     MENU_START_GAME,
     MENU_MULTIPLAYER,
