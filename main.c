@@ -62,7 +62,7 @@ const int arrowYPositions[] = {100, 198, 286}; // Y-positions for our menu-optio
 // Example obstacles
 Obstacle obstacles[] = {
     {{445, 50, 60, 43}}, // Tree at (200, 150) with size 50x50
-    {{210, 600, 70, 70}}, // Rock at (500, 300) with size 70x70
+    {{220, 540, 60, 60}}, // Rock at (500, 300) with size 70x70
     // Add more as needed
 };
 int numObstacles = sizeof(obstacles) / sizeof(obstacles[0]);
