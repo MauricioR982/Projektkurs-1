@@ -17,7 +17,7 @@
 
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
-#define HORIZONTAL_MARGIN 20 // left & right boundary collision
+#define HORIZONTAL_MARGIN 20 // Left & right boundary collision
 
 typedef struct {
     int x;
@@ -27,7 +27,7 @@ typedef struct {
 typedef struct {
     int x;
     int y;
-} hPosition; //Hunter spawn position
+} hPosition; // Hunter spawn position
 
 
 typedef enum {
@@ -47,7 +47,6 @@ typedef struct {
 } Obstacle;
 
 
-
 bool init(SDL_Renderer **gRenderer);
 void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprinterSpriteClips[], SDL_Texture **mHunter, SDL_Rect gHunterSpriteClips[], SDL_Texture **mBackground, SDL_Texture **mMenu, SDL_Texture **mArrow);
 void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mBackground);
@@ -62,7 +61,7 @@ const int arrowYPositions[] = {100, 198, 286}; // Y-positions for our menu-optio
 
 // Example obstacles
 Obstacle obstacles[] = {
-    {{200, 150, 50, 50}}, // Tree at (200, 150) with size 50x50
+    {{106, 61, 186, 149}}, // Tree at (200, 150) with size 50x50
     {{500, 300, 70, 70}}, // Rock at (500, 300) with size 70x70
     // Add more as needed
 };
