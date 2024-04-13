@@ -43,4 +43,3 @@ PUBLIC void sprinterTick(Sprinter s, int direction){
     
     
 }
-
