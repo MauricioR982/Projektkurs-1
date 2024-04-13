@@ -93,8 +93,8 @@ int main(int argc, char* args[])
     SDL_Rect position;
     position.x = startPos[index].x;
     position.y = startPos[index].y;
-    position.h = 32;
-    position.w = 32;
+    position.h = 32;   // Change to 24 for smaller character
+    position.w = 32;   // Change to 24 for smaller character
     int frame = 6;
 
     //Background
@@ -224,21 +224,21 @@ int main(int argc, char* args[])
         }
     }
 
-    // Rendering
-    SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
-    SDL_RenderClear(gRenderer);
-    renderBackground(gRenderer, mBackground);
-    if (playerRole == ROLE_SPRINTER) {
-        SDL_RenderCopyEx(gRenderer, mSprinter, &gSpriteClips[frame], &position, 0, NULL, flip);
-    } else if (playerRole == ROLE_HUNTER) {
-        SDL_RenderCopyEx(gRenderer, mHunter, &gHunterSpriteClips[frame], &hunterPosition, 0, NULL, flipHunter);
-    }
-    if (debugMode) {
-        drawDebugInfo(gRenderer);
-    }
+        // Rendering
+        SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+        SDL_RenderClear(gRenderer);
+        renderBackground(gRenderer, mBackground);
+        if (playerRole == ROLE_SPRINTER) {
+            SDL_RenderCopyEx(gRenderer, mSprinter, &gSpriteClips[frame], &position, 0, NULL, flip);
+        } else if (playerRole == ROLE_HUNTER) {
+            SDL_RenderCopyEx(gRenderer, mHunter, &gHunterSpriteClips[frame], &hunterPosition, 0, NULL, flipHunter);
+        }
+        if (debugMode) {
+            drawDebugInfo(gRenderer);
+        }
 
-    SDL_RenderPresent(gRenderer);
-}
+        SDL_RenderPresent(gRenderer);
+    }
 }
 
 void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mBackground) {
