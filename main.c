@@ -66,7 +66,11 @@ Obstacle obstacles[] = {
     {{225, 567, 25, 25}},       // Covers 3rd of 3 stones down left (left one)
 
     {{132, 498, 22, 22}},       // Covers the little stone next to the shroom (between trees on left side)
+
     {{645, 332, 30, 30}},       // Covers little stone in center of map
+    {{712, 273, 50, 50}},       // Covers left tree in center of map
+    {{762, 270, 50, 50}},       // Covers right tree in center of map
+    {{762, 332, 50, 50}},
 
     {{132, 610, 55, 55}},       // Covers 1st of 3 trees down left (upper right tree)
     {{75, 595, 55, 55}},        // Covers 2nd of 3 trees down fleft (upper left tree)
@@ -76,11 +80,12 @@ Obstacle obstacles[] = {
     {{180, 106, 50, 40}},       // Covers the lower tree at top left
 
     {{220, 78, 28, 28}},        // Covers the stone above the tree described just above (lower tree top left)
-    {{240, 105, 23, 23}},        // Covers the stone under the one described just above
+    {{240, 105, 23, 23}},       // Covers the stone under the one described just above
 
-    {{255, 52, 23, 23}},
-    {{280, 38, 22, 22}},
-    {{250, 30, 30, 30}}
+    // 3 stones together close to the 2 trees (top left)
+    {{255, 52, 23, 23}},        // Right stone
+    {{280, 38, 22, 22}},        // Lower stone
+    {{250, 30, 30, 30}}         // Upper stone
 
     // Add more if needed
 };
