@@ -46,7 +46,6 @@ typedef struct {
     SDL_Rect bounds; // x, y, w, h
 } Obstacle;
 
-
 bool init(SDL_Renderer **gRenderer);
 void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprinterSpriteClips[], SDL_Texture **mHunter, SDL_Rect gHunterSpriteClips[], SDL_Texture **mBackground, SDL_Texture **mMenu, SDL_Texture **mArrow);
 void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mBackground);
@@ -57,13 +56,14 @@ void updateFrame(int *frame, PlayerRole role, int frame1, int frame2);
 void drawDebugInfo(SDL_Renderer *gRenderer);
 
 MenuOption currentOption = MENU_START_GAME;
-const int arrowYPositions[] = {100, 198, 286}; // Y-positions for our menu-options
+const int arrowYPositions[] = {100, 198, 288}; // Y-positions for our menu-options
 
 // Example obstacles
 Obstacle obstacles[] = {
-    {{445, 50, 60, 43}}, // Covering the 2 stones, 1 mushroom close to center top from left
-    {{220, 545, 50, 50}}, // Covering the 3 stones down left
-    {{145, 76, 53, 42}}, // Covering the upper tree at top left
+    {{445, 50, 60, 43}}, // Covers the 2 stones, 1 mushroom close to center top from left
+    {{225, 545, 50, 50}}, // Covers the 1 of 3 stones down left
+    {{132, 610, 55, 55}}, // Covers the 3 trees down left
+    {{145, 76, 53, 42}}, // Covers the upper tree at top left
     // Add more as needed
 };
 int numObstacles = sizeof(obstacles) / sizeof(obstacles[0]);
@@ -110,7 +110,6 @@ int main(int argc, char* args[])
     hunterPosition.h = 32;
     hunterPosition.w = 32;
     int hunterFrame = 0;
-    
 
     //Menu
     SDL_Texture *mMenu = NULL;
@@ -440,7 +439,6 @@ void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, PlayerRole role) {
             return; // Collision detected, do not update position
         }
     }
-
     newPos.x = SDL_clamp(newPos.x, HORIZONTAL_MARGIN, WINDOW_WIDTH - newPos.w - HORIZONTAL_MARGIN);
     newPos.y = SDL_clamp(newPos.y, 0, WINDOW_HEIGHT - newPos.h);
 
