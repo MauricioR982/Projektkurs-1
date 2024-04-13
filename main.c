@@ -60,7 +60,9 @@ const int arrowYPositions[] = {100, 198, 288}; // Y-positions for our menu-optio
 // Example obstacles
 Obstacle obstacles[] = {
     {{445, 50, 60, 43}},        // Covers the 2 stones, 1 mushroom close to center top from left
-    {{225, 545, 30, 30}},       // Covers 1 of 3 stones down left (upper one)
+
+    {{225, 545, 30, 30}},       // Covers 1st of 3 stones down left (upper one)
+    {{247, 563, 26, 26}},       // Covers 2nd of 3 stones down left (right one)
 
     {{132, 610, 55, 55}},       // Covers 1st of 3 trees down left (upper right tree)
     {{75, 595, 55, 55}},        // Covers 2nd of 3 trees down left (upper left tree)
@@ -69,6 +71,7 @@ Obstacle obstacles[] = {
     {{145, 76, 53, 42}},        // Covers the upper tree at top left
     // Add more if needed
 };
+
 int numObstacles = sizeof(obstacles) / sizeof(obstacles[0]);
 
 int main(int argc, char* args[])
@@ -79,7 +82,6 @@ int main(int argc, char* args[])
     {1100, 64},  //3rd pos
     {1100, 550}   //4th pos
     };
-    
     
     int numPositions = sizeof(startPos) / sizeof(startPos[0]);
     srand(time(NULL));
