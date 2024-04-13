@@ -8,7 +8,6 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h> 
 #include <stdbool.h>
-#include "world.h"
 #include <time.h>
 #include "sprinter.h"
 #include "hunter.h"
