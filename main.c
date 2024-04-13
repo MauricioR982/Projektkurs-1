@@ -1,7 +1,6 @@
 //
 //  'main.c'
 //  Developed by Grupp 10 - Datateknik, project-start at 2024-03.
-//  @"f.e." = for example
 //
 
 #include <stdio.h>
@@ -63,13 +62,16 @@ Obstacle obstacles[] = {
 
     {{225, 545, 30, 30}},       // Covers 1st of 3 stones down left (upper one)
     {{247, 563, 26, 26}},       // Covers 2nd of 3 stones down left (right one)
-    {{225, 567, 25, 25}},
+    {{225, 567, 25, 25}},       // Covers 3rd of 3 stones down left (left one)
+
+    {{132, 498, 22, 22}},
 
     {{132, 610, 55, 55}},       // Covers 1st of 3 trees down left (upper right tree)
-    {{75, 595, 55, 55}},        // Covers 2nd of 3 trees down left (upper left tree)
+    {{75, 595, 55, 55}},        // Covers 2nd of 3 trees down fleft (upper left tree)
     {{88, 643, 68, 45}},        // Covers 3rd of 3 trees down left (lower tree)
 
     {{145, 76, 53, 42}},        // Covers the upper tree at top left
+    {{180, 106, 50, 40}}
     // Add more if needed
 };
 
