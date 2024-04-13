@@ -59,7 +59,7 @@ const int arrowYPositions[] = {100, 198, 288}; // Y-positions for our menu-optio
 // Example obstacles
 Obstacle obstacles[] = {
     {{458, 48, 25, 25}},        // Covers the 1st of 2 stones at center top
-    {{}},
+    {{475, 68, 25, 25}},          
 
     {{225, 545, 30, 30}},       // Covers 1st of 3 stones down left (upper one)
     {{247, 563, 26, 26}},       // Covers 2nd of 3 stones down left (right one)
