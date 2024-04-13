@@ -76,7 +76,10 @@ Obstacle obstacles[] = {
     {{180, 106, 50, 40}},       // Covers the lower tree at top left
 
     {{220, 78, 28, 28}},        // Covers the stone above the tree described just above (lower tree top left)
-    {{240, 105, 23, 23}}        // Covers the stone under the one described just above
+    {{240, 105, 23, 23}},        // Covers the stone under the one described just above
+
+    {{255, 52, 23, 23}},
+    {{280, 38, 22, 22}}
 
     // Add more if needed
 };
