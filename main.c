@@ -58,8 +58,8 @@ const int arrowYPositions[] = {100, 198, 288}; // Y-positions for our menu-optio
 
 // Example obstacles
 Obstacle obstacles[] = {
-    {{458, 48, 25, 25}},        // Covers the 1st of 2 stones at center top
-    {{475, 68, 25, 25}},          
+    {{458, 48, 25, 25}},        // Covers the 1st of 2 stones at center top (upper one)
+    {{475, 68, 25, 25}},        // Covers the 2nd of 2 stones at center top (lower one)
 
     {{225, 545, 30, 30}},       // Covers 1st of 3 stones down left (upper one)
     {{247, 563, 26, 26}},       // Covers 2nd of 3 stones down left (right one)
@@ -73,7 +73,10 @@ Obstacle obstacles[] = {
     {{88, 643, 68, 45}},        // Covers 3rd of 3 trees down left (lower tree)
 
     {{145, 76, 53, 42}},        // Covers the upper tree at top left
-    {{180, 106, 50, 40}}        // Covers the lower tree at top left
+    {{180, 106, 50, 40}},       // Covers the lower tree at top left
+
+    {{220, 78, 28, 28}},        // Covers the stone above the tree described just above (lower tree top left)
+    {{240, 105, 23, 23}}        // Covers the stone under the one described just above
 
     // Add more if needed
 };
@@ -135,7 +138,7 @@ int main(int argc, char* args[])
     loadMedia(gRenderer, &mSprinter, gSpriteClips, &mHunter, gHunterSpriteClips, &mBackground, &mMenu, &mArrow);
 
     int arrowYPosIndex = 0; // Index for the arrows position in menu
-    SDL_Rect arrowPos = {400, arrowYPositions[arrowYPosIndex], 40, 40}; 
+    SDL_Rect arrowPos = {400, arrowYPositions[arrowYPosIndex], 40, 40};
 
     bool debugMode = true;  // Set this to false when you no longer need to see the debug overlays
 
@@ -255,7 +258,6 @@ int main(int argc, char* args[])
 void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mBackground) {
     SDL_RenderCopy(gRenderer, mBackground, NULL, NULL);
 }
-
 
 void showTutorial(SDL_Renderer *gRenderer) {
     // Load the tutorial image
