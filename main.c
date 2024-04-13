@@ -63,6 +63,7 @@ Obstacle obstacles[] = {
     {{225, 545, 50, 50}},       // Covers the 3 stones down left
     {{132, 610, 55, 55}},       // Covers 1st of 3 trees down left (upper right tree)
     {{75, 600, 55, 55}},        // Covers 2nd of 3 trees down left (upper left tree)
+    {{88, 650, 65, 55}},        // Covers last of 3 trees down left (lower tree)
     {{145, 76, 53, 42}},        // Covers the upper tree at top left
     // Add more as needed
 };
@@ -93,8 +94,8 @@ int main(int argc, char* args[])
     SDL_Rect position;
     position.x = startPos[index].x;
     position.y = startPos[index].y;
-    position.h = 32;   // Change to 24 for smaller character
-    position.w = 32;   // Change to 24 for smaller character
+    position.h = 32;
+    position.w = 32;
     int frame = 6;
 
     //Background
