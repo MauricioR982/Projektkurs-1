@@ -73,7 +73,8 @@ Obstacle obstacles[] = {
     {{762, 332, 50, 50}},       // Covers tree under the two described above
 
     {{952, 457, 25, 25}},       // Covers lower stone at bottom right
-    {{978, 440, 29, 29}},
+    {{978, 440, 29, 29}},       // Covers stone above the one described above
+    {{1185, 447, 50, 50}},
 
     {{132, 610, 55, 55}},       // Covers 1st of 3 trees down left (upper right tree)
     {{75, 595, 55, 55}},        // Covers 2nd of 3 trees down fleft (upper left tree)
