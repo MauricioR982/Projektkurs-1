@@ -63,6 +63,7 @@ Obstacle obstacles[] = {
 
     {{225, 545, 30, 30}},       // Covers 1st of 3 stones down left (upper one)
     {{247, 563, 26, 26}},       // Covers 2nd of 3 stones down left (right one)
+    {{225, 567, 25, 25}},
 
     {{132, 610, 55, 55}},       // Covers 1st of 3 trees down left (upper right tree)
     {{75, 595, 55, 55}},        // Covers 2nd of 3 trees down left (upper left tree)
