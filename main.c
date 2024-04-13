@@ -79,7 +79,8 @@ Obstacle obstacles[] = {
     {{240, 105, 23, 23}},        // Covers the stone under the one described just above
 
     {{255, 52, 23, 23}},
-    {{280, 38, 22, 22}}
+    {{280, 38, 22, 22}},
+    {{250, 30, 30, 30}}
 
     // Add more if needed
 };
