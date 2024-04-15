@@ -154,7 +154,7 @@ int main(int argc, char* args[])
     int arrowYPosIndex = 0; // Index for the arrows position in menu
     SDL_Rect arrowPos = {400, arrowYPositions[arrowYPosIndex], 40, 40};
 
-    bool debugMode = true;  // Set this to false when you no longer need to see the debug overlays
+    bool debugMode = false;  // Set this to false when you no longer need to see the debug overlays
 
     // Menu-loop
     bool showMenu = true;
