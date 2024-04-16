@@ -9,5 +9,6 @@ typedef struct {
 
 void initObstacles(Obstacle obstacles[], int size);
 void drawObstacles(SDL_Renderer* renderer, Obstacle obstacles[], int size);
-
+void toggleObstacleDebugMode(); // Toggle debug mode
+void drawObstacleDebugInfo(SDL_Renderer* renderer, Obstacle obstacles[], int size); // Debug drawing
 #endif

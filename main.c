@@ -120,8 +120,6 @@ int main(int argc, char* args[])
     int arrowYPosIndex = 0; // Index for the arrows position in menu
     SDL_Rect arrowPos = {400, arrowYPositions[arrowYPosIndex], 40, 40};
 
-    bool debugMode = false;  // Set this to false when you no longer need to see the debug overlays
-
     // Menu-loop
     bool showMenu = true;
     while (showMenu && !quit) {
@@ -182,6 +180,9 @@ int main(int argc, char* args[])
         }
         else if (e.type == SDL_KEYDOWN) {
             switch (e.key.keysym.sym) {
+                case SDLK_u:
+                    toggleObstacleDebugMode();
+                    break;
                 case SDLK_w:
                 case SDLK_UP:
                     moveCharacter(playerRole == ROLE_SPRINTER ? &position : &hunterPosition, 0, -8, playerRole, obstacles, NUM_OBSTACLES);
@@ -228,10 +229,7 @@ int main(int argc, char* args[])
         } else if (playerRole == ROLE_HUNTER) {
             SDL_RenderCopyEx(gRenderer, mHunter, &gHunterSpriteClips[frame], &hunterPosition, 0, NULL, flipHunter);
         }
-        if (debugMode) {
-            drawDebugInfo(gRenderer, obstacles, NUM_OBSTACLES);
-        }
-
+        
         SDL_RenderPresent(gRenderer);
     }
 

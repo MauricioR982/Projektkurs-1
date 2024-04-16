@@ -1,4 +1,11 @@
 #include "obstacle.h"
+#include <stdbool.h>
+
+static bool debugMode = false;
+
+void toggleObstacleDebugMode() {
+    debugMode = !debugMode;
+}
 
 void initObstacles(Obstacle obstacles[], int size) {
     // Define the obstacles here
@@ -30,7 +37,18 @@ void initObstacles(Obstacle obstacles[], int size) {
 }
 
 void drawObstacles(SDL_Renderer* renderer, Obstacle obstacles[], int size) {
-    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // Red color for obstacles
+    for (int i = 0; i < size; i++) {
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // White for regular drawing
+        SDL_RenderFillRect(renderer, &obstacles[i].bounds);
+    }
+
+    if (debugMode) {
+        drawObstacleDebugInfo(renderer, obstacles, size);
+    }
+}
+
+void drawObstacleDebugInfo(SDL_Renderer* renderer, Obstacle obstacles[], int size) {
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 128); // Semi-transparent red for debug info
     for (int i = 0; i < size; i++) {
         SDL_RenderDrawRect(renderer, &obstacles[i].bounds);
     }
