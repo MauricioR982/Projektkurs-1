@@ -3,10 +3,8 @@
 //  Developed by Grupp 10 - Datateknik, project-start at 2024-03.
 //
 
-//skapa adt för obstacles
-//lägga till states för nätverk (till exempel meny är en state, inuti spelet är en state)
 //lägg till backlogg
-//börja med nätverk
+//börjat med nätverk
 
 #include <stdio.h>
 #include <SDL2/SDL.h>
