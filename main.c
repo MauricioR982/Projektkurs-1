@@ -57,7 +57,7 @@ UDPsocket sd;       // Socket descriptor
 IPaddress srvadd;   // IP address for server
 bool isServer = false;  // Mode switch
 
-int main(int argc, char* args[])
+int main(int argc, char* argv[])
 {
     // Initialize SDL_net
     if (SDLNet_Init() < 0) {
@@ -240,14 +240,14 @@ int main(int argc, char* args[])
             }
         }
     }
-        if (isServer) {
+        /*if (isServer) {
             handleIncomingData(sd); // Server handles data from clients
         } else {
             // Client sends position updates to the server
             char playerData[128];
             sprintf(playerData, "Pos:%d,%d", position.x, position.y);
             sendPlayerData(sd, srvadd, playerData);
-        }
+        }*/
         // Rendering
         SDL_RenderClear(gRenderer);
         renderBackground(gRenderer, mBackground);
