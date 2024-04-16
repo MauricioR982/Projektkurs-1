@@ -1,7 +1,7 @@
 # A simple Makefile for compiling small SDL projects
 
 theGame: main.o sprinter.o hunter.o obstacle.o game_states.o
-	gcc -o theGame main.o sprinter.o hunter.o obstacle.o game_states.o -L/opt/homebrew/lib/ -lSDL2 -lSDL2_image
+	gcc -o theGame main.o sprinter.o hunter.o obstacle.o game_states.o -L/opt/homebrew/lib/ -lSDL2 -lSDL2_image -lSDL2_net
 main.o: main.c
 	gcc -c main.c -I/opt/homebrew/include/SDL2
 sprinter.o: sprinter.c

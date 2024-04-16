@@ -55,7 +55,18 @@ const int arrowYPositions[] = {100, 198, 288}; // Y-positions for our menu-optio
 
 int main(int argc, char* args[])
 {
-    
+    // Initialize SDL
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+        return -1; // or handle the error in a way appropriate for your application
+    }
+
+    // Initialize SDL_net
+    if (SDLNet_Init() < 0) {
+        printf("SDLNet could not initialize! SDLNet_Error: %s\n", SDLNet_GetError());
+        SDL_Quit();
+        return -1;
+    }
 
     sPosition startPos[] = {
     {100, 64},   //1st pos
@@ -235,7 +246,8 @@ int main(int argc, char* args[])
         
         SDL_RenderPresent(gRenderer);
     }
-
+    SDLNet_Quit();
+    SDL_Quit();
     return 0;
 }
 
