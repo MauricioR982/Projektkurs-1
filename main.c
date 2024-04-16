@@ -35,13 +35,6 @@ typedef struct {
     int y;
 } hPosition; // Hunter spawn position
 
-/*typedef enum {
-    MENU_START_GAME,
-    MENU_TUTORIAL,
-    MENU_EXIT,
-    MENU_TOTAL
-} MenuOption;*/
-
 typedef enum {
     ROLE_SPRINTER,
     ROLE_HUNTER
@@ -57,12 +50,13 @@ void updateFrame(int *frame, PlayerRole role, int frame1, int frame2);
 void drawDebugInfo(SDL_Renderer *gRenderer, Obstacle obstacles[], int numObstacles);
 void updateGameState(GameState new_state);
 
-//MenuOption currentOption = MENU_START_GAME; //måste ändras till GameState?
 GameState current_state;
 const int arrowYPositions[] = {100, 198, 288}; // Y-positions for our menu-options
 
 int main(int argc, char* args[])
 {
+    
+
     sPosition startPos[] = {
     {100, 64},   //1st pos
     {100, 550},  //2nd pos
