@@ -240,14 +240,7 @@ int main(int argc, char* argv[])
             }
         }
     }
-        /*if (isServer) {
-            handleIncomingData(sd); // Server handles data from clients
-        } else {
-            // Client sends position updates to the server
-            char playerData[128];
-            sprintf(playerData, "Pos:%d,%d", position.x, position.y);
-            sendPlayerData(sd, srvadd, playerData);
-        }*/
+
         // Rendering
         SDL_RenderClear(gRenderer);
         renderBackground(gRenderer, mBackground);
