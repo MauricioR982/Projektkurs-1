@@ -1,3 +1,2 @@
-serverOchClient: udps.c udpc.c
-	gcc -o server udps.c -lSDL2_net
+client: udpc.c
 	gcc -o client udpc.c -lSDL2_net
