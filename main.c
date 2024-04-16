@@ -7,7 +7,7 @@
 //lägga till states för nätverk
 //lägg till backlogg
 //börja med nätverk
-
+//hej
 
 #include <stdio.h>
 #include <SDL2/SDL.h>
@@ -23,6 +23,7 @@
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
 #define HORIZONTAL_MARGIN 20 // Left & right boundary collision
+
 
 typedef struct {
     int x;
