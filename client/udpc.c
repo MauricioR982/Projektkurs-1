@@ -3,6 +3,8 @@
 #include <string.h>
  
 #include <SDL2/SDL_net.h>
+
+void sendPlayerData(UDPsocket sd, IPaddress srvadd, const char* data);
  
 int main(int argc, char **argv)
 {
@@ -69,3 +71,17 @@ int main(int argc, char **argv)
  
 	return EXIT_SUCCESS;
 } 
+
+void sendPlayerData(UDPsocket sd, IPaddress srvadd, const char* data) {
+    UDPpacket *p = SDLNet_AllocPacket(512);
+    if (!p) {
+        fprintf(stderr, "SDLNet_AllocPacket: %s\n", SDLNet_GetError());
+        return;
+    }
+    strcpy((char *)p->data, data);
+    p->address = srvadd;
+    p->len = strlen((char *)p->data) + 1;
+    SDLNet_UDP_Send(sd, -1, p);  // send packet
+    SDLNet_FreePacket(p);
+}
+

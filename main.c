@@ -53,6 +53,10 @@ void updateGameState(GameState new_state);
 GameState current_state;
 const int arrowYPositions[] = {100, 198, 288}; // Y-positions for our menu-options
 
+UDPsocket sd;       // Socket descriptor
+IPaddress srvadd;   // IP address for server
+bool isServer = false;  // Mode switch
+
 int main(int argc, char* args[])
 {
     // Initialize SDL

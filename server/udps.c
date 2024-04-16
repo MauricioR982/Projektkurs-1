@@ -3,6 +3,8 @@
 #include <string.h>
  
 #include <SDL2/SDL_net.h>
+
+void handleIncomingData(UDPsocket sd);
  
 int main(int argc, char **argv)
 {
@@ -57,3 +59,17 @@ int main(int argc, char **argv)
 	SDLNet_Quit();
 	return EXIT_SUCCESS;
 } 
+
+void handleIncomingData(UDPsocket sd) {
+    UDPpacket *p = SDLNet_AllocPacket(512);
+    if (!p) {
+        fprintf(stderr, "SDLNet_AllocPacket: %s\n", SDLNet_GetError());
+        return;
+    }
+    
+    if (SDLNet_UDP_Recv(sd, p)) {
+        printf("Received: %s from %x %x\n", (char *)p->data, p->address.host, p->address.port);
+        // Process here
+    }
+    SDLNet_FreePacket(p);
+}
