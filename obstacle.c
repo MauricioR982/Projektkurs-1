@@ -30,8 +30,8 @@ void initObstacles(Obstacle obstacles[], int size) {
 }
 
 void drawObstacles(SDL_Renderer* renderer, Obstacle obstacles[], int size) {
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // Red color for obstacles
     for (int i = 0; i < size; i++) {
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // Red color for obstacles
-        SDL_RenderFillRect(renderer, &obstacles[i].bounds);
+        SDL_RenderDrawRect(renderer, &obstacles[i].bounds);
     }
 }
