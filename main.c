@@ -123,6 +123,7 @@ int main(int argc, char* args[])
 
     initializeGameState();
     setGameState(STATE_MENU);
+    
 
     // Menu-loop
     bool showMenu = true;
