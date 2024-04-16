@@ -220,9 +220,9 @@ int main(int argc, char* args[])
     }
 
         // Rendering
-        SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
         SDL_RenderClear(gRenderer);
         renderBackground(gRenderer, mBackground);
+        SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
         drawObstacles(gRenderer, obstacles, NUM_OBSTACLES);
         if (playerRole == ROLE_SPRINTER) {
             SDL_RenderCopyEx(gRenderer, mSprinter, &gSpriteClips[frame], &position, 0, NULL, flip);

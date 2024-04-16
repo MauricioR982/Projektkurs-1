@@ -8,7 +8,6 @@ void toggleObstacleDebugMode() {
 }
 
 void initObstacles(Obstacle obstacles[], int size) {
-    // Define the obstacles here
     if (size >= 23) { // Make sure the size is sufficient to hold all defined obstacles
         obstacles[0].bounds = (SDL_Rect){458, 48, 25, 25};
         obstacles[1].bounds = (SDL_Rect){475, 68, 25, 25};
@@ -37,12 +36,10 @@ void initObstacles(Obstacle obstacles[], int size) {
 }
 
 void drawObstacles(SDL_Renderer* renderer, Obstacle obstacles[], int size) {
-    for (int i = 0; i < size; i++) {
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // White for regular drawing
-        SDL_RenderFillRect(renderer, &obstacles[i].bounds);
-    }
-
     if (debugMode) {
+        for (int i = 0; i < size; i++) {
+            SDL_RenderDrawRect(renderer, &obstacles[i].bounds);
+        }
         drawObstacleDebugInfo(renderer, obstacles, size);
     }
 }
