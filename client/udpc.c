@@ -3,6 +3,8 @@
 #include <string.h>
  
 #include <SDL2/SDL_net.h>
+
+//för att köra som localhost ./client.exe localhost 2000
  
 int main(int argc, char **argv)
 {
