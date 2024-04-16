@@ -3,6 +3,12 @@
 //  Developed by Grupp 10 - Datateknik, project-start at 2024-03.
 //
 
+//skapa adt för obstacles
+//lägga till states för nätverk
+//lägg till backlogg
+//börja med nätverk
+
+
 #include <stdio.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
