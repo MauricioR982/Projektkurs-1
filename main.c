@@ -17,6 +17,7 @@
 #include "sprinter.h"
 #include "hunter.h"
 #include "obstacle.h"
+#include "game_states.h"
 
 #undef main
 
