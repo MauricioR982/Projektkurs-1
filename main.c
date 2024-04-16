@@ -59,18 +59,22 @@ bool isServer = false;  // Mode switch
 
 int main(int argc, char* args[])
 {
-    // Initialize SDL
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
-        return -1; // or handle the error in a way appropriate for your application
-    }
-
     // Initialize SDL_net
     if (SDLNet_Init() < 0) {
         printf("SDLNet could not initialize! SDLNet_Error: %s\n", SDLNet_GetError());
         SDL_Quit();
         return -1;
     }
+
+    // Determine mode from command line arguments
+    if (argc > 1 && strcmp(argv[1], "server") == 0) {
+        isServer = true;
+        sd = SDLNet_UDP_Open(2000);  // Example server port
+    } else {
+        SDLNet_ResolveHost(&srvadd, "localhost", 12345);  // Connect to server
+        sd = SDLNet_UDP_Open(0);  // Open a socket on any available port for client
+    }
+
 
     sPosition startPos[] = {
     {100, 64},   //1st pos
@@ -236,7 +240,14 @@ int main(int argc, char* args[])
             }
         }
     }
-
+        if (isServer) {
+            handleIncomingData(sd); // Server handles data from clients
+        } else {
+            // Client sends position updates to the server
+            char playerData[128];
+            sprintf(playerData, "Pos:%d,%d", position.x, position.y);
+            sendPlayerData(sd, srvadd, playerData);
+        }
         // Rendering
         SDL_RenderClear(gRenderer);
         renderBackground(gRenderer, mBackground);
