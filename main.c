@@ -36,12 +36,12 @@ typedef struct {
     int y;
 } hPosition; // Hunter spawn position
 
-typedef enum {
+/*typedef enum {
     MENU_START_GAME,
     MENU_TUTORIAL,
     MENU_EXIT,
     MENU_TOTAL
-} MenuOption;
+} MenuOption;*/
 
 typedef enum {
     ROLE_SPRINTER,
@@ -56,8 +56,10 @@ bool checkCollision(SDL_Rect a, SDL_Rect b);
 void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, PlayerRole role, Obstacle obstacles[], int numObstacles);
 void updateFrame(int *frame, PlayerRole role, int frame1, int frame2);
 void drawDebugInfo(SDL_Renderer *gRenderer, Obstacle obstacles[], int numObstacles);
+void updateGameState(GameState new_state);
 
-MenuOption currentOption = MENU_START_GAME;
+//MenuOption currentOption = MENU_START_GAME; //måste ändras till GameState?
+GameState current_state;
 const int arrowYPositions[] = {100, 198, 288}; // Y-positions for our menu-options
 
 int main(int argc, char* args[])
@@ -121,6 +123,9 @@ int main(int argc, char* args[])
     int arrowYPosIndex = 0; // Index for the arrows position in menu
     SDL_Rect arrowPos = {400, arrowYPositions[arrowYPosIndex], 40, 40};
 
+    initializeGameState();
+    setGameState(STATE_MENU);
+
     // Menu-loop
     bool showMenu = true;
     while (showMenu && !quit) {
@@ -133,29 +138,32 @@ int main(int argc, char* args[])
                     case SDLK_UP:
                         arrowYPosIndex--;
                         if (arrowYPosIndex < 0) {
-                            arrowYPosIndex = MENU_TOTAL - 1; //Loops back to last alternative
+                            arrowYPosIndex = STATE_TOTAL - 1; //Loops back to last alternative
                         }
                         break;
                     case SDLK_DOWN:
                         arrowYPosIndex++;
-                        if (arrowYPosIndex >= MENU_TOTAL) {
+                        if (arrowYPosIndex >= STATE_TOTAL) {
                             arrowYPosIndex = 0; //Loops back to first alternative
                         }
                         break;
                     case SDLK_RETURN:
                         // Logic to handle choice based on arrowYPosIndex after Return-press
                         switch (arrowYPosIndex) {
-                        case MENU_START_GAME:
-                            showMenu = false; // Closing menu and starting game
-                            break;
-                        case MENU_TUTORIAL:
-                            showTutorial(gRenderer);
-                            //showMenu = true;
-                            break;
-                        case MENU_EXIT:
-                            quit = true;
-                            showMenu = false;
-                            break;
+                            case 0:
+                                setGameState(STATE_PLAYING);
+                                showMenu = false; // Closing menu and starting game
+                                break;
+                            case 1:
+                                setGameState(STATE_TUTORIAL);
+                                showTutorial(gRenderer);
+                                showMenu = true;
+                                break;
+                            case 2:
+                                setGameState(STATE_EXIT);
+                                quit = true;
+                                showMenu = false;
+                                break;
                     }
                         break;
                     // ... other cases here ...
@@ -449,4 +457,9 @@ void drawDebugInfo(SDL_Renderer *gRenderer, Obstacle obstacles[], int numObstacl
     for (int i = 0; i < numObstacles; i++) {
         SDL_RenderDrawRect(gRenderer, &obstacles[i].bounds);  // Draw rectangle around the collision area
     }
+}
+
+void updateGameState(GameState new_state) {
+    current_state = new_state;
+    // Additional logic to handle state change
 }
