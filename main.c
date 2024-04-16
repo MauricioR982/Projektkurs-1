@@ -16,13 +16,14 @@
 #include <time.h>
 #include "sprinter.h"
 #include "hunter.h"
+#include "obstacle.h"
 
 #undef main
 
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
 #define HORIZONTAL_MARGIN 20 // Left & right boundary collision
-
+#define NUM_OBSTACLES 23
 
 typedef struct {
     int x;
@@ -33,7 +34,6 @@ typedef struct {
     int x;
     int y;
 } hPosition; // Hunter spawn position
-
 
 typedef enum {
     MENU_START_GAME,
@@ -47,62 +47,17 @@ typedef enum {
     ROLE_HUNTER
 } PlayerRole;
 
-typedef struct {
-    SDL_Rect bounds; // x, y, w, h
-} Obstacle;
-
 bool init(SDL_Renderer **gRenderer);
 void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprinterSpriteClips[], SDL_Texture **mHunter, SDL_Rect gHunterSpriteClips[], SDL_Texture **mBackground, SDL_Texture **mMenu, SDL_Texture **mArrow);
 void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mBackground);
 void showTutorial(SDL_Renderer *gRenderer);
 bool checkCollision(SDL_Rect a, SDL_Rect b);
-void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, PlayerRole role);
+void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, PlayerRole role, Obstacle obstacles[], int numObstacles);
 void updateFrame(int *frame, PlayerRole role, int frame1, int frame2);
-void drawDebugInfo(SDL_Renderer *gRenderer);
+void drawDebugInfo(SDL_Renderer *gRenderer, Obstacle obstacles[], int numObstacles);
 
 MenuOption currentOption = MENU_START_GAME;
 const int arrowYPositions[] = {100, 198, 288}; // Y-positions for our menu-options
-
-// Example obstacles
-Obstacle obstacles[] = {
-    {{458, 48, 25, 25}},        // Covers the 1st of 2 stones at center top (upper one)
-    {{475, 68, 25, 25}},        // Covers the 2nd of 2 stones at center top (lower one)
-
-    {{225, 545, 30, 30}},       // Covers 1st of 3 stones down left (upper one)
-    {{247, 563, 26, 26}},       // Covers 2nd of 3 stones down left (right one)
-    {{225, 567, 25, 25}},       // Covers 3rd of 3 stones down left (left one)
-
-    {{132, 498, 22, 22}},       // Covers the little stone next to the shroom (between trees on left side)
-
-    {{645, 332, 30, 30}},       // Covers little stone in center of map
-    {{712, 273, 50, 50}},       // Covers left tree in center of map
-    {{762, 270, 50, 50}},       // Covers right tree in center of map
-    {{762, 332, 50, 50}},       // Covers tree under the two described above
-
-    {{952, 457, 25, 25}},       // Covers lower stone at bottom right
-    {{978, 440, 29, 29}},       // Covers stone above the one described above
-    {{1185, 447, 50, 50}},      // Covers the tree close to bottom right
-
-    {{132, 610, 55, 55}},       // Covers 1st of 3 trees down left (upper right tree)
-    {{75, 595, 55, 55}},        // Covers 2nd of 3 trees down fleft (upper left tree)
-    {{88, 643, 68, 45}},        // Covers 3rd of 3 trees down left (lower tree)
-
-    {{145, 76, 53, 42}},        // Covers the upper tree at top left
-    {{180, 106, 50, 40}},       // Covers the lower tree at top left
-
-    {{220, 78, 28, 28}},        // Covers the stone above the tree described just above (lower tree top left)
-    {{240, 105, 23, 23}},       // Covers the stone under the one described just above
-
-    // 3 stones together close to the 2 trees (top left)
-    
-    {{255, 52, 23, 23}},        // Right stone
-    {{280, 38, 22, 22}},        // Lower stone
-    {{250, 30, 30, 30}}         // Upper stone
-
-    // Add more if needed
-};
-
-int numObstacles = sizeof(obstacles) / sizeof(obstacles[0]);
 
 int main(int argc, char* args[])
 {
@@ -145,6 +100,10 @@ int main(int argc, char* args[])
     hunterPosition.h = 32;
     hunterPosition.w = 32;
     int hunterFrame = 0;
+
+    // Obstacles
+    Obstacle obstacles[NUM_OBSTACLES];
+    initObstacles(obstacles, NUM_OBSTACLES);
 
     //Menu
     SDL_Texture *mMenu = NULL;
@@ -225,17 +184,17 @@ int main(int argc, char* args[])
             switch (e.key.keysym.sym) {
                 case SDLK_w:
                 case SDLK_UP:
-                    moveCharacter(playerRole == ROLE_SPRINTER ? &position : &hunterPosition, 0, -8, playerRole);
+                    moveCharacter(playerRole == ROLE_SPRINTER ? &position : &hunterPosition, 0, -8, playerRole, obstacles, NUM_OBSTACLES);
                     updateFrame(&frame, playerRole, 4, 5);
                     break;
                 case SDLK_s:
                 case SDLK_DOWN:
-                    moveCharacter(playerRole == ROLE_SPRINTER ? &position : &hunterPosition, 0, 8, playerRole);
+                    moveCharacter(playerRole == ROLE_SPRINTER ? &position : &hunterPosition, 0, 8, playerRole, obstacles, NUM_OBSTACLES);
                     updateFrame(&frame, playerRole, 0, 1);
                     break;
                 case SDLK_a:
                 case SDLK_LEFT:
-                    moveCharacter(playerRole == ROLE_SPRINTER ? &position : &hunterPosition, -8, 0, playerRole);
+                    moveCharacter(playerRole == ROLE_SPRINTER ? &position : &hunterPosition, -8, 0, playerRole, obstacles, NUM_OBSTACLES);
                     if (playerRole == ROLE_SPRINTER) {
                         flip = SDL_FLIP_HORIZONTAL;
                     } else if (playerRole == ROLE_HUNTER) {
@@ -245,7 +204,7 @@ int main(int argc, char* args[])
                     break;
                 case SDLK_d:
                 case SDLK_RIGHT:
-                    moveCharacter(playerRole == ROLE_SPRINTER ? &position : &hunterPosition, 8, 0, playerRole);
+                    moveCharacter(playerRole == ROLE_SPRINTER ? &position : &hunterPosition, 8, 0, playerRole, obstacles, NUM_OBSTACLES);
                     if (playerRole == ROLE_SPRINTER) {
                         flip = SDL_FLIP_NONE;
                     } else if (playerRole == ROLE_HUNTER) {
@@ -263,17 +222,20 @@ int main(int argc, char* args[])
         SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
         SDL_RenderClear(gRenderer);
         renderBackground(gRenderer, mBackground);
+        drawObstacles(gRenderer, obstacles, NUM_OBSTACLES);
         if (playerRole == ROLE_SPRINTER) {
             SDL_RenderCopyEx(gRenderer, mSprinter, &gSpriteClips[frame], &position, 0, NULL, flip);
         } else if (playerRole == ROLE_HUNTER) {
             SDL_RenderCopyEx(gRenderer, mHunter, &gHunterSpriteClips[frame], &hunterPosition, 0, NULL, flipHunter);
         }
         if (debugMode) {
-            drawDebugInfo(gRenderer);
+            drawDebugInfo(gRenderer, obstacles, NUM_OBSTACLES);
         }
 
         SDL_RenderPresent(gRenderer);
     }
+
+    return 0;
 }
 
 void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mBackground) {
@@ -462,21 +424,19 @@ bool checkCollision(SDL_Rect a, SDL_Rect b) {
     return true;
 }
 
-void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, PlayerRole role) {
+void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, PlayerRole role, Obstacle obstacles[], int numObstacles) {
     SDL_Rect newPos = *charPos;
     newPos.x += deltaX;
     newPos.y += deltaY;
 
-    // Check collision with each obstacle
     for (int i = 0; i < numObstacles; i++) {
         if (checkCollision(newPos, obstacles[i].bounds)) {
-            return; // Collision detected, do not update position
+            return;  // Collision detected, do not update position
         }
     }
     newPos.x = SDL_clamp(newPos.x, HORIZONTAL_MARGIN, WINDOW_WIDTH - newPos.w - HORIZONTAL_MARGIN);
     newPos.y = SDL_clamp(newPos.y, 0, WINDOW_HEIGHT - newPos.h);
 
-    // Update position if no collision
     *charPos = newPos;
 }
 
@@ -485,7 +445,7 @@ void updateFrame(int *frame, PlayerRole role, int frame1, int frame2) {
     *frame = *frame == frame1 ? frame2 : frame1;
 }
 
-void drawDebugInfo(SDL_Renderer *gRenderer) {
+void drawDebugInfo(SDL_Renderer *gRenderer, Obstacle obstacles[], int numObstacles) {
     SDL_SetRenderDrawColor(gRenderer, 255, 0, 0, 128);  // Red color for collision boxes, semi-transparent
     for (int i = 0; i < numObstacles; i++) {
         SDL_RenderDrawRect(gRenderer, &obstacles[i].bounds);  // Draw rectangle around the collision area
