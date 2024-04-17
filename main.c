@@ -60,14 +60,14 @@ bool isServer = false;  // Mode switch
 
 int main(int argc, char* argv[])
 {
-    char* host = "localhost"; // Standardvärd
+    char* host = "localhost"; // Standardhost
     Uint16 port = 2000;       // Standardport
     if (argc > 1 && strcmp(argv[1], "server") == 0) {
         isServer = true;
-        port = 2000;  // Exempelserverport
+        port = 2000;
     } else {
         host = "localhost";
-        port = 12345; // Klientanslutningsport
+        port = 12345; // Port for client to connect
     }
     if (network_init(host, port, isServer) < 0) {
         printf("Network could not initialize!\n");
