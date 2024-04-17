@@ -96,14 +96,15 @@ void network_handle_server() {
     if (SDLNet_SocketReady(sd)) {
         if (SDLNet_UDP_Recv(sd, packet)) {
             // Process the packet data
-            printf("Received packet from %x %x containing: %s\n",
-                   packet->address.host, packet->address.port, (char *)packet->data);
+            printf("Server received: %s from %x %x\n",
+                   (char *)packet->data, packet->address.host, packet->address.port);
 
             // Send a reply (optional)
             const char* reply = "Server Ack";
             memcpy(packet->data, reply, strlen(reply) + 1);
             packet->len = strlen(reply) + 1;
             SDLNet_UDP_Send(sd, -1, packet); // send to the packet's sender
+            printf("Server sent: %s to %x %x\n", reply, packet->address.host, packet->address.port);
         }
     }
 }
@@ -113,7 +114,8 @@ void network_handle_client() {
     // Check the socket for activity
     if (SDLNet_SocketReady(sd)) {
         if (SDLNet_UDP_Recv(sd, packet)) {
-            printf("Received packet from server containing: %s\n", (char *)packet->data);
+            printf("Client received: %s from %x %x\n",
+                   (char *)packet->data, packet->address.host, packet->address.port);
         }
     }
 
