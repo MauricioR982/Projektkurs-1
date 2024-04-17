@@ -1,4 +1,5 @@
 // network.c
+
 #include "network.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,6 +35,7 @@ int network_init(char* host, Uint16 port, bool serverMode) {
             SDLNet_Quit();
             return -1;
         }
+        printf("Server listening on port %d\n", port);
     } else {
         // Resolve server name and open a socket on random port
         if (SDLNet_ResolveHost(&srvadd, host, port) == -1) {
@@ -49,8 +51,8 @@ int network_init(char* host, Uint16 port, bool serverMode) {
             SDLNet_Quit();
             return -1;
         }
+        printf("Client trying to connect to %s:%d\n", host, port);
     }
-    
     return 0;
 }
 
@@ -89,6 +91,7 @@ void network_check_activity(Uint32 timeout) {
 
 
 void network_handle_server() {
+
     // Check the socket for activity
     if (SDLNet_SocketReady(sd)) {
         if (SDLNet_UDP_Recv(sd, packet)) {
@@ -106,6 +109,7 @@ void network_handle_server() {
 }
 
 void network_handle_client() {
+
     // Check the socket for activity
     if (SDLNet_SocketReady(sd)) {
         if (SDLNet_UDP_Recv(sd, packet)) {
