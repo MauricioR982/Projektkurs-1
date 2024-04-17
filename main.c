@@ -271,7 +271,7 @@ int main(int argc, char* argv[])
         SDL_RenderPresent(gRenderer);
     }
     network_cleanup();
-    SDLNet_Quit();
+    SDLNet_Quit();      //could be deleted since it exists in the function one line above?
     SDL_Quit();
     return 0;
 }
