@@ -17,6 +17,7 @@
 #include "hunter.h"
 #include "obstacle.h"
 #include "game_states.h"
+#include "network.h"
 
 #undef main
 
@@ -59,9 +60,17 @@ bool isServer = false;  // Mode switch
 
 int main(int argc, char* argv[])
 {
-    // Initialize SDL_net
-    if (SDLNet_Init() < 0) {
-        printf("SDLNet could not initialize! SDLNet_Error: %s\n", SDLNet_GetError());
+    char* host = "localhost"; // Standardvärd
+    Uint16 port = 2000;       // Standardport
+    if (argc > 1 && strcmp(argv[1], "server") == 0) {
+        isServer = true;
+        port = 2000;  // Exempelserverport
+    } else {
+        host = "localhost";
+        port = 12345; // Klientanslutningsport
+    }
+    if (network_init(host, port, isServer) < 0) {
+        printf("Network could not initialize!\n");
         SDL_Quit();
         return -1;
     }
@@ -184,6 +193,12 @@ int main(int argc, char* argv[])
             }
             arrowPos.y = arrowYPositions[arrowYPosIndex]; // Updating the arrows position based on users choice
         }
+        // Handle network communication based on role
+        if (isServer) {
+            network_handle_server();
+        } else {
+            network_handle_client();
+        }
         SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
         SDL_RenderClear(gRenderer);
         SDL_RenderCopy(gRenderer, mMenu, NULL, NULL);
@@ -196,6 +211,7 @@ int main(int argc, char* argv[])
     // Game-loop
     while (!quit) {
     // Game event handling
+    network_check_activity(0);
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_QUIT) {
             quit = true;
@@ -254,6 +270,7 @@ int main(int argc, char* argv[])
         
         SDL_RenderPresent(gRenderer);
     }
+    network_cleanup();
     SDLNet_Quit();
     SDL_Quit();
     return 0;
