@@ -1,5 +1,5 @@
 // network.c
-// Developed by Grupp 10 - Datatekni, project-start at 2024-03
+// Developed by Grupp 10 - Datateknik, project-start at 2024-03
 //
 
 #include "network.h"
@@ -93,7 +93,6 @@ void network_check_activity(Uint32 timeout) {
     SDLNet_FreeSocketSet(set);
 }
 
-
 void network_handle_server() {
 
     if (SDLNet_SocketReady(sd)) {
@@ -122,9 +121,6 @@ void network_handle_server() {
     }
 }
 
-
-
-
 void network_handle_client() {
     if (SDLNet_SocketReady(sd)) {
         if (SDLNet_UDP_Recv(sd, packet)) {
@@ -146,7 +142,6 @@ void network_handle_client() {
         printf("SDLNet_UDP_Send: %s\n", SDLNet_GetError());
     }
 }
-
 
 int find_or_add_client(IPaddress newClientAddr) {
 
