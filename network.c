@@ -150,7 +150,7 @@ int find_or_add_client(IPaddress newClientAddr) {
     int emptySpot = -1;
     int connectedClients = 0;
 
-    // Räkna antal anslutna klienter
+    // Count number of connected clients
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (clients[i].connected) {
             connectedClients++;
@@ -160,18 +160,17 @@ int find_or_add_client(IPaddress newClientAddr) {
         }
     }
 
-    // Kontrollera om maxgränsen har nåtts
+    // Check if maxlimit has been reached
     if (connectedClients >= MAX_CLIENTS) {
-        return -1;  // Inga fler anslutningar tillåtna
+        return -1;  // No more connections allowed
     }
 
-    // Tilldela ny klient om möjligt
+    // Add new client if possible
     if (emptySpot != -1) {
         clients[emptySpot].connected = true;
         clients[emptySpot].address = newClientAddr;
         return emptySpot;
     }
-
     return -1;
 }
 
