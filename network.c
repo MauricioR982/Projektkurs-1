@@ -95,26 +95,26 @@ void network_check_activity(Uint32 timeout) {
 }
 
 void network_handle_server() {
-
     if (SDLNet_SocketReady(sd)) {
         if (SDLNet_UDP_Recv(sd, packet)) {
             int clientIndex = find_or_add_client(packet->address);
             if (clientIndex == -1) {
-                printf("Maximum number of clients reached. No more connections allowed.\n");
+                printf("Server full. Rejecting new client connection.\n");
                 const char* rejectMsg = "Server Full: No more connections allowed.";
                 memcpy(packet->data, rejectMsg, strlen(rejectMsg) + 1);
                 packet->len = strlen(rejectMsg) + 1;
                 SDLNet_UDP_Send(sd, -1, packet);
+                return; // Prevent further processing
             } else {
-                // Log reception
-                printf("Server received: %s from %x %x\n",
-                       (char *)packet->data, packet->address.host, packet->address.port);
+                printf("Server received: '%s' from %x:%u\n",
+                       (char *)packet->data,
+                       packet->address.host, packet->address.port);
 
-                // Forward the message to all other connected clients
                 for (int i = 0; i < MAX_CLIENTS; i++) {
                     if (clients[i].connected && i != clientIndex) {
                         packet->address = clients[i].address;
                         SDLNet_UDP_Send(sd, -1, packet); // Send packet to each connected client
+                        printf("Forwarded message to %x:%u\n", clients[i].address.host, clients[i].address.port);
                     }
                 }
             }
@@ -145,23 +145,24 @@ void network_handle_client() {
 }
 
 int find_or_add_client(IPaddress newClientAddr) {
-
     int emptySpot = -1;
-    int connectedClients = 0;
-    // Count number of connected clients
+    int countConnected = 0;
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (clients[i].connected) {
-            connectedClients++;
-        }
-        if (!clients[i].connected && emptySpot == -1) {
-            emptySpot = i;
+            if (clients[i].address.host == newClientAddr.host && clients[i].address.port == newClientAddr.port) {
+                // Client is already connected
+                return i;
+            }
+            countConnected++;
+        } else if (emptySpot == -1) {
+            emptySpot = i;  // Save the first empty spot
         }
     }
-    // Check if maxlimit has been reached
-    if (connectedClients >= MAX_CLIENTS) {
-        return -1;  // 
+    if (countConnected >= MAX_CLIENTS) {
+        // Max clients reached, return -1
+        return -1;
     }
-    // Add new client if possible
+    // Add new client
     if (emptySpot != -1) {
         clients[emptySpot].connected = true;
         clients[emptySpot].address = newClientAddr;
@@ -169,6 +170,7 @@ int find_or_add_client(IPaddress newClientAddr) {
     }
     return -1;
 }
+
 
 void network_cleanup() {
     SDLNet_FreePacket(packet);
