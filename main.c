@@ -62,8 +62,8 @@ int main(int argc, char* argv[])
 {
     char* host = "localhost"; // Standardhost
     Uint16 port = 2000;       // Standardport
-    if (argc > 1 && strcmp(argv[1], "server") == 0) {
-        isServer = true;
+    if (argc > 1 && strcmp(argv[1], "server") == 0) {       // compile "./theGame server" to start host in 1st PowerShell window
+        isServer = true;                                    // then compile "./theGame localhost 12345" to join as client in 2nd PowerShell
         port = 2000;
     } else {
         host = "localhost";
