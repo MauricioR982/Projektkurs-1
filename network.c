@@ -1,5 +1,5 @@
 // network.c
-// Developed by Grupp 10 - Datateknik, project-start at 2024-03
+// Developed by Grupp 10 - Datatekni, project-start at 2024-03
 //
 
 #include "network.h"
