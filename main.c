@@ -66,13 +66,13 @@ int main(int argc, char* argv[])
     if (argc > 1) {
         if (strcmp(argv[1], "server") == 0) {
             isServer = true;
-            port = 2000; // Default port for server
+            port = 2000;              // Default port for server
         } else {
-            host = argv[1]; // Use 1st argument as host
+            host = argv[1];           // Use 1st argument as host
             if (argc > 2) {
                 port = atoi(argv[2]); // If port is specified, use that as port
             } else {
-                port = 12345; // Default port for client if not specified
+                port = 12345;         // Default port for client if not specified
             }
         }
     }
@@ -82,17 +82,6 @@ int main(int argc, char* argv[])
         SDL_Quit();
         return -1;
     }
-
-    /*
-    // Determine mode from command line arguments
-    if (argc > 1 && strcmp(argv[1], "server") == 0) {
-        isServer = true;
-        sd = SDLNet_UDP_Open(2000);  // Example server port
-    } else {
-        SDLNet_ResolveHost(&srvadd, "localhost", 12345);  // Connect to server
-        sd = SDLNet_UDP_Open(0);  // Open a socket on any available port for client
-    }
-    */
 
     sPosition startPos[] = {
     {100, 64},   //1st pos
