@@ -75,6 +75,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
+    /*
     // Determine mode from command line arguments
     if (argc > 1 && strcmp(argv[1], "server") == 0) {
         isServer = true;
@@ -83,7 +84,7 @@ int main(int argc, char* argv[])
         SDLNet_ResolveHost(&srvadd, "localhost", 12345);  // Connect to server
         sd = SDLNet_UDP_Open(0);  // Open a socket on any available port for client
     }
-
+    */
 
     sPosition startPos[] = {
     {100, 64},   //1st pos
@@ -212,6 +213,11 @@ int main(int argc, char* argv[])
     while (!quit) {
     // Game event handling
     network_check_activity(0);
+    if (isServer) {
+    network_handle_server();  // Handle incoming connections and messages
+    } else {
+        network_handle_client();  // Handle client-logic
+    }
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_QUIT) {
             quit = true;
