@@ -93,21 +93,26 @@ void network_check_activity(Uint32 timeout) {
 
 
 void network_handle_server() {
+
     if (SDLNet_SocketReady(sd)) {
         if (SDLNet_UDP_Recv(sd, packet)) {
-            // Find client or add a new one if there's a new connection
             int clientIndex = find_or_add_client(packet->address);
             if (clientIndex == -1) {
-                printf("Too many clients connected!\n");
+                printf("Maximum number of clients reached. No more connections allowed.\n");
+                const char* rejectMsg = "Server Full: No more connections allowed.";
+                memcpy(packet->data, rejectMsg, strlen(rejectMsg) + 1);
+                packet->len = strlen(rejectMsg) + 1;
+                SDLNet_UDP_Send(sd, -1, packet);
             } else {
+                // Log reception
                 printf("Server received: %s from %x %x\n",
                        (char *)packet->data, packet->address.host, packet->address.port);
 
-                // Send the message to all the other clients
+                // Forward the message to all other connected clients
                 for (int i = 0; i < MAX_CLIENTS; i++) {
                     if (clients[i].connected && i != clientIndex) {
                         packet->address = clients[i].address;
-                        SDLNet_UDP_Send(sd, -1, packet);
+                        SDLNet_UDP_Send(sd, -1, packet); // Send packet to each connected client
                     }
                 }
             }
@@ -116,43 +121,58 @@ void network_handle_server() {
 }
 
 
-void network_handle_client() {
 
-    // Check the socket for activity
+
+void network_handle_client() {
     if (SDLNet_SocketReady(sd)) {
         if (SDLNet_UDP_Recv(sd, packet)) {
-            printf("Client received: %s from %x %x\n",
-                   (char *)packet->data, packet->address.host, packet->address.port);
+            if (strcmp((char *)packet->data, "Server Full: No more connections allowed.") == 0) {
+                printf("Failed to connect: %s\n", (char *)packet->data);
+            } else {
+                printf("Client received: %s from %x %x\n",
+                       (char *)packet->data, packet->address.host, packet->address.port);
+            }
         }
     }
 
-    // Sending data to the server could be done here or triggered by game events
-    // Example of sending a message to the server
+    // Example of sending a regular message to the server, could be triggered by game events
     const char* message = "Hello Server";
     memcpy(packet->data, message, strlen(message) + 1);
     packet->len = strlen(message) + 1;
-    packet->address = srvadd; // set the packet's destination
+    packet->address = srvadd;
     if (!SDLNet_UDP_Send(sd, -1, packet)) {
         printf("SDLNet_UDP_Send: %s\n", SDLNet_GetError());
     }
 }
 
+
 int find_or_add_client(IPaddress newClientAddr) {
     int emptySpot = -1;
+    int connectedClients = 0;
+
+    // Räkna antal anslutna klienter
     for (int i = 0; i < MAX_CLIENTS; i++) {
-        if (clients[i].connected && SDLNet_UDP_GetPeerAddress(sd, i)->host == newClientAddr.host &&
-            SDLNet_UDP_GetPeerAddress(sd, i)->port == newClientAddr.port) {
-            return i;  // Klienten är redan ansluten
+        if (clients[i].connected) {
+            connectedClients++;
         }
         if (!clients[i].connected && emptySpot == -1) {
-            emptySpot = i;  // Spara första lediga plats
+            emptySpot = i;
         }
     }
+
+    // Kontrollera om maxgränsen har nåtts
+    if (connectedClients >= MAX_CLIENTS) {
+        return -1;  // Inga fler anslutningar tillåtna
+    }
+
+    // Tilldela ny klient om möjligt
     if (emptySpot != -1) {
         clients[emptySpot].connected = true;
         clients[emptySpot].address = newClientAddr;
+        return emptySpot;
     }
-    return emptySpot;
+
+    return -1;
 }
 
 
