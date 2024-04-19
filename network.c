@@ -149,9 +149,9 @@ void network_handle_client() {
 
 
 int find_or_add_client(IPaddress newClientAddr) {
+
     int emptySpot = -1;
     int connectedClients = 0;
-
     // Count number of connected clients
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (clients[i].connected) {
@@ -161,12 +161,10 @@ int find_or_add_client(IPaddress newClientAddr) {
             emptySpot = i;
         }
     }
-
     // Check if maxlimit has been reached
     if (connectedClients >= MAX_CLIENTS) {
-        return -1;  // No more connections allowed
+        return -1;  // 
     }
-
     // Add new client if possible
     if (emptySpot != -1) {
         clients[emptySpot].connected = true;
