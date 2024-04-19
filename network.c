@@ -10,9 +10,11 @@ static UDPsocket sd; // Socket descriptor
 static IPaddress srvadd; // Server address
 static bool isServer;
 static UDPpacket *packet;
+static ClientInfo clients[MAX_CLIENTS];
 
 int network_init(char* host, Uint16 port, bool serverMode) {
     isServer = serverMode;
+    memset(clients, 0, sizeof(clients));  // Initialize client-information
     
     if (SDLNet_Init() < 0) {
         fprintf(stderr, "SDLNet_Init: %s\n", SDLNet_GetError());
@@ -91,23 +93,28 @@ void network_check_activity(Uint32 timeout) {
 
 
 void network_handle_server() {
-
-    // Check the socket for activity
     if (SDLNet_SocketReady(sd)) {
         if (SDLNet_UDP_Recv(sd, packet)) {
-            // Process the packet data
-            printf("Server received: %s from %x %x\n",
-                   (char *)packet->data, packet->address.host, packet->address.port);
+            // Find client or add a new one if there's a new connection
+            int clientIndex = find_or_add_client(packet->address);
+            if (clientIndex == -1) {
+                printf("Too many clients connected!\n");
+            } else {
+                printf("Server received: %s from %x %x\n",
+                       (char *)packet->data, packet->address.host, packet->address.port);
 
-            // Send a reply (optional)
-            const char* reply = "Server Ack";
-            memcpy(packet->data, reply, strlen(reply) + 1);
-            packet->len = strlen(reply) + 1;
-            SDLNet_UDP_Send(sd, -1, packet); // send to the packet's sender
-            printf("Server sent: %s to %x %x\n", reply, packet->address.host, packet->address.port);
+                // Send the message to all the other clients
+                for (int i = 0; i < MAX_CLIENTS; i++) {
+                    if (clients[i].connected && i != clientIndex) {
+                        packet->address = clients[i].address;
+                        SDLNet_UDP_Send(sd, -1, packet);
+                    }
+                }
+            }
         }
     }
 }
+
 
 void network_handle_client() {
 
@@ -129,6 +136,25 @@ void network_handle_client() {
         printf("SDLNet_UDP_Send: %s\n", SDLNet_GetError());
     }
 }
+
+int find_or_add_client(IPaddress newClientAddr) {
+    int emptySpot = -1;
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        if (clients[i].connected && SDLNet_UDP_GetPeerAddress(sd, i)->host == newClientAddr.host &&
+            SDLNet_UDP_GetPeerAddress(sd, i)->port == newClientAddr.port) {
+            return i;  // Klienten är redan ansluten
+        }
+        if (!clients[i].connected && emptySpot == -1) {
+            emptySpot = i;  // Spara första lediga plats
+        }
+    }
+    if (emptySpot != -1) {
+        clients[emptySpot].connected = true;
+        clients[emptySpot].address = newClientAddr;
+    }
+    return emptySpot;
+}
+
 
 
 void network_cleanup() {

@@ -62,13 +62,21 @@ int main(int argc, char* argv[])
 {
     char* host = "localhost"; // Standardhost
     Uint16 port = 2000;       // Standardport
-    if (argc > 1 && strcmp(argv[1], "server") == 0) {       // compile "./theGame server" to start host in 1st PowerShell window
-        isServer = true;                                    // then compile "./theGame localhost 12345" to join as client in 2nd PowerShell
-        port = 2000;
-    } else {
-        host = "localhost";
-        port = 12345; // Port for client to connect
+
+    if (argc > 1) {
+        if (strcmp(argv[1], "server") == 0) {
+            isServer = true;
+            port = 2000; // Default port for server
+        } else {
+            host = argv[1]; // Use 1st argument as host
+            if (argc > 2) {
+                port = atoi(argv[2]); // If port is specified, use that as port
+            } else {
+                port = 12345; // Default port for client if not specified
+            }
+        }
     }
+
     if (network_init(host, port, isServer) < 0) {
         printf("Network could not initialize!\n");
         SDL_Quit();
