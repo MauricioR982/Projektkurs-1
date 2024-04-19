@@ -170,8 +170,6 @@ int find_or_add_client(IPaddress newClientAddr) {
     return -1;
 }
 
-
-
 void network_cleanup() {
     SDLNet_FreePacket(packet);
     SDLNet_UDP_Close(sd);
