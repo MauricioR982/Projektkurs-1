@@ -170,7 +170,7 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    Mix_Music *gameMusic = Mix_LoadMUS("resources/gamesong1.mp3");
+    Mix_Music *gameMusic = Mix_LoadMUS("resources/GAMESONG.mp3");
     if (!gameMusic) {
         fprintf(stderr, "Failed to load game music: %s\n", Mix_GetError());
         SDL_Quit();
