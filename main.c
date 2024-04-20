@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
     SDL_Texture *mArrow = NULL;
 
     if (init(&gRenderer)) {
-        printf("worked\n");
+        printf("Application starting...\n");
     }
     
     loadMedia(gRenderer, &mSprinter, gSpriteClips, &mHunter, gHunterSpriteClips, &mBackground, &mMenu, &mArrow);
@@ -183,6 +183,7 @@ int main(int argc, char* argv[])
                                 setGameState(STATE_EXIT);
                                 quit = true;
                                 showMenu = false;
+                                printf("Ending game.\n");
                                 break;
                     }
                         break;
