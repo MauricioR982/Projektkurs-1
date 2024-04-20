@@ -97,24 +97,29 @@ void network_check_activity(Uint32 timeout) {
 void network_handle_server() {
     if (SDLNet_SocketReady(sd)) {
         if (SDLNet_UDP_Recv(sd, packet)) {
-            int clientIndex = find_or_add_client(packet->address);
-            if (clientIndex == -1) {
-                printf("Server full. Rejecting new client connection.\n");
-                const char* rejectMsg = "Server Full: No more connections allowed.";
-                memcpy(packet->data, rejectMsg, strlen(rejectMsg) + 1);
-                packet->len = strlen(rejectMsg) + 1;
-                SDLNet_UDP_Send(sd, -1, packet);
-                return; // Prevent further processing
-            } else {
-                printf("Server received: '%s' from %x:%u\n",
-                       (char *)packet->data,
-                       packet->address.host, packet->address.port);
+            int clientIndex, x, y;
+            // Förvänta att paketdata är formaterad som "clientIndex,x,y"
+            if (sscanf((char *)packet->data, "%d,%d,%d", &clientIndex, &x, &y) == 3) {
+                // Hitta eller lägg till klient, om inte fullt
+                clientIndex = find_or_add_client(packet->address);
+                if (clientIndex == -1) {
+                    // Server full, skicka tillbaka avslagsmeddelande
+                    const char* rejectMsg = "Server Full: No more connections allowed.";
+                    memcpy(packet->data, rejectMsg, strlen(rejectMsg) + 1);
+                    packet->len = strlen(rejectMsg) + 1;
+                    SDLNet_UDP_Send(sd, -1, packet);
+                } else {
+                    // Uppdatera klientens position
+                    update_player_position(clientIndex, x, y);
 
-                for (int i = 0; i < MAX_CLIENTS; i++) {
-                    if (clients[i].connected && i != clientIndex) {
-                        packet->address = clients[i].address;
-                        SDLNet_UDP_Send(sd, -1, packet); // Send packet to each connected client
-                        printf("Forwarded message to %x:%u\n", clients[i].address.host, clients[i].address.port);
+                    // Skicka uppdateringen till alla andra anslutna klienter
+                    sprintf((char *)packet->data, "%d,%d,%d", clientIndex, x, y);
+                    packet->len = strlen((char *)packet->data) + 1;
+                    for (int i = 0; i < MAX_CLIENTS; i++) {
+                        if (clients[i].connected && i != clientIndex) {
+                            packet->address = clients[i].address;
+                            SDLNet_UDP_Send(sd, -1, packet);
+                        }
                     }
                 }
             }
@@ -122,27 +127,25 @@ void network_handle_server() {
     }
 }
 
+
 void network_handle_client() {
     if (SDLNet_SocketReady(sd)) {
         if (SDLNet_UDP_Recv(sd, packet)) {
+            int playerIndex, x, y;
             if (strcmp((char *)packet->data, "Server Full: No more connections allowed.") == 0) {
                 printf("Failed to connect: %s\n", (char *)packet->data);
+                return;
+            }
+            else if (sscanf((char *)packet->data, "%d,%d,%d", &playerIndex, &x, &y) == 3) {
+                update_player_position(playerIndex, x, y);
+                printf("Position update received for player %d: x=%d, y=%d\n", playerIndex, x, y);
             } else {
-                printf("Client received: %s from %x %x\n",
-                       (char *)packet->data, packet->address.host, packet->address.port);
+                printf("Other message received: %s\n", (char *)packet->data);
             }
         }
     }
-
-    // Example of sending a regular message to the server, could be triggered by game events
-    const char* message = "Hello Server";
-    memcpy(packet->data, message, strlen(message) + 1);
-    packet->len = strlen(message) + 1;
-    packet->address = srvadd;
-    if (!SDLNet_UDP_Send(sd, -1, packet)) {
-        printf("SDLNet_UDP_Send: %s\n", SDLNet_GetError());
-    }
 }
+
 
 int find_or_add_client(IPaddress newClientAddr) {
     int emptySpot = -1;
@@ -169,6 +172,14 @@ int find_or_add_client(IPaddress newClientAddr) {
         return emptySpot;
     }
     return -1;
+}
+
+void update_player_position(int playerIndex, int x, int y) {
+    if (playerIndex >= 0 && playerIndex < MAX_CLIENTS) {
+        clients[playerIndex].x = x;
+        clients[playerIndex].y = y;
+        printf("Updated position for client %d to (%d, %d)\n", playerIndex, x, y);
+    }
 }
 
 void network_cleanup() {
