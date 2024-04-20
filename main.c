@@ -315,7 +315,6 @@ int main(int argc, char* argv[])
     Mix_FreeMusic(gameMusic);
     Mix_FreeMusic(menuMusic);
     Mix_CloseAudio();
-    SDLNet_Quit();      //could be deleted since it exists in the function one line above?
     SDL_Quit();
     return 0;
 }
