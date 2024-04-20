@@ -98,21 +98,15 @@ void network_handle_server() {
     if (SDLNet_SocketReady(sd)) {
         if (SDLNet_UDP_Recv(sd, packet)) {
             int clientIndex, x, y;
-            // Förvänta att paketdata är formaterad som "clientIndex,x,y"
             if (sscanf((char *)packet->data, "%d,%d,%d", &clientIndex, &x, &y) == 3) {
-                // Hitta eller lägg till klient, om inte fullt
                 clientIndex = find_or_add_client(packet->address);
                 if (clientIndex == -1) {
-                    // Server full, skicka tillbaka avslagsmeddelande
                     const char* rejectMsg = "Server Full: No more connections allowed.";
                     memcpy(packet->data, rejectMsg, strlen(rejectMsg) + 1);
                     packet->len = strlen(rejectMsg) + 1;
                     SDLNet_UDP_Send(sd, -1, packet);
                 } else {
-                    // Uppdatera klientens position
                     update_player_position(clientIndex, x, y);
-
-                    // Skicka uppdateringen till alla andra anslutna klienter
                     sprintf((char *)packet->data, "%d,%d,%d", clientIndex, x, y);
                     packet->len = strlen((char *)packet->data) + 1;
                     for (int i = 0; i < MAX_CLIENTS; i++) {
