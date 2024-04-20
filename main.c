@@ -510,7 +510,7 @@ void updateGameState(GameState new_state) {
 void print_player_positions() {
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (players[i].active) {
-            printf("Player %d: x=%d, y=%d\n", i, players[i].x, players[i].y);
+            printf("Player %d: x = %d, y = %d\n", i, players[i].x, players[i].y);
         }
     }
 }

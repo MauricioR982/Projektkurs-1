@@ -178,7 +178,7 @@ void update_player_position(int playerIndex, int x, int y) {
     if (playerIndex >= 0 && playerIndex < MAX_CLIENTS) {
         clients[playerIndex].x = x;
         clients[playerIndex].y = y;
-        printf("Updated position for client %d to (%d, %d)\n", playerIndex, x, y);
+        printf("Position for client %d to (%d, %d)\n", playerIndex, x, y);
     }
 }
 
