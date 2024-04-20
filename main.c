@@ -178,7 +178,6 @@ int main(int argc, char* argv[])
 
     // Menu-loop
     bool showMenu = true;
-    // Starta musiken om inte redan spelar
     if (!Mix_PlayingMusic()) {
         Mix_PlayMusic(menuMusic, -1);
     }
