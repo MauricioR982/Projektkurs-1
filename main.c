@@ -152,21 +152,19 @@ int main(int argc, char* argv[])
     initializeGameState();
     setGameState(STATE_MENU);
     
-    // Initialisera SDL för video och ljud
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
         fprintf(stderr, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
         return 1;
     }
 
-    // Initialisera SDL_mixer, ställ in ljudfrekvens, ljudformat, antal ljudkanaler och chuckstorlek
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
         fprintf(stderr, "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
         SDL_Quit();
         return 1;
     }
 
-    Mix_Music *backgroundMusic = Mix_LoadMUS("resources/menusong3.mp3");
-    if (!backgroundMusic) {
+    Mix_Music *menuMusic = Mix_LoadMUS("resources/menusong3.mp3");
+    if (!menuMusic) {
         fprintf(stderr, "Failed to load background music: %s\n", Mix_GetError());
         SDL_Quit();
         return 1;
@@ -176,7 +174,7 @@ int main(int argc, char* argv[])
     bool showMenu = true;
     // Starta musiken om inte redan spelar
     if (!Mix_PlayingMusic()) {
-        Mix_PlayMusic(backgroundMusic, -1);
+        Mix_PlayMusic(menuMusic, -1);
     }
     while (showMenu && !quit) {
         while (SDL_PollEvent(&e)) {
@@ -308,7 +306,7 @@ int main(int argc, char* argv[])
         SDL_RenderPresent(gRenderer);
     }
     network_cleanup();
-    Mix_FreeMusic(backgroundMusic);
+    Mix_FreeMusic(menuMusic);
     Mix_CloseAudio();
     SDLNet_Quit();      //could be deleted since it exists in the function one line above?
     SDL_Quit();
