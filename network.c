@@ -138,7 +138,7 @@ void network_handle_client() {
             }
             else if (sscanf((char *)packet->data, "%d,%d,%d", &playerIndex, &x, &y) == 3) {
                 update_player_position(playerIndex, x, y);
-                printf("Position update received for player %d: x=%d, y=%d\n", playerIndex, x, y);
+                printf("Position update for player %d: x = %d, y = %d\n", playerIndex, x, y);
             } else {
                 printf("Other message received: %s\n", (char *)packet->data);
             }

@@ -36,6 +36,11 @@ typedef struct {
     int y;
 } hPosition; // Hunter spawn position
 
+typedef struct {
+    int x, y;
+    bool active;
+} Player;
+
 typedef enum {
     ROLE_SPRINTER,
     ROLE_HUNTER
@@ -50,9 +55,11 @@ void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, PlayerRole role, O
 void updateFrame(int *frame, PlayerRole role, int frame1, int frame2);
 void drawDebugInfo(SDL_Renderer *gRenderer, Obstacle obstacles[], int numObstacles);
 void updateGameState(GameState new_state);
+void print_player_positions();
 
 GameState current_state;
 const int arrowYPositions[] = {100, 198, 288}; // Y-positions for our menu-options
+Player players[MAX_CLIENTS];
 
 UDPsocket sd;       // Socket descriptor
 IPaddress srvadd;   // IP address for server
@@ -198,6 +205,7 @@ int main(int argc, char* argv[])
         } else {
             network_handle_client();
         }
+        print_player_positions();
         SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
         SDL_RenderClear(gRenderer);
         SDL_RenderCopy(gRenderer, mMenu, NULL, NULL);
@@ -497,4 +505,12 @@ void drawDebugInfo(SDL_Renderer *gRenderer, Obstacle obstacles[], int numObstacl
 void updateGameState(GameState new_state) {
     current_state = new_state;
     // Additional logic to handle state change
+}
+
+void print_player_positions() {
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        if (players[i].active) {
+            printf("Player %d: x=%d, y=%d\n", i, players[i].x, players[i].y);
+        }
+    }
 }
