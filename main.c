@@ -174,6 +174,10 @@ int main(int argc, char* argv[])
 
     // Menu-loop
     bool showMenu = true;
+    // Starta musiken om inte redan spelar
+    if (!Mix_PlayingMusic()) {
+        Mix_PlayMusic(backgroundMusic, -1);
+    }
     while (showMenu && !quit) {
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) {
@@ -219,10 +223,7 @@ int main(int argc, char* argv[])
             }
             arrowPos.y = arrowYPositions[arrowYPosIndex]; // Updating the arrows position based on users choice
         }
-        // Starta musiken om inte redan spelar
-        if (!Mix_PlayingMusic()) {
-            Mix_PlayMusic(backgroundMusic, -1);
-        }
+        
         // Handle network communication based on role
         if (isServer) {
             network_handle_server();
