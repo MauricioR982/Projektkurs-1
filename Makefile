@@ -1,7 +1,7 @@
 # A simple Makefile for compiling SDL projects with networking
 
 theGame: main.o sprinter.o hunter.o obstacle.o game_states.o network.o
-	gcc -o theGame main.o sprinter.o hunter.o obstacle.o game_states.o network.o -L/opt/homebrew/lib/ -lSDL2 -lSDL2_image -lSDL2_net
+	gcc -o theGame main.o sprinter.o hunter.o obstacle.o game_states.o network.o -L/opt/homebrew/lib/ -lSDL2 -lSDL2_image -lSDL2_net -lSDL2_mixer
 
 main.o: main.c
 	gcc -c main.c -I/opt/homebrew/include/SDL2

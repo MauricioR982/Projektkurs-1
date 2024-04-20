@@ -152,6 +152,25 @@ int main(int argc, char* argv[])
     initializeGameState();
     setGameState(STATE_MENU);
     
+    // Initialisera SDL för video och ljud
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
+        fprintf(stderr, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+        return 1;
+    }
+
+    // Initialisera SDL_mixer, ställ in ljudfrekvens, ljudformat, antal ljudkanaler och chuckstorlek
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+        fprintf(stderr, "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
+        SDL_Quit();
+        return 1;
+    }
+
+    Mix_Music *backgroundMusic = Mix_LoadMUS("resources/menusong3.mp3");
+    if (!backgroundMusic) {
+        fprintf(stderr, "Failed to load background music: %s\n", Mix_GetError());
+        SDL_Quit();
+        return 1;
+    }
 
     // Menu-loop
     bool showMenu = true;
@@ -180,6 +199,7 @@ int main(int argc, char* argv[])
                             case 0:
                                 setGameState(STATE_PLAYING);
                                 showMenu = false; // Closing menu and starting game
+                                Mix_HaltMusic();
                                 break;
                             case 1:
                                 setGameState(STATE_TUTORIAL);
@@ -198,6 +218,10 @@ int main(int argc, char* argv[])
                 }
             }
             arrowPos.y = arrowYPositions[arrowYPosIndex]; // Updating the arrows position based on users choice
+        }
+        // Starta musiken om inte redan spelar
+        if (!Mix_PlayingMusic()) {
+            Mix_PlayMusic(backgroundMusic, -1);
         }
         // Handle network communication based on role
         if (isServer) {
@@ -283,6 +307,8 @@ int main(int argc, char* argv[])
         SDL_RenderPresent(gRenderer);
     }
     network_cleanup();
+    Mix_FreeMusic(backgroundMusic);
+    Mix_CloseAudio();
     SDLNet_Quit();      //could be deleted since it exists in the function one line above?
     SDL_Quit();
     return 0;
