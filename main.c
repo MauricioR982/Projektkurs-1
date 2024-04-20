@@ -163,7 +163,7 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    Mix_Music *menuMusic = Mix_LoadMUS("resources/menusong3.mp3");
+    Mix_Music *menuMusic = Mix_LoadMUS("resources/MENUSONG.mp3");
     if (!menuMusic) {
         fprintf(stderr, "Failed to load background music: %s\n", Mix_GetError());
         SDL_Quit();
