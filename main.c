@@ -229,13 +229,6 @@ int main(int argc, char* argv[])
             }
             arrowPos.y = arrowYPositions[arrowYPosIndex]; // Updating the arrows position based on users choice
         }
-        
-        // Handle network communication based on role
-        if (isServer) {
-            network_handle_server();
-        } else {
-            network_handle_client();
-        }
         print_player_positions();
         SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
         SDL_RenderClear(gRenderer);
