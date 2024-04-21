@@ -63,12 +63,20 @@ Player players[MAX_CLIENTS];
 
 UDPsocket sd;       // Socket descriptor
 IPaddress srvadd;   // IP address for server
+UDPpacket *packet;
 bool isServer = false;  // Mode switch
 
 int main(int argc, char* argv[])
 {
     char* host = "localhost"; // Standardhost
     Uint16 port = 2000;       // Standardport
+
+    packet = SDLNet_AllocPacket(512); // Storleken kan justeras efter behov
+    if (!packet) {
+        fprintf(stderr, "SDLNet_AllocPacket: %s\n", SDLNet_GetError());
+        SDL_Quit();
+        return -1;
+    }
 
     if (argc > 1) {
         if (strcmp(argv[1], "server") == 0) {
@@ -250,7 +258,23 @@ int main(int argc, char* argv[])
     if (isServer) {
     network_handle_server();  // Handle incoming connections and messages
     } else {
-        network_handle_client();  // Handle client-logic
+        network_handle_client();
+        // Allow client to send messages
+        if (!isServer) {
+        printf("Type a message or 'quit' to exit:\n>");
+        char message[100];
+        fgets(message, 100, stdin);
+        message[strcspn(message, "\n")] = 0;
+        
+        if (strcmp(message, "quit") == 0) {
+            quit = true;
+        } else {
+            strcpy((char *)packet->data, message);
+            packet->len = strlen((char *)packet->data) + 1;
+            SDLNet_UDP_Send(sd, -1, packet);
+        }
+    }
+
     }
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_QUIT) {

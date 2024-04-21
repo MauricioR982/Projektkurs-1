@@ -1,8 +1,3 @@
-//
-// network.c
-// Developed by Grupp 10 - Datateknik, project-start at 2024-03
-//
-
 #include "network.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,8 +12,8 @@ static ClientInfo clients[MAX_CLIENTS];
 
 int network_init(char* host, Uint16 port, bool serverMode) {
     isServer = serverMode;
-    memset(clients, 0, sizeof(clients));  // Initialize client-information
-    
+    memset(clients, 0, sizeof(clients));
+
     if (SDLNet_Init() < 0) {
         fprintf(stderr, "SDLNet_Init: %s\n", SDLNet_GetError());
         return -1;
@@ -32,7 +27,6 @@ int network_init(char* host, Uint16 port, bool serverMode) {
     }
 
     if (isServer) {
-        // Open a socket on a specific port
         sd = SDLNet_UDP_Open(port);
         if (!sd) {
             fprintf(stderr, "SDLNet_UDP_Open: %s\n", SDLNet_GetError());
@@ -42,7 +36,6 @@ int network_init(char* host, Uint16 port, bool serverMode) {
         }
         printf("Server listening on port %d\n", port);
     } else {
-        // Resolve server name and open a socket on random port
         if (SDLNet_ResolveHost(&srvadd, host, port) == -1) {
             fprintf(stderr, "SDLNet_ResolveHost: %s\n", SDLNet_GetError());
             SDLNet_FreePacket(packet);
@@ -61,9 +54,7 @@ int network_init(char* host, Uint16 port, bool serverMode) {
     return 0;
 }
 
-void network_check_activity(Uint32 timeout) {
-
-    // Setup the socket set
+void network_check_activity() {
     SDLNet_SocketSet set = SDLNet_AllocSocketSet(1);
     if (!set) {
         fprintf(stderr, "SDLNet_AllocSocketSet: %s\n", SDLNet_GetError());
@@ -75,19 +66,15 @@ void network_check_activity(Uint32 timeout) {
         return;
     }
 
-    // Check for activity on the socket
-    int numready = SDLNet_CheckSockets(set, timeout);
-    if (numready == -1) {
-        fprintf(stderr, "SDLNet_CheckSockets: %s\n", SDLNet_GetError());
-    } else if (numready == 0) {
-        // No activity
-    } else {
-        // If there is activity on our socket, process it
-        if (SDLNet_SocketReady(sd)) {
-            if (isServer) {
-                network_handle_server();
-            } else {
-                network_handle_client();
+    while (true) {
+        int numready = SDLNet_CheckSockets(set, 0);  // Non-blocking check
+        if (numready > 0) {
+            if (SDLNet_SocketReady(sd)) {
+                if (isServer) {
+                    network_handle_server();
+                } else {
+                    network_handle_client();
+                }
             }
         }
     }
@@ -95,75 +82,39 @@ void network_check_activity(Uint32 timeout) {
 }
 
 void network_handle_server() {
-    if (SDLNet_SocketReady(sd)) {
-        if (SDLNet_UDP_Recv(sd, packet)) {
-            int clientIndex, x, y;
-            if (sscanf((char *)packet->data, "%d,%d,%d", &clientIndex, &x, &y) == 3) {
-                clientIndex = find_or_add_client(packet->address);
-                if (clientIndex == -1) {
-                    const char* rejectMsg = "Server Full: No more connections allowed.";
-                    memcpy(packet->data, rejectMsg, strlen(rejectMsg) + 1);
-                    packet->len = strlen(rejectMsg) + 1;
-                    SDLNet_UDP_Send(sd, -1, packet);
-                } else {
-                    update_player_position(clientIndex, x, y);
-                    sprintf((char *)packet->data, "%d,%d,%d", clientIndex, x, y);
-                    packet->len = strlen((char *)packet->data) + 1;
-                    for (int i = 0; i < MAX_CLIENTS; i++) {
-                        if (clients[i].connected && i != clientIndex) {
-                            packet->address = clients[i].address;
-                            SDLNet_UDP_Send(sd, -1, packet);
-                        }
-                    }
-                }
+    if (SDLNet_UDP_Recv(sd, packet)) {
+        printf("Received: %s from client\n", (char *)packet->data);
+        // Broadcast to all clients
+        for (int i = 0; i < MAX_CLIENTS; i++) {
+            if (clients[i].connected) {
+                packet->address = clients[i].address;
+                SDLNet_UDP_Send(sd, -1, packet);
             }
         }
     }
 }
-
 
 void network_handle_client() {
-    if (SDLNet_SocketReady(sd)) {
-        if (SDLNet_UDP_Recv(sd, packet)) {
-            int playerIndex, x, y;
-            if (strcmp((char *)packet->data, "Server Full: No more connections allowed.") == 0) {
-                printf("Failed to connect: %s\n", (char *)packet->data);
-                return;
-            }
-            else if (sscanf((char *)packet->data, "%d,%d,%d", &playerIndex, &x, &y) == 3) {
-                update_player_position(playerIndex, x, y);
-                printf("Position update for player %d: x = %d, y = %d\n", playerIndex, x, y);
-            } else {
-                printf("Other message received: %s\n", (char *)packet->data);
-            }
-        }
+    if (SDLNet_UDP_Recv(sd, packet)) {
+        printf("Received from server: %s\n", (char *)packet->data);
     }
 }
 
-
 int find_or_add_client(IPaddress newClientAddr) {
-    int emptySpot = -1;
-    int countConnected = 0;
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (clients[i].connected) {
             if (clients[i].address.host == newClientAddr.host && clients[i].address.port == newClientAddr.port) {
-                // Client is already connected
                 return i;
             }
-            countConnected++;
-        } else if (emptySpot == -1) {
-            emptySpot = i;  // Save the first empty spot
         }
     }
-    if (countConnected >= MAX_CLIENTS) {
-        // Max clients reached, return -1
-        return -1;
-    }
-    // Add new client
-    if (emptySpot != -1) {
-        clients[emptySpot].connected = true;
-        clients[emptySpot].address = newClientAddr;
-        return emptySpot;
+
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        if (!clients[i].connected) {
+            clients[i].connected = true;
+            clients[i].address = newClientAddr;
+            return i;
+        }
     }
     return -1;
 }
@@ -172,7 +123,6 @@ void update_player_position(int playerIndex, int x, int y) {
     if (playerIndex >= 0 && playerIndex < MAX_CLIENTS) {
         clients[playerIndex].x = x;
         clients[playerIndex].y = y;
-        printf("Position for client %d to (%d, %d)\n", playerIndex, x, y);
     }
 }
 
