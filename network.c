@@ -84,7 +84,6 @@ void network_check_activity() {
 void network_handle_server() {
 
     if (SDLNet_UDP_Recv(sd, packet)) {
-        // Skriv ut information om paketet precis som udpserver.c gör
         printf("UDP Packet incoming\n");
         printf("\tChan:    %d\n", packet->channel);
         printf("\tData:    %s\n", (char *)packet->data);
