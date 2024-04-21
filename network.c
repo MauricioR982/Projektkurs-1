@@ -118,8 +118,34 @@ void network_handle_server() {
 }
 
 void network_handle_client() {
-    if (SDLNet_UDP_Recv(sd, packet)) {
-        printf("Received from server: %s\n", (char *)packet->data);
+    int quit = 0;
+    char buffer[512]; // Buffer for input data
+
+    while (!quit) {
+        printf("Fill the buffer\n>");
+        fgets(buffer, sizeof(buffer), stdin); // Using fgets to allow spaces
+        buffer[strcspn(buffer, "\n")] = 0; // Remove newline character
+
+        // Prepare packet for sending
+        memcpy(packet->data, buffer, strlen(buffer) + 1);
+        packet->len = strlen((char *)packet->data) + 1;
+        packet->address.host = srvadd.host; // Set the destination host
+        packet->address.port = srvadd.port; // Set the destination port
+
+        // Send the packet
+        if (!SDLNet_UDP_Send(sd, -1, packet)) {
+            fprintf(stderr, "SDLNet_UDP_Send: %s\n", SDLNet_GetError());
+        }
+
+        // Quit if packet contains "quit"
+        if (strcmp(buffer, "quit") == 0) {
+            quit = 1;
+        }
+
+        // Optionally receive data here if server sends responses back
+        if (SDLNet_UDP_Recv(sd, packet)) {
+            printf("Received from server: %s\n", (char *)packet->data);
+        }
     }
 }
 

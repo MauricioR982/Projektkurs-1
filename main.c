@@ -61,6 +61,7 @@ const int arrowYPositions[] = {100, 198, 288}; // Y-positions for our menu-optio
 Player players[MAX_CLIENTS];
 
 UDPsocket sd;       // Socket descriptor
+UDPpacket *packet;
 IPaddress srvadd;   // IP address for server
 bool isServer = false;  // Mode switch
 
