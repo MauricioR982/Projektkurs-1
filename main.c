@@ -55,7 +55,7 @@ void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, PlayerRole role, O
 void updateFrame(int *frame, PlayerRole role, int frame1, int frame2);
 void drawDebugInfo(SDL_Renderer *gRenderer, Obstacle obstacles[], int numObstacles);
 void updateGameState(GameState new_state);
-void print_player_positions();
+//void print_player_positions();
 
 GameState current_state;
 const int arrowYPositions[] = {100, 198, 288}; // Y-positions for our menu-options
@@ -73,21 +73,23 @@ int main(int argc, char* argv[])
     if (argc > 1) {
         if (strcmp(argv[1], "server") == 0) {
             isServer = true;
-            port = 2000;              // Default port for server
+        }
+        if (isServer) {
+            if (network_init(NULL, 2000, true) < 0) {  // Server mode, lyssnar på port 2000
+                fprintf(stderr, "Failed to initialize network.\n");
+                SDL_Quit();
+                return -1;
+            }
         } else {
-            host = argv[1];           // Use 1st argument as host
-            if (argc > 2) {
-                port = atoi(argv[2]); // If port is specified, use that as port
-            } else {
-                port = 12345;         // Default port for client if not specified
+            if (network_init(argv[1], argc > 2 ? atoi(argv[2]) : 12345, false) < 0) {  // Client mode, ansluter till angiven host och port
+                fprintf(stderr, "Failed to initialize network.\n");
+                SDL_Quit();
+                return -1;
             }
         }
-    }
-
-    if (network_init(host, port, isServer) < 0) {
-        fprintf(stderr, "Network could not initialize!\n");
-        SDL_Quit();
-        return -1;
+    } else {
+        fprintf(stderr, "Usage: %s [server|host] [port]\n", argv[0]);
+        exit(EXIT_FAILURE);
     }
 
     sPosition startPos[] = {
@@ -229,7 +231,7 @@ int main(int argc, char* argv[])
             }
             arrowPos.y = arrowYPositions[arrowYPosIndex]; // Updating the arrows position based on users choice
         }
-        print_player_positions();
+        //print_player_positions();
         SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
         SDL_RenderClear(gRenderer);
         SDL_RenderCopy(gRenderer, mMenu, NULL, NULL);
@@ -529,6 +531,7 @@ void updateGameState(GameState new_state) {
     // Additional logic to handle state change
 }
 
+/*
 void print_player_positions() {
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (players[i].active) {
@@ -536,3 +539,4 @@ void print_player_positions() {
         }
     }
 }
+*/
