@@ -529,3 +529,4 @@ void updateGameState(GameState new_state) {
     current_state = new_state;
     // Additional logic to handle state change
 }
+

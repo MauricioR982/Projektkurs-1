@@ -20,4 +20,5 @@ int find_or_add_client(IPaddress newClientAddr);
 void update_player_position(int playerIndex, int x, int y);
 void network_cleanup();
 
+
 #endif // NETWORK_H

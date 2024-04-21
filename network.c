@@ -185,3 +185,4 @@ void network_cleanup() {
     SDLNet_UDP_Close(sd);
     SDLNet_Quit();
 }
+
