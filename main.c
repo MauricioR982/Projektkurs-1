@@ -36,6 +36,11 @@ typedef struct {
     int y;
 } hPosition; // Hunter spawn position
 
+typedef struct {
+    int x, y;
+    bool active;
+} Player;
+
 typedef enum {
     ROLE_SPRINTER,
     ROLE_HUNTER
@@ -50,9 +55,11 @@ void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, PlayerRole role, O
 void updateFrame(int *frame, PlayerRole role, int frame1, int frame2);
 void drawDebugInfo(SDL_Renderer *gRenderer, Obstacle obstacles[], int numObstacles);
 void updateGameState(GameState new_state);
+void print_player_positions();
 
 GameState current_state;
 const int arrowYPositions[] = {100, 198, 288}; // Y-positions for our menu-options
+Player players[MAX_CLIENTS];
 
 UDPsocket sd;       // Socket descriptor
 IPaddress srvadd;   // IP address for server
@@ -134,7 +141,6 @@ int main(int argc, char* argv[])
     SDL_Texture *mArrow = NULL;
 
     if (init(&gRenderer)) {
-        printf("worked\n");
         printf("Application starting...\n");
     }
     
@@ -146,9 +152,30 @@ int main(int argc, char* argv[])
     initializeGameState();
     setGameState(STATE_MENU);
     
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
+        fprintf(stderr, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+        return 1;
+    }
+
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+        fprintf(stderr, "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
+        SDL_Quit();
+        return 1;
+    }
+
+    Mix_Music *menuMusic = Mix_LoadMUS("resources/MENUSONG.mp3");
+    if (!menuMusic) {
+        fprintf(stderr, "Failed to load background music: %s\n", Mix_GetError());
+        SDL_Quit();
+        return 1;
+    }
 
     // Menu-loop
     bool showMenu = true;
+    // Starta musiken om inte redan spelar
+    if (!Mix_PlayingMusic()) {
+        Mix_PlayMusic(menuMusic, -1);
+    }
     while (showMenu && !quit) {
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) {
@@ -174,6 +201,7 @@ int main(int argc, char* argv[])
                             case 0:
                                 setGameState(STATE_PLAYING);
                                 showMenu = false; // Closing menu and starting game
+                                Mix_HaltMusic();
                                 break;
                             case 1:
                                 setGameState(STATE_TUTORIAL);
@@ -193,12 +221,14 @@ int main(int argc, char* argv[])
             }
             arrowPos.y = arrowYPositions[arrowYPosIndex]; // Updating the arrows position based on users choice
         }
+        
         // Handle network communication based on role
         if (isServer) {
             network_handle_server();
         } else {
             network_handle_client();
         }
+        print_player_positions();
         SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
         SDL_RenderClear(gRenderer);
         SDL_RenderCopy(gRenderer, mMenu, NULL, NULL);
@@ -276,6 +306,8 @@ int main(int argc, char* argv[])
         SDL_RenderPresent(gRenderer);
     }
     network_cleanup();
+    Mix_FreeMusic(menuMusic);
+    Mix_CloseAudio();
     SDLNet_Quit();      //could be deleted since it exists in the function one line above?
     SDL_Quit();
     return 0;
@@ -498,4 +530,12 @@ void drawDebugInfo(SDL_Renderer *gRenderer, Obstacle obstacles[], int numObstacl
 void updateGameState(GameState new_state) {
     current_state = new_state;
     // Additional logic to handle state change
+}
+
+void print_player_positions() {
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        if (players[i].active) {
+            printf("Player %d: x = %d, y = %d\n", i, players[i].x, players[i].y);
+        }
+    }
 }
