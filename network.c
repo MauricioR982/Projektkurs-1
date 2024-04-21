@@ -92,6 +92,7 @@ void network_handle_server() {
     while(!quit)
     {
     if (SDLNet_UDP_Recv(sd, packet)) {
+        printf("Received packet from Client: %s\n", (char*)packet->data);
         printf("UDP Packet incoming\n");
         printf("\tChan:    %d\n", packet->channel);
         printf("\tData:    %s\n", (char *)packet->data);
@@ -113,6 +114,7 @@ void network_handle_server() {
             quit = 1;
             exit(0);
         }
+        printf("Sending packet to all clients.\n");
     }
 }
     network_cleanup();
@@ -121,7 +123,7 @@ void network_handle_server() {
 void network_handle_client() {
     int quit = 0;
     char buffer[512]; // Buffer for input data
-
+    printf("Sending data to server: %s\n", buffer);
     while (!quit) {
         printf("Fill the buffer\n>");
         fgets(buffer, sizeof(buffer), stdin); // Using fgets to allow spaces
