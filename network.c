@@ -16,6 +16,7 @@ static UDPpacket *packet;
 static ClientInfo clients[MAX_CLIENTS];
 
 int network_init(char* host, Uint16 port, bool serverMode) {
+    printf("Initializing network. Server Mode: %d, Host: %s, Port: %d\n", isServer, host, port); //debug 
     isServer = serverMode;
     memset(clients, 0, sizeof(clients));  // Initialize client-information
     
