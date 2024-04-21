@@ -95,52 +95,34 @@ void network_check_activity(Uint32 timeout) {
 }
 
 void network_handle_server() {
-    if (SDLNet_SocketReady(sd)) {
-        if (SDLNet_UDP_Recv(sd, packet)) {
-            int clientIndex = find_or_add_client(packet->address);
-            if (clientIndex == -1) {
-                printf("Server full. Rejecting new client connection.\n");
-                const char* rejectMsg = "Server Full: No more connections allowed.";
-                memcpy(packet->data, rejectMsg, strlen(rejectMsg) + 1);
-                packet->len = strlen(rejectMsg) + 1;
-                SDLNet_UDP_Send(sd, -1, packet);
-                return; // Prevent further processing
-            } else {
-                printf("Server received: '%s' from %x:%u\n",
-                       (char *)packet->data,
-                       packet->address.host, packet->address.port);
+    if (SDLNet_UDP_Recv(sd, packet)) {
+        printf("UDP Packet incoming\n");
+        printf("\tChan:    %d\n", packet->channel);
+        printf("\tData:    %s\n", (char *)packet->data);
+        printf("\tLen:     %d\n", packet->len);
+        printf("\tMaxlen:  %d\n", packet->maxlen);
+        printf("\tStatus:  %d\n", packet->status);
+        printf("\tAddress: %x %x\n", packet->address.host, packet->address.port);
 
-                for (int i = 0; i < MAX_CLIENTS; i++) {
-                    if (clients[i].connected && i != clientIndex) {
-                        packet->address = clients[i].address;
-                        SDLNet_UDP_Send(sd, -1, packet); // Send packet to each connected client
-                        printf("Forwarded message to %x:%u\n", clients[i].address.host, clients[i].address.port);
-                    }
-                }
+        // Echo packet to all clients except sender
+        for (int i = 0; i < MAX_CLIENTS; i++) {
+            if (clients[i].connected) {
+                packet->address = clients[i].address;
+                SDLNet_UDP_Send(sd, -1, packet);
             }
+        }
+
+        // Check if the packet is a quit command
+        if (strcmp((char *)packet->data, "quit") == 0) {
+            network_cleanup();
+            exit(0);
         }
     }
 }
 
 void network_handle_client() {
-    if (SDLNet_SocketReady(sd)) {
-        if (SDLNet_UDP_Recv(sd, packet)) {
-            if (strcmp((char *)packet->data, "Server Full: No more connections allowed.") == 0) {
-                printf("Failed to connect: %s\n", (char *)packet->data);
-            } else {
-                printf("Client received: %s from %x %x\n",
-                       (char *)packet->data, packet->address.host, packet->address.port);
-            }
-        }
-    }
-
-    // Example of sending a regular message to the server, could be triggered by game events
-    const char* message = "Hello Server";
-    memcpy(packet->data, message, strlen(message) + 1);
-    packet->len = strlen(message) + 1;
-    packet->address = srvadd;
-    if (!SDLNet_UDP_Send(sd, -1, packet)) {
-        printf("SDLNet_UDP_Send: %s\n", SDLNet_GetError());
+    if (SDLNet_UDP_Recv(sd, packet)) {
+        printf("Received from server: %s\n", (char *)packet->data);
     }
 }
 

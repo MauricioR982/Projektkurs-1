@@ -250,11 +250,6 @@ int main(int argc, char* argv[])
     while (!quit) {
     // Game event handling
     network_check_activity(0);
-    if (isServer) {
-    network_handle_server();  // Handle incoming connections and messages
-    } else {
-        network_handle_client();  // Handle client-logic
-    }
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_QUIT) {
             quit = true;
