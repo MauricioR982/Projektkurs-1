@@ -170,6 +170,13 @@ int main(int argc, char* argv[])
         return 1;
     }
 
+    Mix_Music *gameMusic = Mix_LoadMUS("resources/GAMESONG.mp3");
+    if (!gameMusic) {
+        fprintf(stderr, "Failed to load game music: %s\n", Mix_GetError());
+        SDL_Quit();
+        return 1;
+    }
+
     // Menu-loop
     bool showMenu = true;
     // Starta musiken om inte redan spelar
@@ -200,8 +207,9 @@ int main(int argc, char* argv[])
                         switch (arrowYPosIndex) {
                             case 0:
                                 setGameState(STATE_PLAYING);
-                                showMenu = false; // Closing menu and starting game
                                 Mix_HaltMusic();
+                                Mix_PlayMusic(gameMusic, -1);
+                                showMenu = false; // Closing menu and starting game
                                 break;
                             case 1:
                                 setGameState(STATE_TUTORIAL);
@@ -307,6 +315,7 @@ int main(int argc, char* argv[])
     }
     network_cleanup();
     Mix_FreeMusic(menuMusic);
+    Mix_FreeMusic(gameMusic);
     Mix_CloseAudio();
     SDLNet_Quit();      //could be deleted since it exists in the function one line above?
     SDL_Quit();
