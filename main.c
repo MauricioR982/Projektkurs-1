@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
     }
 
     if (network_init(host, port, isServer) < 0) {
-        printf("Network could not initialize!\n");
+        fprintf(stderr, "Network could not initialize!\n");
         SDL_Quit();
         return -1;
     }
