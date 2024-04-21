@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "sprinter.h": "c"
+        "sprinter.h": "c",
+        "sdl_net.h": "c"
     }
 }
