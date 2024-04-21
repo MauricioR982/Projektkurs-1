@@ -61,9 +61,7 @@ int network_init(char* host, Uint16 port, bool serverMode) {
     return 0;
 }
 
-void network_check_activity(Uint32 timeout) {
-
-    // Setup the socket set
+void network_check_activity() {
     SDLNet_SocketSet set = SDLNet_AllocSocketSet(1);
     if (!set) {
         fprintf(stderr, "SDLNet_AllocSocketSet: %s\n", SDLNet_GetError());
@@ -75,14 +73,8 @@ void network_check_activity(Uint32 timeout) {
         return;
     }
 
-    // Check for activity on the socket
-    int numready = SDLNet_CheckSockets(set, timeout);
-    if (numready == -1) {
-        fprintf(stderr, "SDLNet_CheckSockets: %s\n", SDLNet_GetError());
-    } else if (numready == 0) {
-        // No activity
-    } else {
-        // If there is activity on our socket, process it
+    int numready = SDLNet_CheckSockets(set, 0); // Gör detta icke-blockerande
+    if (numready > 0) {
         if (SDLNet_SocketReady(sd)) {
             if (isServer) {
                 network_handle_server();
@@ -95,6 +87,9 @@ void network_check_activity(Uint32 timeout) {
 }
 
 void network_handle_server() {
+    int quit = 0;
+    while(!quit)
+    {
     if (SDLNet_UDP_Recv(sd, packet)) {
         printf("UDP Packet incoming\n");
         printf("\tChan:    %d\n", packet->channel);
@@ -114,10 +109,12 @@ void network_handle_server() {
 
         // Check if the packet is a quit command
         if (strcmp((char *)packet->data, "quit") == 0) {
-            network_cleanup();
+            quit = 1;
             exit(0);
         }
     }
+}
+    network_cleanup();
 }
 
 void network_handle_client() {

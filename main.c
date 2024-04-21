@@ -242,7 +242,7 @@ int main(int argc, char* argv[])
     // Game-loop
     while (!quit) {
     // Game event handling
-    network_check_activity(0);
+    network_check_activity();
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_QUIT) {
             quit = true;
