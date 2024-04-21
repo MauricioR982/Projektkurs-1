@@ -256,19 +256,21 @@ int main(int argc, char* argv[])
             network_handle_client();
             // Allow client to send messages
             if (!isServer) {
-            printf("Type a message or 'quit' to exit:\n>");
-            char message[100];
-            fgets(message, 100, stdin);
-            message[strcspn(message, "\n")] = 0;
-            
-            if (strcmp(message, "quit") == 0) {
-                quit = true;
-            } else {
-                strcpy((char *)packet->data, message);
-                packet->len = strlen((char *)packet->data) + 1;
-                SDLNet_UDP_Send(sd, -1, packet);
-            }
-        }
+                char message[512];
+                printf("Type a message or 'quit' to exit:\n>");
+                while (fgets(message, sizeof(message), stdin)) {
+                    message[strcspn(message, "\n")] = 0; // Ta bort newline från slutet av strängen
+                    if (strcmp(message, "quit") == 0) {
+                        strcpy((char *)packet->data, message);
+                        packet->len = strlen((char *)packet->data) + 1;
+                        SDLNet_UDP_Send(sd, -1, packet);
+                        break;
+                    }
+                    strcpy((char *)packet->data, message);
+                    packet->len = strlen((char *)packet->data) + 1;
+                    SDLNet_UDP_Send(sd, -1, packet);
+    }
+}
 
     }
         while (SDL_PollEvent(&e)) {

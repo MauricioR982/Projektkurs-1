@@ -82,9 +82,24 @@ void network_check_activity() {
 }
 
 void network_handle_server() {
+
     if (SDLNet_UDP_Recv(sd, packet)) {
-        printf("Received: %s from client\n", (char *)packet->data);
-        // Broadcast to all clients
+        // Skriv ut information om paketet precis som udpserver.c gör
+        printf("UDP Packet incoming\n");
+        printf("\tChan:    %d\n", packet->channel);
+        printf("\tData:    %s\n", (char *)packet->data);
+        printf("\tLen:     %d\n", packet->len);
+        printf("\tMaxlen:  %d\n", packet->maxlen);
+        printf("\tStatus:  %d\n", packet->status);
+        printf("\tAddress: %x %x\n", packet->address.host, packet->address.port);
+
+        // Om meddelandet är "quit", avsluta servern
+        if (strcmp((char *)packet->data, "quit") == 0) {
+            network_cleanup();
+            exit(0);
+        }
+
+        // Sänd paketet till alla anslutna klienter
         for (int i = 0; i < MAX_CLIENTS; i++) {
             if (clients[i].connected) {
                 packet->address = clients[i].address;
@@ -95,7 +110,7 @@ void network_handle_server() {
 }
 
 void network_handle_client() {
-    if (SDLNet_UDP_Recv(sd, packet)) {
+    if (SDLNet_UDP_Recv(sd, packet)){
         printf("Received from server: %s\n", (char *)packet->data);
     }
 }
