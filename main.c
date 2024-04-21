@@ -504,12 +504,12 @@ bool init(SDL_Renderer **gRenderer) {
     SDL_Init(SDL_INIT_VIDEO);
     gWindow = SDL_CreateWindow("SDL Test", SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED, 1280, 720, SDL_WINDOW_SHOWN);
     if(gWindow == NULL) {
-        printf("Fungerar ej\n");
+        printf("Not working.\n");
         test = false;
     }
     *gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if(*gRenderer == NULL) {
-        printf("Fungerar ej\n");
+        printf("Not working.\n");
         test = false;
     }
     return test;
