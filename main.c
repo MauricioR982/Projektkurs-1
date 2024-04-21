@@ -71,6 +71,11 @@ int main(int argc, char* argv[])
     Uint16 port = 2000;       // Standardport
     bool isServer = false;  // Mode switch
 
+    if (network_init(host, port, isServer) < 0) {
+        fprintf(stderr, "Failed to initialize network.\n");
+        SDL_Quit();
+        return 1;
+    }
 
     packet = SDLNet_AllocPacket(512); // Storleken kan justeras efter behov
     if (!packet) {
@@ -86,12 +91,6 @@ int main(int argc, char* argv[])
             host = argv[1];
             port = (argc > 2) ? atoi(argv[2]) : 12345;
         }
-    }
-
-    if (network_init(host, port, isServer) < 0) {
-        fprintf(stderr, "Failed to initialize network.\n");
-        SDL_Quit();
-        return 1;
     }
 
     sPosition startPos[] = {
