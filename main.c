@@ -64,12 +64,13 @@ Player players[MAX_CLIENTS];
 UDPsocket sd;       // Socket descriptor
 IPaddress srvadd;   // IP address for server
 UDPpacket *packet;
-bool isServer = false;  // Mode switch
 
 int main(int argc, char* argv[])
 {
     char* host = "localhost"; // Standardhost
     Uint16 port = 2000;       // Standardport
+    bool isServer = false;  // Mode switch
+
 
     packet = SDLNet_AllocPacket(512); // Storleken kan justeras efter behov
     if (!packet) {
@@ -78,24 +79,19 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if (argc > 1) {
+     if (argc > 1) {
         if (strcmp(argv[1], "server") == 0) {
             isServer = true;
-            port = 2000;              // Default port for server
         } else {
-            host = argv[1];           // Use 1st argument as host
-            if (argc > 2) {
-                port = atoi(argv[2]); // If port is specified, use that as port
-            } else {
-                port = 12345;         // Default port for client if not specified
-            }
+            host = argv[1];
+            port = (argc > 2) ? atoi(argv[2]) : 12345;
         }
     }
 
     if (network_init(host, port, isServer) < 0) {
-        printf("Network could not initialize!\n");
+        fprintf(stderr, "Failed to initialize network.\n");
         SDL_Quit();
-        return -1;
+        return 1;
     }
 
     sPosition startPos[] = {
@@ -253,73 +249,73 @@ int main(int argc, char* argv[])
 
     // Game-loop
     while (!quit) {
-    // Game event handling
-    network_check_activity(0);
-    if (isServer) {
-    network_handle_server();  // Handle incoming connections and messages
-    } else {
-        network_handle_client();
-        // Allow client to send messages
-        if (!isServer) {
-        printf("Type a message or 'quit' to exit:\n>");
-        char message[100];
-        fgets(message, 100, stdin);
-        message[strcspn(message, "\n")] = 0;
-        
-        if (strcmp(message, "quit") == 0) {
-            quit = true;
+        // Game event handling
+        network_check_activity(0);
+        if (isServer) {
+        network_handle_server();  // Handle incoming connections and messages
         } else {
-            strcpy((char *)packet->data, message);
-            packet->len = strlen((char *)packet->data) + 1;
-            SDLNet_UDP_Send(sd, -1, packet);
-        }
-    }
-
-    }
-    while (SDL_PollEvent(&e)) {
-        if (e.type == SDL_QUIT) {
-            quit = true;
-        }
-        else if (e.type == SDL_KEYDOWN) {
-            switch (e.key.keysym.sym) {
-                case SDLK_u:
-                    toggleObstacleDebugMode();
-                    break;
-                case SDLK_w:
-                case SDLK_UP:
-                    moveCharacter(playerRole == ROLE_SPRINTER ? &position : &hunterPosition, 0, -8, playerRole, obstacles, NUM_OBSTACLES);
-                    updateFrame(&frame, playerRole, 4, 5);
-                    break;
-                case SDLK_s:
-                case SDLK_DOWN:
-                    moveCharacter(playerRole == ROLE_SPRINTER ? &position : &hunterPosition, 0, 8, playerRole, obstacles, NUM_OBSTACLES);
-                    updateFrame(&frame, playerRole, 0, 1);
-                    break;
-                case SDLK_a:
-                case SDLK_LEFT:
-                    moveCharacter(playerRole == ROLE_SPRINTER ? &position : &hunterPosition, -8, 0, playerRole, obstacles, NUM_OBSTACLES);
-                    if (playerRole == ROLE_SPRINTER) {
-                        flip = SDL_FLIP_HORIZONTAL;
-                    } else if (playerRole == ROLE_HUNTER) {
-                        flipHunter = SDL_FLIP_HORIZONTAL;
-                    }
-                    updateFrame(&frame, playerRole, 2, 3);
-                    break;
-                case SDLK_d:
-                case SDLK_RIGHT:
-                    moveCharacter(playerRole == ROLE_SPRINTER ? &position : &hunterPosition, 8, 0, playerRole, obstacles, NUM_OBSTACLES);
-                    if (playerRole == ROLE_SPRINTER) {
-                        flip = SDL_FLIP_NONE;
-                    } else if (playerRole == ROLE_HUNTER) {
-                        flipHunter = SDL_FLIP_NONE;
-                    }
-                    updateFrame(&frame, playerRole, 2, 3);
-                    break;
-                default:
-                    break;
+            network_handle_client();
+            // Allow client to send messages
+            if (!isServer) {
+            printf("Type a message or 'quit' to exit:\n>");
+            char message[100];
+            fgets(message, 100, stdin);
+            message[strcspn(message, "\n")] = 0;
+            
+            if (strcmp(message, "quit") == 0) {
+                quit = true;
+            } else {
+                strcpy((char *)packet->data, message);
+                packet->len = strlen((char *)packet->data) + 1;
+                SDLNet_UDP_Send(sd, -1, packet);
             }
         }
+
     }
+        while (SDL_PollEvent(&e)) {
+        if (e.type == SDL_QUIT) {
+                quit = true;
+            }
+            else if (e.type == SDL_KEYDOWN) {
+                switch (e.key.keysym.sym) {
+                    case SDLK_u:
+                        toggleObstacleDebugMode();
+                        break;
+                    case SDLK_w:
+                    case SDLK_UP:
+                        moveCharacter(playerRole == ROLE_SPRINTER ? &position : &hunterPosition, 0, -8, playerRole, obstacles, NUM_OBSTACLES);
+                        updateFrame(&frame, playerRole, 4, 5);
+                        break;
+                    case SDLK_s:
+                    case SDLK_DOWN:
+                        moveCharacter(playerRole == ROLE_SPRINTER ? &position : &hunterPosition, 0, 8, playerRole, obstacles, NUM_OBSTACLES);
+                        updateFrame(&frame, playerRole, 0, 1);
+                        break;
+                    case SDLK_a:
+                    case SDLK_LEFT:
+                        moveCharacter(playerRole == ROLE_SPRINTER ? &position : &hunterPosition, -8, 0, playerRole, obstacles, NUM_OBSTACLES);
+                        if (playerRole == ROLE_SPRINTER) {
+                            flip = SDL_FLIP_HORIZONTAL;
+                        } else if (playerRole == ROLE_HUNTER) {
+                            flipHunter = SDL_FLIP_HORIZONTAL;
+                        }
+                        updateFrame(&frame, playerRole, 2, 3);
+                        break;
+                    case SDLK_d:
+                    case SDLK_RIGHT:
+                        moveCharacter(playerRole == ROLE_SPRINTER ? &position : &hunterPosition, 8, 0, playerRole, obstacles, NUM_OBSTACLES);
+                        if (playerRole == ROLE_SPRINTER) {
+                            flip = SDL_FLIP_NONE;
+                        } else if (playerRole == ROLE_HUNTER) {
+                            flipHunter = SDL_FLIP_NONE;
+                        }
+                        updateFrame(&frame, playerRole, 2, 3);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
 
         // Rendering
         SDL_RenderClear(gRenderer);
