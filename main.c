@@ -55,7 +55,6 @@ void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, PlayerRole role, O
 void updateFrame(int *frame, PlayerRole role, int frame1, int frame2);
 void drawDebugInfo(SDL_Renderer *gRenderer, Obstacle obstacles[], int numObstacles);
 void updateGameState(GameState new_state);
-//void print_player_positions();
 
 GameState current_state;
 const int arrowYPositions[] = {100, 198, 288}; // Y-positions for our menu-options
@@ -231,7 +230,6 @@ int main(int argc, char* argv[])
             }
             arrowPos.y = arrowYPositions[arrowYPosIndex]; // Updating the arrows position based on users choice
         }
-        //print_player_positions();
         SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
         SDL_RenderClear(gRenderer);
         SDL_RenderCopy(gRenderer, mMenu, NULL, NULL);
@@ -530,13 +528,3 @@ void updateGameState(GameState new_state) {
     current_state = new_state;
     // Additional logic to handle state change
 }
-
-/*
-void print_player_positions() {
-    for (int i = 0; i < MAX_CLIENTS; i++) {
-        if (players[i].active) {
-            printf("Player %d: x = %d, y = %d\n", i, players[i].x, players[i].y);
-        }
-    }
-}
-*/
