@@ -93,36 +93,30 @@ void network_check_activity() {
 
 void network_handle_server() {
     int quit = 0;
-    while(!quit)
-    {
-    if (SDLNet_UDP_Recv(sd, packet)) {
-        printf("Received packet from Client: %s\n", (char*)packet->data);
-        printf("UDP Packet incoming\n");
-        printf("\tChan:    %d\n", packet->channel);
-        printf("\tData:    %s\n", (char *)packet->data);
-        printf("\tLen:     %d\n", packet->len);
-        printf("\tMaxlen:  %d\n", packet->maxlen);
-        printf("\tStatus:  %d\n", packet->status);
-        printf("\tAddress: %x %x\n", packet->address.host, packet->address.port);
+    SDLNet_SocketSet set = SDLNet_AllocSocketSet(1);
+    SDLNet_UDP_AddSocket(set, sd);
 
-        // Echo packet to all clients except sender
-        for (int i = 0; i < MAX_CLIENTS; i++) {
-            if (clients[i].connected) {
-                packet->address = clients[i].address;
-                SDLNet_UDP_Send(sd, -1, packet);
+    while (!quit) {
+        int numready = SDLNet_CheckSockets(set, 10);  // Check every 10 ms
+        if (numready > 0) {
+            if (SDLNet_UDP_Recv(sd, packet)) {
+                printf("Received packet from Client: %s\n", (char*)packet->data);
+                // Process the packet
             }
         }
 
-        // Check if the packet is a quit command
-        if (strcmp((char *)packet->data, "quit") == 0) {
+        // Example of checking for a quit command within the server logic
+        // This could be triggered by a specific message or external input
+        /*if (some_condition_to_quit()) {
             quit = 1;
-            exit(0);
-        }
-        printf("Sending packet to all clients.\n");
+        }*/
     }
-}
+
+    SDLNet_FreeSocketSet(set);
     network_cleanup();
 }
+
+
 
 void network_handle_client() {
     // Regularly send local state to the server

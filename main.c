@@ -164,6 +164,10 @@ int main(int argc, char* argv[])
         fprintf(stderr, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
         return 1;
     }
+    if (SDLNet_Init() < 0) {
+        fprintf(stderr, "SDLNet_Init: %s\n", SDLNet_GetError());
+        return -1;
+    }
 
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
         fprintf(stderr, "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
