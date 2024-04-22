@@ -129,12 +129,15 @@ void network_handle_client() {
 
     // Listen for incoming packets and process them
     if (SDLNet_UDP_Recv(sd, recvPacket)) {
-        printf("Received packet from server.\n");
+        printf("Received packet from server. Data: %s\n", recvPacket->data);
         handle_server_response(recvPacket);  // Process each received packet
+    } else {
+        printf("No packet received.\n");
     }
 
     SDLNet_FreePacket(recvPacket);
 }
+
 
 int find_or_add_client(IPaddress newClientAddr) {
     int emptySpot = -1;

@@ -260,11 +260,11 @@ int main(int argc, char* argv[])
     // Game event handling
     network_check_activity();
     if (isServer) {
-    network_handle_server();
-} else {
-    network_handle_client();
-    updatePlayerPositionsFromNetwork();
-}
+        network_handle_server();
+    } else {
+        network_handle_client();
+        updatePlayerPositionsFromNetwork();
+    }
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_QUIT) {
             quit = true;
