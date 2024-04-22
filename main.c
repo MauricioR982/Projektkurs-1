@@ -59,6 +59,7 @@ void drawDebugInfo(SDL_Renderer *gRenderer, Obstacle obstacles[], int numObstacl
 void updateGameState(GameState new_state);
 void updatePlayerPositionsFromNetwork();
 void moveCharacterTo(int playerIndex, int x, int y);
+void renderPlayers(SDL_Renderer *gRenderer, SDL_Texture *mSprinter, SDL_Rect gSprinterSpriteClips[]);
 
 GameState current_state;
 const int arrowYPositions[] = {100, 198, 288}; // Y-positions for our menu-options
@@ -255,6 +256,12 @@ int main(int argc, char* argv[])
 
     PlayerRole playerRole = (rand() % 2 == 0) ? ROLE_SPRINTER : ROLE_HUNTER;
 
+    /*for (int i = 0; i < MAX_CLIENTS; i++) {
+    players[i].x = 100 + i * 100;  // Example starting positions
+    players[i].y = 100;
+    players[i].active = true;  // Initially set to inactive
+    }*/
+
     // Game-loop
     while (!quit) {
     // Game event handling
@@ -332,7 +339,7 @@ int main(int argc, char* argv[])
         } else if (playerRole == ROLE_HUNTER) {
             SDL_RenderCopyEx(gRenderer, mHunter, &gHunterSpriteClips[frame], &hunterPosition, 0, NULL, flipHunter);
         }
-        
+        renderPlayers(gRenderer, mSprinter, gHunterSpriteClips);  // Render all players
         SDL_RenderPresent(gRenderer);
         SDL_Delay(16); // About 60 FPS
     }
@@ -597,4 +604,12 @@ void moveCharacterTo(int playerIndex, int x, int y) {
     players[playerIndex].y = newPos.y;
 }
 
-
+void renderPlayers(SDL_Renderer *gRenderer, SDL_Texture *mSprinter, SDL_Rect gSprinterSpriteClips[]) {
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        if (players[i].active) {
+            SDL_Rect srcRect = gSprinterSpriteClips[0]; // Assume default to first frame or adjust based on player state
+            SDL_Rect destRect = {players[i].x, players[i].y, srcRect.w, srcRect.h};
+            SDL_RenderCopy(gRenderer, mSprinter, &srcRect, &destRect);
+        }
+    }
+}

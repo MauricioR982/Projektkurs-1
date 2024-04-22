@@ -106,9 +106,12 @@ void network_handle_server() {
         UDPpacket *recvPacket = SDLNet_AllocPacket(512);
         if (recvPacket) {
             if (SDLNet_UDP_Recv(sd, recvPacket)) {
-                printf("Received packet\n");
-                // Process packet here, update game state
-            }
+            printf("Received packet from client.\n");
+            PlayerState state;
+            deserialize_player_state(&state, recvPacket);
+            process_incoming_state(&state);
+            // Echo back to other clients or handle accordingly
+        }
             SDLNet_FreePacket(recvPacket);
         }
     }
@@ -117,6 +120,7 @@ void network_handle_server() {
 
 void network_handle_client() {
     if (!serverConnected) {
+        printf("Server not connected, checking connection...\n");
         check_server_connection();
         return;
     }
@@ -127,16 +131,19 @@ void network_handle_client() {
         return;
     }
 
-    // Listen for incoming packets and process them
     if (SDLNet_UDP_Recv(sd, recvPacket)) {
-        printf("Received packet from server. Data: %s\n", recvPacket->data);
-        handle_server_response(recvPacket);  // Process each received packet
+        printf("Received packet from server. Data: %s\n", (char*)recvPacket->data);
+        PlayerState receivedState;
+        deserialize_player_state(&receivedState, recvPacket);
+        printf("Deserialized state - Player %d at (%d, %d)\n", receivedState.playerIndex, receivedState.x, receivedState.y);
+        update_player_position(receivedState.playerIndex, receivedState.x, receivedState.y);
     } else {
         printf("No packet received.\n");
     }
 
     SDLNet_FreePacket(recvPacket);
 }
+
 
 
 int find_or_add_client(IPaddress newClientAddr) {
