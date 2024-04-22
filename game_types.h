@@ -1,3 +1,4 @@
+//game_types.h
 #ifndef GAME_TYPES_H
 #define GAME_TYPES_H
 
