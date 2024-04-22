@@ -17,6 +17,7 @@ static bool isServer;
 static UDPpacket *packet;
 static ClientInfo clients[MAX_CLIENTS];
 extern Player players[MAX_CLIENTS];  // Declare the external linkage
+static bool isServerRunning = true; // Add a global variable to control server running state
 
 
 int network_init(char* host, Uint16 port, bool serverMode) {
@@ -95,7 +96,7 @@ void network_handle_server() {
     SDLNet_SocketSet set = SDLNet_AllocSocketSet(1);
     SDLNet_UDP_AddSocket(set, sd);
 
-    while (true) {  // Consider implementing a way to exit this loop properly.
+    while (isServerRunning) {  // Loop while the server is running
         int numready = SDLNet_CheckSockets(set, 10); // Checks every 10 milliseconds.
         if (numready > 0 && SDLNet_SocketReady(sd)) {
             if (SDLNet_UDP_Recv(sd, packet)) {
