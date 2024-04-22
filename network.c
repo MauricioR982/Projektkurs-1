@@ -261,25 +261,28 @@ void server_send_acknowledge(UDPsocket sd, IPaddress clientAddr) {
         fprintf(stderr, "Failed to allocate packet for acknowledgment\n");
         return;
     }
-    
-    // Prepare the acknowledgment packet
-    const char* ackMessage = "Server ACK";  // Define a simple acknowledgment message
+
+    const char* ackMessage = "Server ACK";
     memcpy(ackPacket->data, ackMessage, strlen(ackMessage) + 1);
     ackPacket->len = strlen(ackMessage) + 1;
     ackPacket->address = clientAddr;
 
-    // Send the acknowledgment
     if (SDLNet_UDP_Send(sd, -1, ackPacket) == 0) {
         fprintf(stderr, "Failed to send acknowledgment: %s\n", SDLNet_GetError());
+    } else {
+        printf("Acknowledgment sent to %s:%d\n", SDLNet_ResolveIP(&clientAddr), SDLNet_Read16(&clientAddr.port));
     }
 
     SDLNet_FreePacket(ackPacket);
 }
 
+
 void handle_server_response(UDPpacket *packet) {
-    const char* expectedAck = "Server ACK";  // The expected acknowledgment message
+    const char* expectedAck = "Server ACK";
     if (packet->len > 0 && strncmp((char*)packet->data, expectedAck, packet->len) == 0) {
         serverConnected = true;
         printf("Acknowledgment from server received. Server is up.\n");
+    } else {
+        printf("Received unexpected packet content.\n");
     }
 }
