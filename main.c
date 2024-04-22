@@ -76,7 +76,6 @@ int main(int argc, char* argv[])
     char* host = "localhost"; // Standardhost
     Uint16 port = 2000;       // Standardport
 
-   
     if (argc > 1) {
         if (strcasecmp(argv[1], "server") == 0) {
             isServer = true;
@@ -263,12 +262,6 @@ int main(int argc, char* argv[])
     while (!quit) {
     // Game event handling
     network_check_activity();
-    if (isServer) {
-        network_handle_server();
-    } else {
-        network_handle_client();
-        updatePlayerPositionsFromNetwork();
-    }
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_QUIT) {
             quit = true;
@@ -312,13 +305,6 @@ int main(int argc, char* argv[])
                     break;
             }
         }
-    }
-
-    // Network activity checks
-    if (isServer) {
-        network_handle_server();
-    } else {
-        network_handle_client();
     }
 
     // Update positions from network data if necessary
