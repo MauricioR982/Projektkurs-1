@@ -260,11 +260,11 @@ int main(int argc, char* argv[])
     // Game event handling
     network_check_activity();
     if (isServer) {
-        network_handle_server();
-    } else {
-        network_handle_client();
-        updatePlayerPositionsFromNetwork();
-    }
+    network_handle_server();
+} else {
+    network_handle_client();
+    updatePlayerPositionsFromNetwork();
+}
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_QUIT) {
             quit = true;
@@ -310,6 +310,18 @@ int main(int argc, char* argv[])
         }
     }
 
+    // Network activity checks
+    if (isServer) {
+        network_handle_server();
+    } else {
+        network_handle_client();
+    }
+
+    // Update positions from network data if necessary
+    if (!isServer) {
+        updatePlayerPositionsFromNetwork();
+    }
+
         // Rendering
         SDL_RenderClear(gRenderer);
         renderBackground(gRenderer, mBackground);
@@ -322,6 +334,7 @@ int main(int argc, char* argv[])
         }
         
         SDL_RenderPresent(gRenderer);
+        SDL_Delay(16); // About 60 FPS
     }
     network_cleanup();
     Mix_FreeMusic(menuMusic);

@@ -93,43 +93,47 @@ void network_check_activity() {
     SDLNet_FreeSocketSet(set);
 }
 
+
 void network_handle_server() {
-    if (!serverConnected) {
-        check_server_connection();
-        return;
-    }
+    int numready;
     SDLNet_SocketSet set = SDLNet_AllocSocketSet(1);
     SDLNet_UDP_AddSocket(set, sd);
 
     printf("Server started handling.\n");
-    while (isServerRunning) {  // Loop while the server is running
-        int numready = SDLNet_CheckSockets(set, 10); // Checks every 10 milliseconds.
-        if (numready > 0 && SDLNet_SocketReady(sd)) {
-            if (SDLNet_UDP_Recv(sd, packet)) {
-                printf("Received packet");
-                // Handle the packet
+    // Reduce to just checking once per call to avoid freezing
+    numready = SDLNet_CheckSockets(set, 0); // Check immediately, non-blocking
+    if (numready > 0 && SDLNet_SocketReady(sd)) {
+        UDPpacket *recvPacket = SDLNet_AllocPacket(512);
+        if (recvPacket) {
+            if (SDLNet_UDP_Recv(sd, recvPacket)) {
+                printf("Received packet\n");
+                // Process packet here, update game state
             }
-        } else {
-            printf("No packets received.\n");
-            SDL_Delay(10); // Reduce CPU usage if no data is incoming.
+            SDLNet_FreePacket(recvPacket);
         }
     }
-    printf("Server stopped handling.\n");
     SDLNet_FreeSocketSet(set);
-    send_local_player_state();
 }
 
-
 void network_handle_client() {
-    // Regularly send local state to the server
-    send_local_player_state();
-
-    // Check for incoming messages
-    if (SDLNet_UDP_Recv(sd, packet)) {
-        PlayerState state;
-        deserialize_player_state(&state, packet);  // Deserialize data before processing
-        process_incoming_state(&state);  // Pass the deserialized state
+    if (!serverConnected) {
+        check_server_connection();
+        return;
     }
+
+    UDPpacket *recvPacket = SDLNet_AllocPacket(512);
+    if (recvPacket == NULL) {
+        fprintf(stderr, "Failed to allocate packet for receiving\n");
+        return;
+    }
+
+    // Listen for incoming packets and process them
+    if (SDLNet_UDP_Recv(sd, recvPacket)) {
+        printf("Received packet from server.\n");
+        handle_server_response(recvPacket);  // Process each received packet
+    }
+
+    SDLNet_FreePacket(recvPacket);
 }
 
 int find_or_add_client(IPaddress newClientAddr) {
@@ -230,15 +234,42 @@ void update_player_position(int playerIndex, int x, int y) {
 }
 
 void check_server_connection() {
-    // This function would attempt to ping the server or wait for a heartbeat
-    // For simplicity, assume we send a specific packet to the server asking for a status
-    PlayerState statusCheck = {0};
-    statusCheck.playerIndex = -1;  // Indicate a special status check packet
+    // Send a heartbeat or status check packet
+    PlayerState statusCheck = { .playerIndex = -1 }; // Special packet to check status
     serialize_player_state(&statusCheck, packet);
     packet->address = srvadd;
 
     if (SDLNet_UDP_Send(sd, -1, packet) == 0) {
-        fprintf(stderr, "Failed to check server status: %s\n", SDLNet_GetError());
+        fprintf(stderr, "Connection check failed: %s\n", SDLNet_GetError());
+        serverConnected = false;  // Update connection status
     }
 }
 
+void server_send_acknowledge(UDPsocket sd, IPaddress clientAddr) {
+    UDPpacket *ackPacket = SDLNet_AllocPacket(512);
+    if (!ackPacket) {
+        fprintf(stderr, "Failed to allocate packet for acknowledgment\n");
+        return;
+    }
+    
+    // Prepare the acknowledgment packet
+    const char* ackMessage = "Server ACK";  // Define a simple acknowledgment message
+    memcpy(ackPacket->data, ackMessage, strlen(ackMessage) + 1);
+    ackPacket->len = strlen(ackMessage) + 1;
+    ackPacket->address = clientAddr;
+
+    // Send the acknowledgment
+    if (SDLNet_UDP_Send(sd, -1, ackPacket) == 0) {
+        fprintf(stderr, "Failed to send acknowledgment: %s\n", SDLNet_GetError());
+    }
+
+    SDLNet_FreePacket(ackPacket);
+}
+
+void handle_server_response(UDPpacket *packet) {
+    const char* expectedAck = "Server ACK";  // The expected acknowledgment message
+    if (packet->len > 0 && strncmp((char*)packet->data, expectedAck, packet->len) == 0) {
+        serverConnected = true;
+        printf("Acknowledgment from server received. Server is up.\n");
+    }
+}
