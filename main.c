@@ -37,12 +37,6 @@ typedef struct {
     int y;
 } hPosition; // Hunter spawn position
 
-/*typedef struct {
-    int x, y;
-    int w, h;
-    bool active;
-} Player;*/
-
 typedef enum {
     ROLE_SPRINTER,
     ROLE_HUNTER

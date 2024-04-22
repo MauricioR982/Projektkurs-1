@@ -243,16 +243,17 @@ void update_player_position(int playerIndex, int x, int y) {
 }
 
 void check_server_connection() {
-    PlayerState statusCheck = { .playerIndex = -1 };  // Indicates a connection check
+    printf("Checking connection to the server...\n");
+    PlayerState statusCheck = { .playerIndex = -1 };  // Special code to request connection status
     serialize_player_state(&statusCheck, packet);
-    packet->address = srvadd;  // Ensure this is the correct server address
+    packet->address = srvadd;  // Server address should be already resolved and set
 
-    printf("Sending server connection check...\n");
-    if (SDLNet_UDP_Send(sd, -1, packet) == 0) {
-        fprintf(stderr, "Connection check failed: %s\n", SDLNet_GetError());
+    if (SDLNet_UDP_Send(sd, -1, packet) < 1) {
+        fprintf(stderr, "Connection check failed to send: %s\n", SDLNet_GetError());
+    } else {
+        printf("Connection check packet sent.\n");
     }
 }
-
 
 void server_send_acknowledge(UDPsocket sd, IPaddress clientAddr) {
     UDPpacket *ackPacket = SDLNet_AllocPacket(512);
