@@ -8,18 +8,21 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include "game_types.h"
+
 
 static UDPsocket sd; // Socket descriptor
 static IPaddress srvadd; // Server address
 static bool isServer;
 static UDPpacket *packet;
 static ClientInfo clients[MAX_CLIENTS];
+extern Player players[MAX_CLIENTS];  // Declare the external linkage
+
 
 int network_init(char* host, Uint16 port, bool serverMode) {
-    printf("Initializing network. Server Mode: %d, Host: %s, Port: %d\n", isServer, host, port); //debug 
     isServer = serverMode;
-    memset(clients, 0, sizeof(clients));  // Initialize client-information
-    
+    printf("Initializing network. Server Mode: %d, Host: %s, Port: %d\n", isServer, host, port);
+
     if (SDLNet_Init() < 0) {
         fprintf(stderr, "SDLNet_Init: %s\n", SDLNet_GetError());
         return -1;
@@ -33,7 +36,7 @@ int network_init(char* host, Uint16 port, bool serverMode) {
     }
 
     if (isServer) {
-        // Open a socket on a specific port
+        // Open a socket on a specific port for server
         sd = SDLNet_UDP_Open(port);
         if (!sd) {
             fprintf(stderr, "SDLNet_UDP_Open: %s\n", SDLNet_GetError());
@@ -43,7 +46,7 @@ int network_init(char* host, Uint16 port, bool serverMode) {
         }
         printf("Server listening on port %d\n", port);
     } else {
-        // Resolve server name and open a socket on random port
+        // Resolve server name and open a socket on random port for client
         if (SDLNet_ResolveHost(&srvadd, host, port) == -1) {
             fprintf(stderr, "SDLNet_ResolveHost: %s\n", SDLNet_GetError());
             SDLNet_FreePacket(packet);
@@ -61,6 +64,7 @@ int network_init(char* host, Uint16 port, bool serverMode) {
     }
     return 0;
 }
+
 
 void network_check_activity() {
     SDLNet_SocketSet set = SDLNet_AllocSocketSet(1);
@@ -121,36 +125,18 @@ void network_handle_server() {
 }
 
 void network_handle_client() {
-    int quit = 0;
-    char buffer[512]; // Buffer for input data
-    printf("Sending data to server: %s\n", buffer);
-    while (!quit) {
-        printf("Fill the buffer\n>");
-        fgets(buffer, sizeof(buffer), stdin); // Using fgets to allow spaces
-        buffer[strcspn(buffer, "\n")] = 0; // Remove newline character
+    // Regularly send local state to the server
+    send_local_player_state();
 
-        // Prepare packet for sending
-        memcpy(packet->data, buffer, strlen(buffer) + 1);
-        packet->len = strlen((char *)packet->data) + 1;
-        packet->address.host = srvadd.host; // Set the destination host
-        packet->address.port = srvadd.port; // Set the destination port
-
-        // Send the packet
-        if (!SDLNet_UDP_Send(sd, -1, packet)) {
-            fprintf(stderr, "SDLNet_UDP_Send: %s\n", SDLNet_GetError());
-        }
-
-        // Quit if packet contains "quit"
-        if (strcmp(buffer, "quit") == 0) {
-            quit = 1;
-        }
-
-        // Optionally receive data here if server sends responses back
-        if (SDLNet_UDP_Recv(sd, packet)) {
-            printf("Received from server: %s\n", (char *)packet->data);
-        }
+    // Check for incoming messages
+    if (SDLNet_UDP_Recv(sd, packet)) {
+        PlayerState state;
+        deserialize_player_state(&state, packet);  // Deserialize data before processing
+        process_incoming_state(&state);  // Pass the deserialized state
     }
 }
+
+
 
 int find_or_add_client(IPaddress newClientAddr) {
     int emptySpot = -1;
@@ -185,4 +171,47 @@ void network_cleanup() {
     SDLNet_UDP_Close(sd);
     SDLNet_Quit();
 }
+
+void serialize_player_state(PlayerState *state, UDPpacket *packet) {
+    // Ensure the packet has enough space
+    int *data = (int*)packet->data;
+    data[0] = state->playerIndex;
+    data[1] = state->x;
+    data[2] = state->y;
+    packet->len = 3 * sizeof(int);
+}
+
+// Example deserialization function
+void deserialize_player_state(PlayerState *state, UDPpacket *packet) {
+    int *data = (int*)packet->data;
+    state->playerIndex = data[0];
+    state->x = data[1];
+    state->y = data[2];
+}
+
+void send_local_player_state() {
+    PlayerState localState = {0}; // Assume you have some way to get local player state
+    // Populate localState with the current player's data
+
+    if (SDLNet_UDP_Send(sd, -1, packet) == 0) {
+        fprintf(stderr, "Failed to send packet: %s\n", SDLNet_GetError());
+    }
+}
+
+void process_incoming_state(const PlayerState *state) {
+    // Here you would update the game state based on the incoming data
+    update_player_position(state->playerIndex, state->x, state->y);
+}
+
+void update_player_position(int playerIndex, int x, int y) {
+    // Assuming `players` is an array of Player structs
+    // Check for valid index before assignment to prevent out-of-bounds error
+    if (playerIndex >= 0 && playerIndex < MAX_CLIENTS) {
+        players[playerIndex].x = x;
+        players[playerIndex].y = y;
+        // Additional logic to handle changes in player state, like updating the renderer or game logic
+    }
+}
+
+
 

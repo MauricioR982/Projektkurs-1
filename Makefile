@@ -1,25 +1,44 @@
 # A simple Makefile for compiling SDL projects with networking
 
-theGame: main.o sprinter.o hunter.o obstacle.o game_states.o network.o
-	gcc -o theGame main.o sprinter.o hunter.o obstacle.o game_states.o network.o -L/opt/homebrew/lib/ -lSDL2 -lSDL2_image -lSDL2_net -lSDL2_mixer
+# Define compiler and compiler flag variables
+CC = gcc
+CFLAGS = -c -I/opt/homebrew/include/SDL2
+LFLAGS = -L/opt/homebrew/lib/ -lSDL2 -lSDL2_image -lSDL2_net -lSDL2_mixer
 
-main.o: main.c
-	gcc -c main.c -I/opt/homebrew/include/SDL2
+# Define your target executable
+TARGET = theGame
 
-sprinter.o: sprinter.c
-	gcc -c sprinter.c -I/opt/homebrew/include/SDL2
+# Define object files
+OBJS = main.o sprinter.o hunter.o obstacle.o game_states.o network.o
 
-hunter.o: hunter.c
-	gcc -c hunter.c -I/opt/homebrew/include/SDL2
+# Compile the main executable
+$(TARGET): $(OBJS)
+	$(CC) -o $(TARGET) $(OBJS) $(LFLAGS)
 
-obstacle.o: obstacle.c
-	gcc -c obstacle.c -I/opt/homebrew/include/SDL2
+# Compile the main object file
+main.o: main.c game_types.h
+	$(CC) $(CFLAGS) main.c
 
-game_states.o: game_states.c
-	gcc -c game_states.c -I/opt/homebrew/include/SDL2
+# Compile the sprinter object file
+sprinter.o: sprinter.c game_types.h
+	$(CC) $(CFLAGS) sprinter.c
 
-network.o: network.c network.h
-	gcc -c network.c -I/opt/homebrew/include/SDL2
+# Compile the hunter object file
+hunter.o: hunter.c game_types.h
+	$(CC) $(CFLAGS) hunter.c
 
+# Compile the obstacle object file
+obstacle.o: obstacle.c game_types.h
+	$(CC) $(CFLAGS) obstacle.c
+
+# Compile the game states object file
+game_states.o: game_states.c game_types.h
+	$(CC) $(CFLAGS) game_states.c
+
+# Compile the network object file
+network.o: network.c network.h game_types.h
+	$(CC) $(CFLAGS) network.c
+
+# Clean up compiled files
 clean:
-	rm -f *.o theGame
+	rm -f $(OBJS) $(TARGET)
