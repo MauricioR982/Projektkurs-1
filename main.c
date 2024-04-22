@@ -77,27 +77,32 @@ int main(int argc, char* argv[])
     char* host = "localhost"; // Standardhost
     Uint16 port = 2000;       // Standardport
 
+   
     if (argc > 1) {
-    if (strcasecmp(argv[1], "server") == 0) {  // Use strcasecmp for case-insensitive comparison
-        isServer = true;
-    }
-    if (isServer) {
-        if (network_init(NULL, 2000, true) < 0) {
-            fprintf(stderr, "Failed to initialize network.\n");
-            SDL_Quit();
-            return -1;
+        if (strcasecmp(argv[1], "server") == 0) {
+            isServer = true;
+            host = NULL; // Ensuring no hostname is used for server mode.
+            port = 2000; // Use a fixed port or use a command line argument.
+            if (network_init(host, port, true) < 0) {
+                fprintf(stderr, "Failed to initialize network.\n");
+                SDL_Quit();
+                return -1;
+            }
+        } else {
+            // For client mode, take host from the first argument and port from the second if available, otherwise default
+            host = argv[1];
+            port = (argc > 2 ? atoi(argv[2]) : 12345);
+            if (network_init(host, port, false) < 0) {
+                fprintf(stderr, "Failed to initialize network.\n");
+                SDL_Quit();
+                return -1;
+            }
         }
     } else {
-        if (network_init(argv[1], (argc > 2 ? atoi(argv[2]) : 12345), false) < 0) {
-            fprintf(stderr, "Failed to initialize network.\n");
-            SDL_Quit();
-            return -1;
-        }
+        fprintf(stderr, "Usage: %s [server|host] [port]\n", argv[0]);
+        exit(EXIT_FAILURE);
     }
-} else {
-    fprintf(stderr, "Usage: %s [server|host] [port]\n", argv[0]);
-    exit(EXIT_FAILURE);
-}
+
 
     sPosition startPos[] = {
     {100, 64},   //1st pos

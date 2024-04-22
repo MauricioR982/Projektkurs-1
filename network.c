@@ -92,31 +92,23 @@ void network_check_activity() {
 }
 
 void network_handle_server() {
-    int quit = 0;
     SDLNet_SocketSet set = SDLNet_AllocSocketSet(1);
     SDLNet_UDP_AddSocket(set, sd);
 
-    while (!quit) {
-        int numready = SDLNet_CheckSockets(set, 10);  // Check every 10 ms
-        if (numready > 0) {
+    while (true) {  // Consider implementing a way to exit this loop properly.
+        int numready = SDLNet_CheckSockets(set, 10); // Checks every 10 milliseconds.
+        if (numready > 0 && SDLNet_SocketReady(sd)) {
             if (SDLNet_UDP_Recv(sd, packet)) {
-                printf("Received packet from Client: %s\n", (char*)packet->data);
-                // Process the packet
+                printf("Received packet.\n");
+                // Handle the packet
             }
+        } else {
+            SDL_Delay(10); // Reduce CPU usage if no data is incoming.
         }
-
-        // Example of checking for a quit command within the server logic
-        // This could be triggered by a specific message or external input
-        /*if (some_condition_to_quit()) {
-            quit = 1;
-        }*/
     }
 
     SDLNet_FreeSocketSet(set);
-    network_cleanup();
 }
-
-
 
 void network_handle_client() {
     // Regularly send local state to the server
