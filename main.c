@@ -55,6 +55,8 @@ void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, PlayerRole role, O
 void updateFrame(int *frame, PlayerRole role, int frame1, int frame2);
 void drawDebugInfo(SDL_Renderer *gRenderer, Obstacle obstacles[], int numObstacles);
 void updateGameState(GameState new_state);
+void updatePlayerPositionsFromNetwork();
+void moveCharacterTo(int x, int y);
 
 GameState current_state;
 const int arrowYPositions[] = {100, 198, 288}; // Y-positions for our menu-options
@@ -529,4 +531,18 @@ void updateGameState(GameState new_state) {
     current_state = new_state;
     // Additional logic to handle state change
 }
+
+void updatePlayerPositionsFromNetwork() {
+    // Iterate through players and update positions from received network data
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        if (players[i].active) { // Assuming 'active' means connected and active in the game
+            moveCharacterTo(players[i].x, players[i].y);
+        }
+    }
+}
+
+void moveCharacterTo(int x, int y) {
+    // Logic to move character sprite to specified position
+}
+
 
