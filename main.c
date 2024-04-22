@@ -66,8 +66,6 @@ const int arrowYPositions[] = {100, 198, 288}; // Y-positions for our menu-optio
 Player players[MAX_CLIENTS];
 Obstacle obstacles[NUM_OBSTACLES];
 
-
-
 UDPsocket sd;       // Socket descriptor
 UDPpacket *packet;
 IPaddress srvadd;   // IP address for server
@@ -78,7 +76,6 @@ int main(int argc, char* argv[])
     char* host = "localhost"; // Standardhost
     Uint16 port = 2000;       // Standardport
 
-   
     if (argc > 1) {
         if (strcasecmp(argv[1], "server") == 0) {
             isServer = true;
@@ -103,7 +100,6 @@ int main(int argc, char* argv[])
         fprintf(stderr, "Usage: %s [server|host] [port]\n", argv[0]);
         exit(EXIT_FAILURE);
     }
-
 
     sPosition startPos[] = {
     {100, 64},   //1st pos
@@ -266,12 +262,6 @@ int main(int argc, char* argv[])
     while (!quit) {
     // Game event handling
     network_check_activity();
-    if (isServer) {
-        network_handle_server();
-    } else {
-        network_handle_client();
-        updatePlayerPositionsFromNetwork();
-    }
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_QUIT) {
             quit = true;
@@ -317,13 +307,6 @@ int main(int argc, char* argv[])
         }
     }
 
-    // Network activity checks
-    if (isServer) {
-        network_handle_server();
-    } else {
-        network_handle_client();
-    }
-
     // Update positions from network data if necessary
     if (!isServer) {
         updatePlayerPositionsFromNetwork();
@@ -343,11 +326,10 @@ int main(int argc, char* argv[])
         SDL_RenderPresent(gRenderer);
         SDL_Delay(16); // About 60 FPS
     }
-    network_cleanup();
     Mix_FreeMusic(menuMusic);
     Mix_FreeMusic(gameMusic);
     Mix_CloseAudio();
-    SDLNet_Quit();      //could be deleted since it exists in the function one line above?
+    network_cleanup();
     SDL_Quit();
     return 0;
 }
