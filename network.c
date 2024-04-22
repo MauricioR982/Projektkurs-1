@@ -3,6 +3,7 @@
 // Developed by Grupp 10 - Datateknik, project-start at 2024-03
 //
 
+#include <SDL2/SDL.h>
 #include "network.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,41 +32,39 @@ int network_init(char* host, Uint16 port, bool serverMode) {
 
     packet = SDLNet_AllocPacket(512);
     if (!packet) {
-        fprintf(stderr, "SDLNet_AllocPacket: %s\n", SDLNet_GetError());
+        fprintf(stderr, "SDLNet_AllocPacket failed: %s\n", SDLNet_GetError());
         SDLNet_Quit();
         return -1;
     }
 
     if (isServer) {
-        // Open a socket on a specific port for server
         sd = SDLNet_UDP_Open(port);
         if (!sd) {
-            fprintf(stderr, "SDLNet_UDP_Open: %s\n", SDLNet_GetError());
+            fprintf(stderr, "Failed to open UDP socket on port %d: %s\n", port, SDLNet_GetError());
             SDLNet_FreePacket(packet);
             SDLNet_Quit();
             return -1;
         }
-        printf("Server listening on port %d\n", port);
-        printf("Server started handling\n"); // Add this debug statement
+        printf("Server initialized on port %d\n", port);
     } else {
-        // Resolve server name and open a socket on random port for client
-        if (SDLNet_ResolveHost(&srvadd, host, port) == -1) {
-            fprintf(stderr, "SDLNet_ResolveHost: %s\n", SDLNet_GetError());
+        if (SDLNet_ResolveHost(&srvadd, host, port) < 0) {
+            fprintf(stderr, "SDLNet_ResolveHost failed for host %s:%d: %s\n", host, port, SDLNet_GetError());
             SDLNet_FreePacket(packet);
             SDLNet_Quit();
             return -1;
         }
-        sd = SDLNet_UDP_Open(0);
+        sd = SDLNet_UDP_Open(0); // Open on a random port for the client
         if (!sd) {
-            fprintf(stderr, "SDLNet_UDP_Open: %s\n", SDLNet_GetError());
+            fprintf(stderr, "Failed to open UDP socket on client: %s\n", SDLNet_GetError());
             SDLNet_FreePacket(packet);
             SDLNet_Quit();
             return -1;
         }
-        printf("Client trying to connect to %s:%d\n", host, port);
+        printf("Client initialized and trying to connect to %s:%d\n", host, port);
     }
     return 0;
 }
+
 
 
 void network_check_activity() {
@@ -181,13 +180,33 @@ void deserialize_player_state(PlayerState *state, UDPpacket *packet) {
 }
 
 void send_local_player_state() {
-    PlayerState localState = {0}; // Assume you have some way to get local player state
-    // Populate localState with the current player's data
+    static Uint32 lastSendTime = 0; // Keep track of the last send time
+    Uint32 currentTime = SDL_GetTicks(); // Get the current time in milliseconds
+    Uint32 sendInterval = 100; // Set an interval in milliseconds (e.g., 100ms between sends)
+
+    if (currentTime - lastSendTime < sendInterval) {
+        return; // Skip sending if the interval hasn't passed
+    }
+
+    lastSendTime = currentTime; // Update last send time
+
+    PlayerState localState = {0}; // Initialize with your own logic to populate player state
+    serialize_player_state(&localState, packet); // Prepare packet data
+    packet->address = srvadd; // Set server address for the packet
 
     if (SDLNet_UDP_Send(sd, -1, packet) == 0) {
         fprintf(stderr, "Failed to send packet: %s\n", SDLNet_GetError());
+    } else {
+        // Use SDLNet_ResolveIP to get the IP address in a readable format
+        const char *ip = SDLNet_ResolveIP(&packet->address);
+        if (ip != NULL) {
+            printf("Packet sent to %s:%d\n", ip, SDLNet_Read16(&srvadd.port));
+        } else {
+            printf("Packet sent to unknown IP:%d\n", SDLNet_Read16(&srvadd.port));
+        }
     }
 }
+
 
 void process_incoming_state(const PlayerState *state) {
     // Here you would update the game state based on the incoming data
