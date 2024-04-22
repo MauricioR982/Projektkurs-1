@@ -103,7 +103,7 @@ void network_handle_server() {
             printf("Received packet\n");
             PlayerState state;
             deserialize_player_state(&state, recvPacket);
-            if (state.playerIndex == -1) {  // Connection check
+            if (state.playerIndex == -1) {  // Assuming -1 indicates a connection request
                 server_send_acknowledge(sd, recvPacket->address);
             } else {
                 process_incoming_state(&state);
@@ -113,6 +113,7 @@ void network_handle_server() {
     }
     SDLNet_FreeSocketSet(set);
 }
+
 
 
 void network_handle_client() {
@@ -273,12 +274,10 @@ void server_send_acknowledge(UDPsocket sd, IPaddress clientAddr) {
     SDLNet_FreePacket(ackPacket);
 }
 
-
-
 void handle_server_response(UDPpacket *packet) {
     const char* expectedAck = "Server ACK";
     if (packet->len > 0 && strncmp((char*)packet->data, expectedAck, strlen(expectedAck)) == 0) {
-        serverConnected = true;
+        serverConnected = true;  // Ensure this is set correctly
         printf("Acknowledgment from server received. Server is up.\n");
     } else {
         printf("Unexpected packet content: '%s'\n", (char*)packet->data);
