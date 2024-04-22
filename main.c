@@ -66,8 +66,6 @@ const int arrowYPositions[] = {100, 198, 288}; // Y-positions for our menu-optio
 Player players[MAX_CLIENTS];
 Obstacle obstacles[NUM_OBSTACLES];
 
-
-
 UDPsocket sd;       // Socket descriptor
 UDPpacket *packet;
 IPaddress srvadd;   // IP address for server
@@ -103,7 +101,6 @@ int main(int argc, char* argv[])
         fprintf(stderr, "Usage: %s [server|host] [port]\n", argv[0]);
         exit(EXIT_FAILURE);
     }
-
 
     sPosition startPos[] = {
     {100, 64},   //1st pos
@@ -343,11 +340,10 @@ int main(int argc, char* argv[])
         SDL_RenderPresent(gRenderer);
         SDL_Delay(16); // About 60 FPS
     }
-    network_cleanup();
     Mix_FreeMusic(menuMusic);
     Mix_FreeMusic(gameMusic);
     Mix_CloseAudio();
-    SDLNet_Quit();      //could be deleted since it exists in the function one line above?
+    network_cleanup();
     SDL_Quit();
     return 0;
 }
