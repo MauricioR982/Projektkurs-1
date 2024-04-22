@@ -19,6 +19,7 @@ static UDPpacket *packet;
 static ClientInfo clients[MAX_CLIENTS];
 extern Player players[MAX_CLIENTS];  // Declare the external linkage
 static bool isServerRunning = true; // Add a global variable to control server running state
+bool serverConnected = false;
 
 
 int network_init(char* host, Uint16 port, bool serverMode) {
@@ -93,6 +94,10 @@ void network_check_activity() {
 }
 
 void network_handle_server() {
+    if (!serverConnected) {
+        check_server_connection();
+        return;
+    }
     SDLNet_SocketSet set = SDLNet_AllocSocketSet(1);
     SDLNet_UDP_AddSocket(set, sd);
 
@@ -111,6 +116,7 @@ void network_handle_server() {
     }
     printf("Server stopped handling.\n");
     SDLNet_FreeSocketSet(set);
+    send_local_player_state();
 }
 
 
@@ -223,7 +229,16 @@ void update_player_position(int playerIndex, int x, int y) {
     }
 }
 
+void check_server_connection() {
+    // This function would attempt to ping the server or wait for a heartbeat
+    // For simplicity, assume we send a specific packet to the server asking for a status
+    PlayerState statusCheck = {0};
+    statusCheck.playerIndex = -1;  // Indicate a special status check packet
+    serialize_player_state(&statusCheck, packet);
+    packet->address = srvadd;
 
-
-
+    if (SDLNet_UDP_Send(sd, -1, packet) == 0) {
+        fprintf(stderr, "Failed to check server status: %s\n", SDLNet_GetError());
+    }
+}
 

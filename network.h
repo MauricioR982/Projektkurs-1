@@ -27,4 +27,6 @@ void network_cleanup();
 void send_local_player_state();
 void process_incoming_state(const PlayerState *state);
 void deserialize_player_state(PlayerState *state, UDPpacket *packet);
+void check_server_connection();
+
 #endif // NETWORK_H
