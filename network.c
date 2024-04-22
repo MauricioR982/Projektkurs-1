@@ -46,6 +46,7 @@ int network_init(char* host, Uint16 port, bool serverMode) {
             return -1;
         }
         printf("Server listening on port %d\n", port);
+        printf("Server started handling\n"); // Add this debug statement
     } else {
         // Resolve server name and open a socket on random port for client
         if (SDLNet_ResolveHost(&srvadd, host, port) == -1) {
@@ -96,20 +97,23 @@ void network_handle_server() {
     SDLNet_SocketSet set = SDLNet_AllocSocketSet(1);
     SDLNet_UDP_AddSocket(set, sd);
 
+    printf("Server started handling.\n");
     while (isServerRunning) {  // Loop while the server is running
         int numready = SDLNet_CheckSockets(set, 10); // Checks every 10 milliseconds.
         if (numready > 0 && SDLNet_SocketReady(sd)) {
             if (SDLNet_UDP_Recv(sd, packet)) {
-                printf("Received packet.\n");
+                printf("Received packet");
                 // Handle the packet
             }
         } else {
+            printf("No packets received.\n");
             SDL_Delay(10); // Reduce CPU usage if no data is incoming.
         }
     }
-
+    printf("Server stopped handling.\n");
     SDLNet_FreeSocketSet(set);
 }
+
 
 void network_handle_client() {
     // Regularly send local state to the server
@@ -122,8 +126,6 @@ void network_handle_client() {
         process_incoming_state(&state);  // Pass the deserialized state
     }
 }
-
-
 
 int find_or_add_client(IPaddress newClientAddr) {
     int emptySpot = -1;
@@ -154,8 +156,10 @@ int find_or_add_client(IPaddress newClientAddr) {
 
 
 void network_cleanup() {
+    if (isServer) {
+        printf("Server stopped handling\n"); // Add this debug statement
+    }
     SDLNet_FreePacket(packet);
-    SDLNet_UDP_Close(sd);
     SDLNet_Quit();
 }
 
@@ -199,6 +203,8 @@ void update_player_position(int playerIndex, int x, int y) {
         // Additional logic to handle changes in player state, like updating the renderer or game logic
     }
 }
+
+
 
 
 
