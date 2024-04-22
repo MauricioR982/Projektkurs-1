@@ -95,28 +95,25 @@ void network_check_activity() {
 
 
 void network_handle_server() {
-    int numready;
     SDLNet_SocketSet set = SDLNet_AllocSocketSet(1);
     SDLNet_UDP_AddSocket(set, sd);
-
-    printf("Server started handling.\n");
-    // Reduce to just checking once per call to avoid freezing
-    numready = SDLNet_CheckSockets(set, 0); // Check immediately, non-blocking
-    if (numready > 0 && SDLNet_SocketReady(sd)) {
+    if (SDLNet_CheckSockets(set, 0) > 0 && SDLNet_SocketReady(sd)) {
         UDPpacket *recvPacket = SDLNet_AllocPacket(512);
-        if (recvPacket) {
-            if (SDLNet_UDP_Recv(sd, recvPacket)) {
-            printf("Received packet from client.\n");
+        if (SDLNet_UDP_Recv(sd, recvPacket)) {
+            printf("Received packet\n");
             PlayerState state;
             deserialize_player_state(&state, recvPacket);
-            process_incoming_state(&state);
-            // Echo back to other clients or handle accordingly
+            if (state.playerIndex == -1) {  // Connection check
+                server_send_acknowledge(sd, recvPacket->address);
+            } else {
+                process_incoming_state(&state);
+            }
         }
-            SDLNet_FreePacket(recvPacket);
-        }
+        SDLNet_FreePacket(recvPacket);
     }
     SDLNet_FreeSocketSet(set);
 }
+
 
 void network_handle_client() {
     if (!serverConnected) {
@@ -244,16 +241,16 @@ void update_player_position(int playerIndex, int x, int y) {
 }
 
 void check_server_connection() {
-    // Send a heartbeat or status check packet
-    PlayerState statusCheck = { .playerIndex = -1 }; // Special packet to check status
+    PlayerState statusCheck = { .playerIndex = -1 };  // Indicates a connection check
     serialize_player_state(&statusCheck, packet);
-    packet->address = srvadd;
+    packet->address = srvadd;  // Ensure this is the correct server address
 
+    printf("Sending server connection check...\n");
     if (SDLNet_UDP_Send(sd, -1, packet) == 0) {
         fprintf(stderr, "Connection check failed: %s\n", SDLNet_GetError());
-        serverConnected = false;  // Update connection status
     }
 }
+
 
 void server_send_acknowledge(UDPsocket sd, IPaddress clientAddr) {
     UDPpacket *ackPacket = SDLNet_AllocPacket(512);
@@ -263,8 +260,8 @@ void server_send_acknowledge(UDPsocket sd, IPaddress clientAddr) {
     }
 
     const char* ackMessage = "Server ACK";
-    memcpy(ackPacket->data, ackMessage, strlen(ackMessage) + 1);
-    ackPacket->len = strlen(ackMessage) + 1;
+    memcpy(ackPacket->data, ackMessage, strlen(ackMessage) + 1);  // +1 for null terminator
+    ackPacket->len = strlen(ackMessage) + 1;  // Include null terminator in length
     ackPacket->address = clientAddr;
 
     if (SDLNet_UDP_Send(sd, -1, ackPacket) == 0) {
@@ -277,12 +274,13 @@ void server_send_acknowledge(UDPsocket sd, IPaddress clientAddr) {
 }
 
 
+
 void handle_server_response(UDPpacket *packet) {
     const char* expectedAck = "Server ACK";
-    if (packet->len > 0 && strncmp((char*)packet->data, expectedAck, packet->len) == 0) {
+    if (packet->len > 0 && strncmp((char*)packet->data, expectedAck, strlen(expectedAck)) == 0) {
         serverConnected = true;
         printf("Acknowledgment from server received. Server is up.\n");
     } else {
-        printf("Received unexpected packet content.\n");
+        printf("Unexpected packet content: '%s'\n", (char*)packet->data);
     }
 }
