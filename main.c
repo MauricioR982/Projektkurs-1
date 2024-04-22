@@ -38,6 +38,7 @@ typedef struct {
 
 typedef struct {
     int x, y;
+    int w, h;
     bool active;
 } Player;
 
@@ -56,11 +57,14 @@ void updateFrame(int *frame, PlayerRole role, int frame1, int frame2);
 void drawDebugInfo(SDL_Renderer *gRenderer, Obstacle obstacles[], int numObstacles);
 void updateGameState(GameState new_state);
 void updatePlayerPositionsFromNetwork();
-void moveCharacterTo(int x, int y);
+void moveCharacterTo(int playerIndex, int x, int y);
 
 GameState current_state;
 const int arrowYPositions[] = {100, 198, 288}; // Y-positions for our menu-options
 Player players[MAX_CLIENTS];
+Obstacle obstacles[NUM_OBSTACLES];
+
+
 
 UDPsocket sd;       // Socket descriptor
 UDPpacket *packet;
@@ -135,7 +139,6 @@ int main(int argc, char* argv[])
     int hunterFrame = 0;
 
     // Obstacles
-    Obstacle obstacles[NUM_OBSTACLES];
     initObstacles(obstacles, NUM_OBSTACLES);
 
     //Menu
@@ -246,6 +249,12 @@ int main(int argc, char* argv[])
     while (!quit) {
     // Game event handling
     network_check_activity();
+    if (isServer) {
+        network_handle_server();
+    } else {
+        network_handle_client();
+        updatePlayerPositionsFromNetwork();
+    }
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_QUIT) {
             quit = true;
@@ -536,13 +545,33 @@ void updatePlayerPositionsFromNetwork() {
     // Iterate through players and update positions from received network data
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (players[i].active) { // Assuming 'active' means connected and active in the game
-            moveCharacterTo(players[i].x, players[i].y);
+            moveCharacterTo(i, players[i].x, players[i].y);
         }
     }
 }
 
-void moveCharacterTo(int x, int y) {
-    // Logic to move character sprite to specified position
+void moveCharacterTo(int playerIndex, int x, int y) {
+    // Assuming `players` is an array of Player type defined globally
+    if (playerIndex < 0 || playerIndex >= MAX_CLIENTS) return; // Safety check for valid player index
+    
+    SDL_Rect newPos = {x, y, players[playerIndex].w, players[playerIndex].h}; // Assuming w and h are width and height of the player
+
+    // Check for boundary conditions
+    if (newPos.x < HORIZONTAL_MARGIN) newPos.x = HORIZONTAL_MARGIN;
+    if (newPos.x > WINDOW_WIDTH - newPos.w - HORIZONTAL_MARGIN) newPos.x = WINDOW_WIDTH - newPos.w - HORIZONTAL_MARGIN;
+    if (newPos.y < 0) newPos.y = 0;
+    if (newPos.y > WINDOW_HEIGHT - newPos.h) newPos.y = WINDOW_HEIGHT - newPos.h;
+
+    // Check for collisions with obstacles
+    for (int i = 0; i < NUM_OBSTACLES; i++) {
+        if (checkCollision(newPos, obstacles[i].bounds)) {
+            return;  // Collision detected, do not update position
+        }
+    }
+
+    // Update player position if no collisions
+    players[playerIndex].x = newPos.x;
+    players[playerIndex].y = newPos.y;
 }
 
 
