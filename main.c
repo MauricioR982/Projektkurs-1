@@ -3,9 +3,6 @@
 //  Developed by Grupp 10 - Datateknik, project-start at 2024-03.
 //
 
-//lägg till backlogg
-//börja med nätverk
-
 #include <stdio.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -59,7 +56,6 @@ GameState current_state;
 const int arrowYPositions[] = {100, 198, 288}; // Y-positions for our menu-options
 Player players[MAX_CLIENTS];
 Obstacle obstacles[NUM_OBSTACLES];
-
 
 int main(int argc, char* argv[])
 {
@@ -290,7 +286,6 @@ void launchMenu(Mix_Music *menuMusic, Mix_Music *gameMusic, SDL_Event e, int arr
         SDL_RenderPresent(gRenderer);
     }
 }
-
 
 void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mBackground) {
     SDL_RenderCopy(gRenderer, mBackground, NULL, NULL);
