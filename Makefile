@@ -1,12 +1,12 @@
-# A simple Makefile for compiling SDL projects with networking
+# A simple Makefile for compiling SDL projects with networking on Windows using MinGW
 
 # Define compiler and compiler flag variables
 CC = gcc
-CFLAGS = -c -I/opt/homebrew/include/SDL2
-LFLAGS = -L/opt/homebrew/lib/ -lSDL2 -lSDL2_image -lSDL2_net -lSDL2_mixer
+CFLAGS = -c -I C:/SDL2/include/SDL2
+LFLAGS = -L C:/SDL2/lib -lSDL2 -lSDL2_image -lSDL2_net -lSDL2_mixer
 
 # Define your target executable
-TARGET = theGame
+TARGET = theGame.exe
 
 # Define object files
 OBJS = main.o sprinter.o hunter.o obstacle.o game_states.o
@@ -37,4 +37,4 @@ game_states.o: game_states.c game_types.h
 
 # Clean up compiled files
 clean:
-	rm -f $(OBJS) $(TARGET)
+	del $(OBJS) $(TARGET)

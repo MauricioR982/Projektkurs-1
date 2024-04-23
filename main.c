@@ -60,8 +60,6 @@ Obstacle obstacles[NUM_OBSTACLES];
 
 int main(int argc, char* argv[])
 {
-
-
     sPosition startPos[] = {
     {100, 64},   //1st pos
     {100, 550},  //2nd pos
