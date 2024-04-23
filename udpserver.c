@@ -34,7 +34,7 @@ void initiateServer(int argc, char **argv)
 		fprintf(stderr, "SDLNet_AllocPacket: %s\n", SDLNet_GetError());
 		exit(EXIT_FAILURE);
 	}
- 
+
 	/* Main loop */
 	stop = 0;
 	while (!stop)
