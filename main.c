@@ -49,6 +49,7 @@ void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, PlayerRole role, O
 void updateFrame(int *frame, PlayerRole role, int frame1, int frame2);
 void drawDebugInfo(SDL_Renderer *gRenderer, Obstacle obstacles[], int numObstacles);
 void updateGameState(GameState new_state);
+void launchMenu(Mix_Music *menuMusic, Mix_Music *gameMusic, SDL_Event e, int arrowYPosIndex, SDL_Renderer *gRenderer, const int arrowYPositions[], SDL_Texture *mMenu, SDL_Texture *mArrow, SDL_Rect arrowPos, bool quit);
 
 GameState current_state;
 const int arrowYPositions[] = {100, 198, 288}; // Y-positions for our menu-options
@@ -144,64 +145,7 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    // Menu-loop
-    bool showMenu = true;
-    // Starta musiken om inte redan spelar
-    if (!Mix_PlayingMusic()) {
-        Mix_PlayMusic(menuMusic, -1);
-    }
-    while (showMenu && !quit) {
-        while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT) {
-                quit = true;
-            }
-            else if (e.type == SDL_KEYDOWN) {
-                switch (e.key.keysym.sym) {
-                    case SDLK_UP:
-                        arrowYPosIndex--;
-                        if (arrowYPosIndex < 0) {
-                            arrowYPosIndex = STATE_TOTAL - 1; //Loops back to last alternative
-                        }
-                        break;
-                    case SDLK_DOWN:
-                        arrowYPosIndex++;
-                        if (arrowYPosIndex >= STATE_TOTAL) {
-                            arrowYPosIndex = 0; //Loops back to first alternative
-                        }
-                        break;
-                    case SDLK_RETURN:
-                        // Logic to handle choice based on arrowYPosIndex after Return-press
-                        switch (arrowYPosIndex) {
-                            case 0:
-                                setGameState(STATE_PLAYING);
-                                Mix_HaltMusic();
-                                Mix_PlayMusic(gameMusic, -1);
-                                showMenu = false; // Closing menu and starting game
-                                break;
-                            case 1:
-                                setGameState(STATE_TUTORIAL);
-                                showTutorial(gRenderer);
-                                showMenu = true;
-                                break;
-                            case 2:
-                                setGameState(STATE_EXIT);
-                                quit = true;
-                                showMenu = false;
-                                printf("Ending game.\n");
-                                break;
-                    }
-                        break;
-                    // ... other cases here ...
-                }
-            }
-            arrowPos.y = arrowYPositions[arrowYPosIndex]; // Updating the arrows position based on users choice
-        }
-        SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
-        SDL_RenderClear(gRenderer);
-        SDL_RenderCopy(gRenderer, mMenu, NULL, NULL);
-        SDL_RenderCopy(gRenderer, mArrow, NULL, &arrowPos);
-        SDL_RenderPresent(gRenderer);
-    }
+    launchMenu(menuMusic, gameMusic, e, arrowYPosIndex, gRenderer, arrowYPositions, mMenu, mArrow, arrowPos, quit);
 
     PlayerRole playerRole = (rand() % 2 == 0) ? ROLE_SPRINTER : ROLE_HUNTER;
 
@@ -271,6 +215,67 @@ int main(int argc, char* argv[])
     Mix_CloseAudio();
     SDL_Quit();
     return 0;
+}
+
+void launchMenu(Mix_Music *menuMusic, Mix_Music *gameMusic, SDL_Event e, int arrowYPosIndex, SDL_Renderer *gRenderer, const int arrowYPositions[], SDL_Texture *mMenu, SDL_Texture *mArrow, SDL_Rect arrowPos, bool quit){
+    // Menu-loop
+    bool showMenu = true;
+    // Starta musiken om inte redan spelar
+    if (!Mix_PlayingMusic()) {
+        Mix_PlayMusic(menuMusic, -1);
+    }
+    while (showMenu && !quit) {
+        while (SDL_PollEvent(&e)) {
+            if (e.type == SDL_QUIT) {
+                quit = true;
+            }
+            else if (e.type == SDL_KEYDOWN) {
+                switch (e.key.keysym.sym) {
+                    case SDLK_UP:
+                        arrowYPosIndex--;
+                        if (arrowYPosIndex < 0) {
+                            arrowYPosIndex = STATE_TOTAL - 1; //Loops back to last alternative
+                        }
+                        break;
+                    case SDLK_DOWN:
+                        arrowYPosIndex++;
+                        if (arrowYPosIndex >= STATE_TOTAL) {
+                            arrowYPosIndex = 0; //Loops back to first alternative
+                        }
+                        break;
+                    case SDLK_RETURN:
+                        // Logic to handle choice based on arrowYPosIndex after Return-press
+                        switch (arrowYPosIndex) {
+                            case 0:
+                                setGameState(STATE_PLAYING);
+                                Mix_HaltMusic();
+                                Mix_PlayMusic(gameMusic, -1);
+                                showMenu = false; // Closing menu and starting game
+                                break;
+                            case 1:
+                                setGameState(STATE_TUTORIAL);
+                                showTutorial(gRenderer);
+                                showMenu = true;
+                                break;
+                            case 2:
+                                setGameState(STATE_EXIT);
+                                quit = true;
+                                showMenu = false;
+                                printf("Ending game.\n");
+                                break;
+                    }
+                        break;
+                    // ... other cases here ...
+                }
+            }
+            arrowPos.y = arrowYPositions[arrowYPosIndex]; // Updating the arrows position based on users choice
+        }
+        SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+        SDL_RenderClear(gRenderer);
+        SDL_RenderCopy(gRenderer, mMenu, NULL, NULL);
+        SDL_RenderCopy(gRenderer, mArrow, NULL, &arrowPos);
+        SDL_RenderPresent(gRenderer);
+    }
 }
 
 void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mBackground) {
