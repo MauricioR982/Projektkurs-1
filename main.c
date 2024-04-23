@@ -10,6 +10,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
+#include <SDL2/SDL_net.h>
 #include <stdbool.h>
 #include <time.h>
 #include "sprinter.h"
@@ -17,6 +18,8 @@
 #include "obstacle.h"
 #include "game_states.h"
 #include "game_types.h"
+#include "udpclient.h"
+#include "udpserver.h"
 
 #undef main
 
@@ -60,6 +63,14 @@ Obstacle obstacles[NUM_OBSTACLES];
 
 int main(int argc, char* argv[])
 {
+    if (argc > 1) {
+        if (strcmp(argv[1], "server") == 0) {
+            return initiateServer(argc, argv);
+        } else if (strcmp(argv[1], "client") == 0) {
+            return initiateClient(argc, argv);
+        }
+    }
+
     sPosition startPos[] = {
     {100, 64},   //1st pos
     {100, 550},  //2nd pos

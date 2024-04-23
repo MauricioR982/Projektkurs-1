@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "sprinter.h": "c",
-        "sdl_net.h": "c"
+        "sdl_net.h": "c",
+        "sdl_mixer.h": "c",
+        "game_types.h": "c"
     }
 }

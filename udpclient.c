@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
- 
 #include <SDL2/SDL_net.h>
+#include "udpclient.h"
  
 int initiateClient(int argc, char **argv)
 {
