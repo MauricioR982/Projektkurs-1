@@ -4,7 +4,7 @@
 #include <SDL2/SDL_net.h>
 #include "udpserver.h"
  
-int initiateServer(int argc, char **argv)
+void initiateServer(int argc, char **argv)
 {
 	UDPsocket sd;       /* Socket descriptor */
 	UDPpacket *p;       /* Pointer to packet memory */
@@ -51,9 +51,7 @@ int initiateServer(int argc, char **argv)
 				quit = 1;
 		}		
 	}
- 
 	/* Clean and exit */
 	SDLNet_FreePacket(p);
 	SDLNet_Quit();
-	return EXIT_SUCCESS;
 } 

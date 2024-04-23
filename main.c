@@ -65,9 +65,9 @@ int main(int argc, char* argv[])
 {
     if (argc > 1) {
         if (strcmp(argv[1], "server") == 0) {
-            return initiateServer(argc, argv);
-        } else if (strcmp(argv[1], "client") == 0) {
-            return initiateClient(argc, argv);
+            initiateServer(argc, argv);
+        } else {
+            initiateClient(argc, argv);
         }
     }
 

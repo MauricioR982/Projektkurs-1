@@ -4,7 +4,7 @@
 #include <SDL2/SDL_net.h>
 #include "udpclient.h"
  
-int initiateClient(int argc, char **argv)
+void initiateClient(int argc, char **argv)
 {
 	UDPsocket sd;
 	IPaddress srvadd;
@@ -65,7 +65,5 @@ int initiateClient(int argc, char **argv)
 	}
  
 	SDLNet_FreePacket(p);
-	SDLNet_Quit();
- 
-	return EXIT_SUCCESS;
+	SDLNet_Quit(); 
 } 
