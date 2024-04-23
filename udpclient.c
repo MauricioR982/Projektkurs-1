@@ -9,7 +9,7 @@ void initiateClient(int argc, char **argv)
 	UDPsocket sd;
 	IPaddress srvadd;
 	UDPpacket *p;
-	int quit;
+	int stop;
  
 	/* Check for parameters */
 	if (argc < 3)
@@ -47,8 +47,8 @@ void initiateClient(int argc, char **argv)
 	}
  
 	/* Main loop */
-	quit = 0;
-	while (!quit)
+	stop = 0;
+	while (!stop)
 	{
 		printf("Fill the buffer\n>");
 		scanf("%s", (char *)p->data);
@@ -59,11 +59,11 @@ void initiateClient(int argc, char **argv)
 		p->len = strlen((char *)p->data) + 1;
 		SDLNet_UDP_Send(sd, -1, p); /* This sets the p->channel */
  
-		/* Quit if packet contains "quit" */
-		if (!strcmp((char *)p->data, "quit"))
-			quit = 1;
+		/* Stop if packet contains "stop" */
+		if (!strcmp((char *)p->data, "stop"))
+			stop = 1;
 	}
  
 	SDLNet_FreePacket(p);
-	SDLNet_Quit(); 
+	SDLNet_Quit();
 } 
