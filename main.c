@@ -163,7 +163,9 @@ int main(int argc, char* argv[])
     Mix_FreeMusic(menuMusic);
     Mix_FreeMusic(gameMusic);
     Mix_CloseAudio();
+    printf("Shutting down network...\n");
     SDLNet_Quit();
+    printf("Network shutdown complete.\n");
     SDL_Quit();
     return 0;
 }
