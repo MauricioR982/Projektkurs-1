@@ -18,7 +18,7 @@ void initiateServer(int argc, char **argv)
 	}
 	else
 	{
-    	printf("Server for network initialized successfully.\n");
+    	printf("Host 'server' for network initialized successfully.\n");
 	}
 
 	/* Open a socket */
