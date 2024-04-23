@@ -8,7 +8,7 @@ void initiateServer(int argc, char **argv)
 {
 	UDPsocket sd;       /* Socket descriptor */
 	UDPpacket *p;       /* Pointer to packet memory */
-	int quit;
+	int stop;
  
 	/* Initialize SDL_net */
 	if (SDLNet_Init() < 0)
@@ -32,8 +32,8 @@ void initiateServer(int argc, char **argv)
 	}
  
 	/* Main loop */
-	quit = 0;
-	while (!quit)
+	stop = 0;
+	while (!stop)
 	{
 		/* Wait a packet. UDP_Recv returns != 0 if a packet is coming */
 		if (SDLNet_UDP_Recv(sd, p))
@@ -46,9 +46,9 @@ void initiateServer(int argc, char **argv)
 			printf("\tStatus:  %d\n", p->status);
 			printf("\tAddress: %x %x\n", p->address.host, p->address.port);
  
-			/* Quit if packet contains "quit" */
-			if (strcmp((char *)p->data, "quit") == 0)
-				quit = 1;
+			/* Stop if packet contains "stop" */
+			if (strcmp((char *)p->data, "stop") == 0)
+				stop = 1;
 		}		
 	}
 	/* Clean and exit */
