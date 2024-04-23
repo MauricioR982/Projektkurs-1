@@ -24,6 +24,10 @@ void initiateClient(int argc, char **argv)
 		fprintf(stderr, "SDLNet_Init: %s\n", SDLNet_GetError());
 		exit(EXIT_FAILURE);
 	}
+	else
+	{
+    	printf("Client connected to network successfully.\n");
+	}
  
 	/* Open a socket on random port */
 	if (!(sd = SDLNet_UDP_Open(0)))
