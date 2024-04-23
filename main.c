@@ -4,11 +4,10 @@
 //
 
 //lägg till backlogg
-//börjat med nätverk
+//börja med nätverk
 
 #include <stdio.h>
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_net.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
 #include <stdbool.h>
@@ -17,7 +16,6 @@
 #include "hunter.h"
 #include "obstacle.h"
 #include "game_states.h"
-#include "network.h"
 #include "game_types.h"
 
 #undef main
@@ -51,7 +49,6 @@ void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, PlayerRole role, O
 void updateFrame(int *frame, PlayerRole role, int frame1, int frame2);
 void drawDebugInfo(SDL_Renderer *gRenderer, Obstacle obstacles[], int numObstacles);
 void updateGameState(GameState new_state);
-void updatePlayerPositionsFromNetwork();
 void moveCharacterTo(int playerIndex, int x, int y);
 void renderPlayers(SDL_Renderer *gRenderer, SDL_Texture *mSprinter, SDL_Rect gSprinterSpriteClips[]);
 
@@ -60,40 +57,10 @@ const int arrowYPositions[] = {100, 198, 288}; // Y-positions for our menu-optio
 Player players[MAX_CLIENTS];
 Obstacle obstacles[NUM_OBSTACLES];
 
-UDPsocket sd;       // Socket descriptor
-UDPpacket *packet;
-IPaddress srvadd;   // IP address for server
-bool isServer = false;  // Mode switch
 
 int main(int argc, char* argv[])
 {
-    char* host = "localhost"; // Standardhost
-    Uint16 port = 2000;       // Standardport
 
-    if (argc > 1) {
-        if (strcasecmp(argv[1], "server") == 0) {
-            isServer = true;
-            host = NULL; // Ensuring no hostname is used for server mode.
-            port = 2000; // Use a fixed port or use a command line argument.
-            if (network_init(host, port, true) < 0) {
-                fprintf(stderr, "Failed to initialize network.\n");
-                SDL_Quit();
-                return -1;
-            }
-        } else {
-            // For client mode, take host from the first argument and port from the second if available, otherwise default
-            host = argv[1];
-            port = (argc > 2 ? atoi(argv[2]) : 12345);
-            if (network_init(host, port, false) < 0) {
-                fprintf(stderr, "Failed to initialize network.\n");
-                SDL_Quit();
-                return -1;
-            }
-        }
-    } else {
-        fprintf(stderr, "Usage: %s [server|host] [port]\n", argv[0]);
-        exit(EXIT_FAILURE);
-    }
 
     sPosition startPos[] = {
     {100, 64},   //1st pos
@@ -160,10 +127,7 @@ int main(int argc, char* argv[])
         fprintf(stderr, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
         return 1;
     }
-    if (SDLNet_Init() < 0) {
-        fprintf(stderr, "SDLNet_Init: %s\n", SDLNet_GetError());
-        return -1;
-    }
+
 
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
         fprintf(stderr, "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
@@ -255,7 +219,6 @@ int main(int argc, char* argv[])
     // Game-loop
     while (!quit) {
     // Game event handling
-    network_check_activity();
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_QUIT) {
             quit = true;
@@ -301,11 +264,6 @@ int main(int argc, char* argv[])
         }
     }
 
-    // Update positions from network data if necessary
-    if (!isServer) {
-        updatePlayerPositionsFromNetwork();
-    }
-
         // Rendering
         SDL_RenderClear(gRenderer);
         renderBackground(gRenderer, mBackground);
@@ -323,7 +281,6 @@ int main(int argc, char* argv[])
     Mix_FreeMusic(menuMusic);
     Mix_FreeMusic(gameMusic);
     Mix_CloseAudio();
-    network_cleanup();
     SDL_Quit();
     return 0;
 }
@@ -545,15 +502,6 @@ void drawDebugInfo(SDL_Renderer *gRenderer, Obstacle obstacles[], int numObstacl
 void updateGameState(GameState new_state) {
     current_state = new_state;
     // Additional logic to handle state change
-}
-
-void updatePlayerPositionsFromNetwork() {
-    // Iterate through players and update positions from received network data
-    for (int i = 0; i < MAX_CLIENTS; i++) {
-        if (players[i].active) { // Assuming 'active' means connected and active in the game
-            moveCharacterTo(i, players[i].x, players[i].y);
-        }
-    }
 }
 
 void moveCharacterTo(int playerIndex, int x, int y) {

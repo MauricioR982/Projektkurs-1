@@ -9,7 +9,7 @@ LFLAGS = -L/opt/homebrew/lib/ -lSDL2 -lSDL2_image -lSDL2_net -lSDL2_mixer
 TARGET = theGame
 
 # Define object files
-OBJS = main.o sprinter.o hunter.o obstacle.o game_states.o network.o
+OBJS = main.o sprinter.o hunter.o obstacle.o game_states.o
 
 # Compile the main executable
 $(TARGET): $(OBJS)
@@ -34,10 +34,6 @@ obstacle.o: obstacle.c game_types.h
 # Compile the game states object file
 game_states.o: game_states.c game_types.h
 	$(CC) $(CFLAGS) game_states.c
-
-# Compile the network object file
-network.o: network.c network.h game_types.h
-	$(CC) $(CFLAGS) network.c
 
 # Clean up compiled files
 clean:
