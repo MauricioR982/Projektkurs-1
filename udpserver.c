@@ -16,7 +16,7 @@ void initiateServer(int argc, char **argv)
 		fprintf(stderr, "SDLNet_Init: %s\n", SDLNet_GetError());
 		exit(EXIT_FAILURE);
 	}
- 
+
 	/* Open a socket */
 	if (!(sd = SDLNet_UDP_Open(2000)))
 	{
