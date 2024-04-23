@@ -50,6 +50,7 @@ void updateFrame(int *frame, PlayerRole role, int frame1, int frame2);
 void drawDebugInfo(SDL_Renderer *gRenderer, Obstacle obstacles[], int numObstacles);
 void updateGameState(GameState new_state);
 void launchMenu(Mix_Music *menuMusic, Mix_Music *gameMusic, SDL_Event e, int arrowYPosIndex, SDL_Renderer *gRenderer, const int arrowYPositions[], SDL_Texture *mMenu, SDL_Texture *mArrow, SDL_Rect arrowPos, bool quit);
+void startGame(bool quit, SDL_Event e, SDL_Rect position, SDL_Rect hunterPosition, Obstacle obstacles[NUM_OBSTACLES], int frame, SDL_RendererFlip flip, SDL_RendererFlip flipHunter, SDL_Renderer *gRenderer, SDL_Texture *mBackground, SDL_Texture *mSprinter, SDL_Texture *mHunter, SDL_Rect gSpriteClips[], SDL_Rect gHunterSpriteClips[]);
 
 GameState current_state;
 const int arrowYPositions[] = {100, 198, 288}; // Y-positions for our menu-options
@@ -146,10 +147,19 @@ int main(int argc, char* argv[])
     }
 
     launchMenu(menuMusic, gameMusic, e, arrowYPosIndex, gRenderer, arrowYPositions, mMenu, mArrow, arrowPos, quit);
+    startGame(quit, e, position, hunterPosition, obstacles, frame, flip, flipHunter, gRenderer, mBackground, mSprinter, mHunter, gSpriteClips, gHunterSpriteClips);
 
+    Mix_FreeMusic(menuMusic);
+    Mix_FreeMusic(gameMusic);
+    Mix_CloseAudio();
+    SDL_Quit();
+    return 0;
+}
+
+void startGame(bool quit, SDL_Event e, SDL_Rect position, SDL_Rect hunterPosition, Obstacle obstacles[NUM_OBSTACLES], int frame, SDL_RendererFlip flip, SDL_RendererFlip flipHunter, SDL_Renderer *gRenderer, SDL_Texture *mBackground, SDL_Texture *mSprinter, SDL_Texture *mHunter, SDL_Rect gSpriteClips[], SDL_Rect gHunterSpriteClips[])
+{
     PlayerRole playerRole = (rand() % 2 == 0) ? ROLE_SPRINTER : ROLE_HUNTER;
-
-    // Game-loop
+	// Game-loop
     while (!quit) {
     // Game event handling
     while (SDL_PollEvent(&e)) {
@@ -210,11 +220,6 @@ int main(int argc, char* argv[])
         SDL_RenderPresent(gRenderer);
         SDL_Delay(16); // About 60 FPS
     }
-    Mix_FreeMusic(menuMusic);
-    Mix_FreeMusic(gameMusic);
-    Mix_CloseAudio();
-    SDL_Quit();
-    return 0;
 }
 
 void launchMenu(Mix_Music *menuMusic, Mix_Music *gameMusic, SDL_Event e, int arrowYPosIndex, SDL_Renderer *gRenderer, const int arrowYPositions[], SDL_Texture *mMenu, SDL_Texture *mArrow, SDL_Rect arrowPos, bool quit){
