@@ -49,8 +49,6 @@ void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, PlayerRole role, O
 void updateFrame(int *frame, PlayerRole role, int frame1, int frame2);
 void drawDebugInfo(SDL_Renderer *gRenderer, Obstacle obstacles[], int numObstacles);
 void updateGameState(GameState new_state);
-void moveCharacterTo(int playerIndex, int x, int y);
-void renderPlayers(SDL_Renderer *gRenderer, SDL_Texture *mSprinter, SDL_Rect gSprinterSpriteClips[]);
 
 GameState current_state;
 const int arrowYPositions[] = {100, 198, 288}; // Y-positions for our menu-options
@@ -60,8 +58,6 @@ Obstacle obstacles[NUM_OBSTACLES];
 
 int main(int argc, char* argv[])
 {
-
-
     sPosition startPos[] = {
     {100, 64},   //1st pos
     {100, 550},  //2nd pos
@@ -127,7 +123,6 @@ int main(int argc, char* argv[])
         fprintf(stderr, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
         return 1;
     }
-
 
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
         fprintf(stderr, "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
@@ -210,12 +205,6 @@ int main(int argc, char* argv[])
 
     PlayerRole playerRole = (rand() % 2 == 0) ? ROLE_SPRINTER : ROLE_HUNTER;
 
-    /*for (int i = 0; i < MAX_CLIENTS; i++) {
-    players[i].x = 100 + i * 100;  // Example starting positions
-    players[i].y = 100;
-    players[i].active = true;  // Initially set to inactive
-    }*/
-
     // Game-loop
     while (!quit) {
     // Game event handling
@@ -274,7 +263,6 @@ int main(int argc, char* argv[])
         } else if (playerRole == ROLE_HUNTER) {
             SDL_RenderCopyEx(gRenderer, mHunter, &gHunterSpriteClips[frame], &hunterPosition, 0, NULL, flipHunter);
         }
-        renderPlayers(gRenderer, mSprinter, gHunterSpriteClips);  // Render all players
         SDL_RenderPresent(gRenderer);
         SDL_Delay(16); // About 60 FPS
     }
@@ -320,7 +308,6 @@ void showTutorial(SDL_Renderer *gRenderer) {
 
 void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprinterSpriteClips[], SDL_Texture **mHunter, SDL_Rect gHunterSpriteClips[], SDL_Texture **mBackground, SDL_Texture **mMenu, SDL_Texture **mArrow)
 {    
-    
     SDL_Surface* gSprinterSurface = IMG_Load("resources/SPRINTER.PNG");
     *mSprinter = SDL_CreateTextureFromSurface(gRenderer, gSprinterSurface);
     SDL_Surface* gHunterSurface = IMG_Load("resources/HUNTER.PNG");
@@ -496,44 +483,5 @@ void drawDebugInfo(SDL_Renderer *gRenderer, Obstacle obstacles[], int numObstacl
     SDL_SetRenderDrawColor(gRenderer, 255, 0, 0, 128);  // Red color for collision boxes, semi-transparent
     for (int i = 0; i < numObstacles; i++) {
         SDL_RenderDrawRect(gRenderer, &obstacles[i].bounds);  // Draw rectangle around the collision area
-    }
-}
-
-void updateGameState(GameState new_state) {
-    current_state = new_state;
-    // Additional logic to handle state change
-}
-
-void moveCharacterTo(int playerIndex, int x, int y) {
-    // Assuming `players` is an array of Player type defined globally
-    if (playerIndex < 0 || playerIndex >= MAX_CLIENTS) return; // Safety check for valid player index
-    
-    SDL_Rect newPos = {x, y, players[playerIndex].w, players[playerIndex].h}; // Assuming w and h are width and height of the player
-
-    // Check for boundary conditions
-    if (newPos.x < HORIZONTAL_MARGIN) newPos.x = HORIZONTAL_MARGIN;
-    if (newPos.x > WINDOW_WIDTH - newPos.w - HORIZONTAL_MARGIN) newPos.x = WINDOW_WIDTH - newPos.w - HORIZONTAL_MARGIN;
-    if (newPos.y < 0) newPos.y = 0;
-    if (newPos.y > WINDOW_HEIGHT - newPos.h) newPos.y = WINDOW_HEIGHT - newPos.h;
-
-    // Check for collisions with obstacles
-    for (int i = 0; i < NUM_OBSTACLES; i++) {
-        if (checkCollision(newPos, obstacles[i].bounds)) {
-            return;  // Collision detected, do not update position
-        }
-    }
-
-    // Update player position if no collisions
-    players[playerIndex].x = newPos.x;
-    players[playerIndex].y = newPos.y;
-}
-
-void renderPlayers(SDL_Renderer *gRenderer, SDL_Texture *mSprinter, SDL_Rect gSprinterSpriteClips[]) {
-    for (int i = 0; i < MAX_CLIENTS; i++) {
-        if (players[i].active) {
-            SDL_Rect srcRect = gSprinterSpriteClips[0]; // Assume default to first frame or adjust based on player state
-            SDL_Rect destRect = {players[i].x, players[i].y, srcRect.w, srcRect.h};
-            SDL_RenderCopy(gRenderer, mSprinter, &srcRect, &destRect);
-        }
     }
 }
