@@ -163,6 +163,7 @@ int main(int argc, char* argv[])
     Mix_FreeMusic(menuMusic);
     Mix_FreeMusic(gameMusic);
     Mix_CloseAudio();
+    SDLNet_Quit();
     SDL_Quit();
     return 0;
 }

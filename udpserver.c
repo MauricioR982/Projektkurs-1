@@ -51,7 +51,5 @@ void initiateServer(int argc, char **argv)
 				stop = 1;
 		}		
 	}
-	/* Clean and exit */
 	SDLNet_FreePacket(p);
-	SDLNet_Quit();
 } 

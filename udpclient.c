@@ -63,7 +63,5 @@ void initiateClient(int argc, char **argv)
 		if (!strcmp((char *)p->data, "stop"))
 			stop = 1;
 	}
- 
 	SDLNet_FreePacket(p);
-	SDLNet_Quit();
 } 
