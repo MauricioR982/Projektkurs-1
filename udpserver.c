@@ -34,7 +34,7 @@ void initiateServer(int argc, char **argv)
 		fprintf(stderr, "SDLNet_AllocPacket: %s\n", SDLNet_GetError());
 		exit(EXIT_FAILURE);
 	}
-
+	
 	/* Main loop */
 	stop = 0;
 	while (!stop)
@@ -42,13 +42,13 @@ void initiateServer(int argc, char **argv)
 		/* Wait a packet. UDP_Recv returns != 0 if a packet is coming */
 		if (SDLNet_UDP_Recv(sd, p))
 		{
-			printf("UDP Packet incoming\n");
+			printf("UDP-packet incoming:\n");
 			printf("\tChan:    %d\n", p->channel);
 			printf("\tData:    %s\n", (char *)p->data);
 			printf("\tLen:     %d\n", p->len);
 			printf("\tMaxlen:  %d\n", p->maxlen);
 			printf("\tStatus:  %d\n", p->status);
-			printf("\tAddress: %x %x\n", p->address.host, p->address.port);
+			printf("\tAddress: %u %u\n", p->address.host, p->address.port);
  
 			/* Stop if packet contains "stop" */
 			if (strcmp((char *)p->data, "stop") == 0)
