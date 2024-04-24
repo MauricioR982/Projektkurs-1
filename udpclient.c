@@ -45,7 +45,8 @@ void initiateClient(int argc, char **argv)
 		fprintf(stderr, "SDLNet_AllocPacket: %s\n", SDLNet_GetError());
 		exit(EXIT_FAILURE);
 	}
- 
+
+	printf("Client initialized and ready to send data to server.\n");
 	/* Main loop */
 	stop = 0;
 	while (!stop)
@@ -58,7 +59,6 @@ void initiateClient(int argc, char **argv)
  
 		p->len = strlen((char *)p->data) + 1;
 		SDLNet_UDP_Send(sd, -1, p); /* This sets the p->channel */
-		printf("Client initialized and ready to send data to server.\n");
  
 		/* Stop if packet contains "stop" */
 		if (!strcmp((char *)p->data, "stop"))
