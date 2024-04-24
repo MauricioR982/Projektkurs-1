@@ -10,7 +10,5 @@ typedef struct {
     bool active; // is the player currently active
 } Player;
 
-#define MAX_CLIENTS 4
-extern Player players[MAX_CLIENTS];  // Declare the players array as extern
 
 #endif
