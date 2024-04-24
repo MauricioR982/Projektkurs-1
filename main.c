@@ -3,19 +3,20 @@
 //  Developed by Grupp 10 - Datateknik, project-start at 2024-03.
 //
 
-//lägg till backlogg
-//börja med nätverk
-
 #include <stdio.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
+#include <SDL2/SDL_net.h>
 #include <stdbool.h>
 #include <time.h>
 #include "sprinter.h"
 #include "hunter.h"
 #include "obstacle.h"
 #include "game_states.h"
+#include "game_types.h"
+#include "udpclient.h"
+#include "udpserver.h"
 
 #undef main
 
@@ -48,15 +49,23 @@ void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, PlayerRole role, O
 void updateFrame(int *frame, PlayerRole role, int frame1, int frame2);
 void drawDebugInfo(SDL_Renderer *gRenderer, Obstacle obstacles[], int numObstacles);
 void updateGameState(GameState new_state);
-
+void launchMenu(Mix_Music *menuMusic, Mix_Music *gameMusic, SDL_Event e, int arrowYPosIndex, SDL_Renderer *gRenderer, const int arrowYPositions[], SDL_Texture *mMenu, SDL_Texture *mArrow, SDL_Rect arrowPos, bool *quit);
+void startGame(bool quit, SDL_Event e, SDL_Rect position, SDL_Rect hunterPosition, Obstacle obstacles[NUM_OBSTACLES], int frame, SDL_RendererFlip flip, SDL_RendererFlip flipHunter, SDL_Renderer *gRenderer, SDL_Texture *mBackground, SDL_Texture *mSprinter, SDL_Texture *mHunter, SDL_Rect gSpriteClips[], SDL_Rect gHunterSpriteClips[]);
 
 GameState current_state;
 const int arrowYPositions[] = {100, 198, 288}; // Y-positions for our menu-options
 Obstacle obstacles[NUM_OBSTACLES];
 
-
 int main(int argc, char* argv[])
 {
+    if (argc > 1) {
+        if (strcmp(argv[1], "gameserver") == 0) {
+            initiateServer(argc, argv);
+        } else {
+            initiateClient(argc, argv);
+        }
+    }
+
     sPosition startPos[] = {
     {100, 64},   //1st pos
     {100, 550},  //2nd pos
@@ -123,7 +132,6 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
         fprintf(stderr, "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
         SDL_Quit();
@@ -144,68 +152,23 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    // Menu-loop
-    bool showMenu = true;
-    // Starta musiken om inte redan spelar
-    if (!Mix_PlayingMusic()) {
-        Mix_PlayMusic(menuMusic, -1);
-    }
-    while (showMenu && !quit) {
-        while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT) {
-                quit = true;
-            }
-            else if (e.type == SDL_KEYDOWN) {
-                switch (e.key.keysym.sym) {
-                    case SDLK_UP:
-                        arrowYPosIndex--;
-                        if (arrowYPosIndex < 0) {
-                            arrowYPosIndex = STATE_TOTAL - 1; //Loops back to last alternative
-                        }
-                        break;
-                    case SDLK_DOWN:
-                        arrowYPosIndex++;
-                        if (arrowYPosIndex >= STATE_TOTAL) {
-                            arrowYPosIndex = 0; //Loops back to first alternative
-                        }
-                        break;
-                    case SDLK_RETURN:
-                        // Logic to handle choice based on arrowYPosIndex after Return-press
-                        switch (arrowYPosIndex) {
-                            case 0:
-                                setGameState(STATE_PLAYING);
-                                Mix_HaltMusic();
-                                Mix_PlayMusic(gameMusic, -1);
-                                showMenu = false; // Closing menu and starting game
-                                break;
-                            case 1:
-                                setGameState(STATE_TUTORIAL);
-                                showTutorial(gRenderer);
-                                showMenu = true;
-                                break;
-                            case 2:
-                                setGameState(STATE_EXIT);
-                                quit = true;
-                                showMenu = false;
-                                printf("Ending game.\n");
-                                break;
-                    }
-                        break;
-                    // ... other cases here ...
-                }
-            }
-            arrowPos.y = arrowYPositions[arrowYPosIndex]; // Updating the arrows position based on users choice
-        }
-        SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
-        SDL_RenderClear(gRenderer);
-        SDL_RenderCopy(gRenderer, mMenu, NULL, NULL);
-        SDL_RenderCopy(gRenderer, mArrow, NULL, &arrowPos);
-        SDL_RenderPresent(gRenderer);
-    }
+    launchMenu(menuMusic, gameMusic, e, arrowYPosIndex, gRenderer, arrowYPositions, mMenu, mArrow, arrowPos, &quit);
+    startGame(quit, e, position, hunterPosition, obstacles, frame, flip, flipHunter, gRenderer, mBackground, mSprinter, mHunter, gSpriteClips, gHunterSpriteClips);
 
+    Mix_FreeMusic(menuMusic);
+    Mix_FreeMusic(gameMusic);
+    Mix_CloseAudio();
+    printf("Shutting down network...\n");
+    SDLNet_Quit();
+    printf("Network shutdown complete.\n");
+    SDL_Quit();
+    return 0;
+}
+
+void startGame(bool quit, SDL_Event e, SDL_Rect position, SDL_Rect hunterPosition, Obstacle obstacles[NUM_OBSTACLES], int frame, SDL_RendererFlip flip, SDL_RendererFlip flipHunter, SDL_Renderer *gRenderer, SDL_Texture *mBackground, SDL_Texture *mSprinter, SDL_Texture *mHunter, SDL_Rect gSpriteClips[], SDL_Rect gHunterSpriteClips[])
+{
     PlayerRole playerRole = (rand() % 2 == 0) ? ROLE_SPRINTER : ROLE_HUNTER;
-
-    // Game-loop
+	// Game-loop
     while (!quit) {
     // Game event handling
     while (SDL_PollEvent(&e)) {
@@ -247,9 +210,6 @@ int main(int argc, char* argv[])
                     }
                     updateFrame(&frame, playerRole, 2, 3);
                     break;
-                    case SDLK_ESCAPE:
-                quit = true;  //Avsluta spelet med "Esc" istället för Ctrl + c från terminalen
-                break;
                 default:
                     break;
             }
@@ -266,15 +226,64 @@ int main(int argc, char* argv[])
         } else if (playerRole == ROLE_HUNTER) {
             SDL_RenderCopyEx(gRenderer, mHunter, &gHunterSpriteClips[frame], &hunterPosition, 0, NULL, flipHunter);
         }
-        
         SDL_RenderPresent(gRenderer);
         SDL_Delay(16); // About 60 FPS
     }
-    Mix_FreeMusic(menuMusic);
-    Mix_FreeMusic(gameMusic);
-    Mix_CloseAudio();
-    SDL_Quit();
-    return 0;
+}
+
+void launchMenu(Mix_Music *menuMusic, Mix_Music *gameMusic, SDL_Event e, int arrowYPosIndex, SDL_Renderer *gRenderer, const int arrowYPositions[], SDL_Texture *mMenu, SDL_Texture *mArrow, SDL_Rect arrowPos, bool *quit) {
+    bool showMenu = true;
+    if (!Mix_PlayingMusic()) {
+        Mix_PlayMusic(menuMusic, -1);
+    }
+    while (showMenu && !(*quit)) {
+        while (SDL_PollEvent(&e)) {
+            if (e.type == SDL_QUIT) {
+                *quit = true;
+            }
+            else if (e.type == SDL_KEYDOWN) {
+                switch (e.key.keysym.sym) {
+                    case SDLK_UP:
+                        arrowYPosIndex--;
+                        if (arrowYPosIndex < 0) {
+                            arrowYPosIndex = STATE_TOTAL - 1;
+                        }
+                        break;
+                    case SDLK_DOWN:
+                        arrowYPosIndex++;
+                        if (arrowYPosIndex >= STATE_TOTAL) {
+                            arrowYPosIndex = 0;
+                        }
+                        break;
+                    case SDLK_RETURN:
+                        switch (arrowYPosIndex) {
+                            case 0:
+                                setGameState(STATE_PLAYING);
+                                Mix_HaltMusic();
+                                Mix_PlayMusic(gameMusic, -1);
+                                showMenu = false;
+                                break;
+                            case 1:
+                                setGameState(STATE_TUTORIAL);
+                                showTutorial(gRenderer);
+                                break;
+                            case 2:
+                                setGameState(STATE_EXIT);
+                                *quit = true;
+                                showMenu = false;
+                                printf("Ending game.\n");
+                                break;
+                        }
+                        break;
+                }
+            }
+        }
+        arrowPos.y = arrowYPositions[arrowYPosIndex];
+        SDL_RenderClear(gRenderer);
+        SDL_RenderCopy(gRenderer, mMenu, NULL, NULL);
+        SDL_RenderCopy(gRenderer, mArrow, NULL, &arrowPos);
+        SDL_RenderPresent(gRenderer);
+    }
 }
 
 void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mBackground) {
@@ -312,7 +321,6 @@ void showTutorial(SDL_Renderer *gRenderer) {
 
 void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprinterSpriteClips[], SDL_Texture **mHunter, SDL_Rect gHunterSpriteClips[], SDL_Texture **mBackground, SDL_Texture **mMenu, SDL_Texture **mArrow)
 {    
-    
     SDL_Surface* gSprinterSurface = IMG_Load("resources/SPRINTER.PNG");
     *mSprinter = SDL_CreateTextureFromSurface(gRenderer, gSprinterSurface);
     SDL_Surface* gHunterSurface = IMG_Load("resources/HUNTER.PNG");
@@ -413,7 +421,7 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprin
 
 
     // Loading picture-file for arrow in menu
-    SDL_Surface* gArrowSurface = IMG_Load("resources/redArrow.png"); 
+    SDL_Surface* gArrowSurface = IMG_Load("resources/ARROW.png");
     if (gArrowSurface == NULL) {
         printf("Unable to load arrow image: %s\n", IMG_GetError());
     } else {
@@ -443,12 +451,12 @@ bool init(SDL_Renderer **gRenderer) {
     SDL_Init(SDL_INIT_VIDEO);
     gWindow = SDL_CreateWindow("SDL Test", SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED, 1280, 720, SDL_WINDOW_SHOWN);
     if(gWindow == NULL) {
-        printf("Fungerar ej\n");
+        printf("Not working.\n");
         test = false;
     }
     *gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if(*gRenderer == NULL) {
-        printf("Fungerar ej\n");
+        printf("Not working.\n");
         test = false;
     }
     return test;
@@ -489,9 +497,4 @@ void drawDebugInfo(SDL_Renderer *gRenderer, Obstacle obstacles[], int numObstacl
     for (int i = 0; i < numObstacles; i++) {
         SDL_RenderDrawRect(gRenderer, &obstacles[i].bounds);  // Draw rectangle around the collision area
     }
-}
-
-void updateGameState(GameState new_state) {
-    current_state = new_state;
-    // Additional logic to handle state change
 }
