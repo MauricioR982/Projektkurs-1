@@ -46,7 +46,6 @@ void initiateServer(int argc, char **argv)
 	while (!stop) {
         if (SDLNet_UDP_Recv(sd, p)) {
             int clientIndex = -1;
-            // Sök efter befintlig klient
             for (int i = 0; i < MAX_CLIENTS; i++) {
                 if (clients[i].active &&
                     clients[i].address.host == p->address.host &&
@@ -55,14 +54,14 @@ void initiateServer(int argc, char **argv)
                     break;
                 }
             }
-            // Om ingen befintlig klient hittades, leta efter en ledig plats
+
             if (clientIndex == -1) {
                 for (int i = 0; i < MAX_CLIENTS; i++) {
                     if (!clients[i].active) {
                         clients[i].active = 1;
                         clients[i].address = p->address;
 						int index = i;
-                        clients[i].id = index+1; // Använd arrayindex som ID
+                        clients[i].id = index+1;
                         clientIndex = index;
                         printf("\nNew client, registered ID: %d\n", clients[i].id);
                         break;
@@ -72,7 +71,7 @@ void initiateServer(int argc, char **argv)
             if (clientIndex != -1) {
                 // Hantera paket från klient
                 printf("\n*** UDP-packet incoming ***:\n\n");
-				printf("    %-15s    %d\n", "Client ID:", clients[clientIndex].id); // Ändra formatsträng från %s till %d
+				printf("    %-15s    %d\n", "Client ID:", clients[clientIndex].id);
 				printf("    %-15s    %s\n", "Channel:", (p->channel == -1 ? "No specific" : "Specific channel"));
 				printf("    %-15s    %s\n", "Data:", (char *)p->data);
 				printf("    %-15s    %-5d\n", "Length:", p->len);
