@@ -16,7 +16,6 @@
 #include "hunter.h"
 #include "obstacle.h"
 #include "game_states.h"
-#include "game_types.h"
 
 #undef main
 
@@ -49,11 +48,10 @@ void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, PlayerRole role, O
 void updateFrame(int *frame, PlayerRole role, int frame1, int frame2);
 void drawDebugInfo(SDL_Renderer *gRenderer, Obstacle obstacles[], int numObstacles);
 void updateGameState(GameState new_state);
-void renderPlayers(SDL_Renderer *gRenderer, SDL_Texture *mSprinter, SDL_Rect gSprinterSpriteClips[]);
+
 
 GameState current_state;
 const int arrowYPositions[] = {100, 198, 288}; // Y-positions for our menu-options
-Player players[MAX_CLIENTS];
 Obstacle obstacles[NUM_OBSTACLES];
 
 
@@ -271,7 +269,7 @@ int main(int argc, char* argv[])
         } else if (playerRole == ROLE_HUNTER) {
             SDL_RenderCopyEx(gRenderer, mHunter, &gHunterSpriteClips[frame], &hunterPosition, 0, NULL, flipHunter);
         }
-        renderPlayers(gRenderer, mSprinter, gHunterSpriteClips);  // Render all players
+        
         SDL_RenderPresent(gRenderer);
         SDL_Delay(16); // About 60 FPS
     }
@@ -499,14 +497,4 @@ void drawDebugInfo(SDL_Renderer *gRenderer, Obstacle obstacles[], int numObstacl
 void updateGameState(GameState new_state) {
     current_state = new_state;
     // Additional logic to handle state change
-}
-
-void renderPlayers(SDL_Renderer *gRenderer, SDL_Texture *mSprinter, SDL_Rect gSprinterSpriteClips[]) {
-    for (int i = 0; i < MAX_CLIENTS; i++) {
-        if (players[i].active) {
-            SDL_Rect srcRect = gSprinterSpriteClips[0]; // Assume default to first frame or adjust based on player state
-            SDL_Rect destRect = {players[i].x, players[i].y, srcRect.w, srcRect.h};
-            SDL_RenderCopy(gRenderer, mSprinter, &srcRect, &destRect);
-        }
-    }
 }
