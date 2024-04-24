@@ -61,9 +61,10 @@ void initiateServer(int argc, char **argv)
                     if (!clients[i].active) {
                         clients[i].active = 1;
                         clients[i].address = p->address;
-                        clients[i].id = i; // Använd arrayindex som ID
-                        clientIndex = i;
-                        printf("New client registered: ID %d\n", clients[i].id);
+						int index = i;
+                        clients[i].id = index+1; // Använd arrayindex som ID
+                        clientIndex = index;
+                        printf("\nNew client, registered ID: %d\n", clients[i].id);
                         break;
                     }
                 }
@@ -71,13 +72,13 @@ void initiateServer(int argc, char **argv)
             if (clientIndex != -1) {
                 // Hantera paket från klient
                 printf("\n*** UDP-packet incoming ***:\n\n");
-                printf("    %-15s    %s\n", "Client ID:", clients[clientIndex].id);
-                printf("    %-15s    %s\n", "Channel:", (p->channel == -1 ? "No specific channel" : "Specific channel"));
-                printf("    %-15s    %s\n", "Data:", (char *)p->data);
-                printf("    %-15s    %-5d\n", "Length:", p->len);
-                printf("    %-15s    %-5d\n", "Maxlength:", p->maxlen);
-                printf("    %-15s    %-5d\n", "Status:", p->status);
-                printf("    %-15s    %s %u\n", "Sender address:", SDLNet_ResolveIP(&p->address), (p->address.port));
+				printf("    %-15s    %d\n", "Client ID:", clients[clientIndex].id); // Ändra formatsträng från %s till %d
+				printf("    %-15s    %s\n", "Channel:", (p->channel == -1 ? "No specific" : "Specific channel"));
+				printf("    %-15s    %s\n", "Data:", (char *)p->data);
+				printf("    %-15s    %-5d\n", "Length:", p->len);
+				printf("    %-15s    %-5d\n", "Maxlength:", p->maxlen);
+				printf("    %-15s    %-5d\n", "Status:", p->status);
+				printf("    %-15s    %s %u\n", "Sender address:", SDLNet_ResolveIP(&p->address), (p->address.port));
 
                 // Stoppa servern om klient skickar "stop"
                 if (strcmp((char *)p->data, "stop") == 0) {
