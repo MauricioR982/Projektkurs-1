@@ -253,6 +253,9 @@ int main(int argc, char* argv[])
                     }
                     updateFrame(&frame, playerRole, 2, 3);
                     break;
+                    case SDLK_ESCAPE:
+                quit = true;  //Avsluta spelet med "Esc" istället för Ctrl + c från terminalen
+                break;
                 default:
                     break;
             }
