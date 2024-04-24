@@ -205,12 +205,6 @@ int main(int argc, char* argv[])
 
     PlayerRole playerRole = (rand() % 2 == 0) ? ROLE_SPRINTER : ROLE_HUNTER;
 
-    /*for (int i = 0; i < MAX_CLIENTS; i++) {
-    players[i].x = 100 + i * 100;  // Example starting positions
-    players[i].y = 100;
-    players[i].active = true;  // Initially set to inactive
-    }*/
-
     // Game-loop
     while (!quit) {
     // Game event handling
