@@ -410,7 +410,7 @@ void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprin
 
 
     // Loading picture-file for arrow in menu
-    SDL_Surface* gArrowSurface = IMG_Load("resources/ARROW.png");
+    SDL_Surface* gArrowSurface = IMG_Load("resources/redArrow.png"); 
     if (gArrowSurface == NULL) {
         printf("Unable to load arrow image: %s\n", IMG_GetError());
     } else {
