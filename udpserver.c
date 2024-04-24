@@ -42,13 +42,13 @@ void initiateServer(int argc, char **argv)
 		/* Wait a packet. UDP_Recv returns != 0 if a packet is coming */
 		if (SDLNet_UDP_Recv(sd, p))
 		{
-			printf("UDP-packet incoming:\n");
-			printf("\tChan:    %d\n", p->channel);
-			printf("\tData:    %s\n", (char *)p->data);
-			printf("\tLen:     %d\n", p->len);
-			printf("\tMaxlen:  %d\n", p->maxlen);
-			printf("\tStatus:  %d\n", p->status);
-			printf("\tAddress: %u %u\n", p->address.host, p->address.port);
+			printf("\n*** UDP-packet incoming ***:\n\n");
+			printf("    %-15s    %-5d\n", "Channel:", p->channel);
+			printf("    %-15s    %s\n", "Data:", (char *)p->data);
+			printf("    %-15s    %-5d\n", "Length:", p->len);
+			printf("    %-15s    %-5d\n", "Maxlength:", p->maxlen);
+			printf("    %-15s    %-5d\n", "Status:", p->status);
+			printf("    %-15s    %s %u\n", "Sender address:", SDLNet_ResolveIP(&p->address), p->address.port);
  
 			/* Stop if packet contains "stop" */
 			if (strcmp((char *)p->data, "stop") == 0)

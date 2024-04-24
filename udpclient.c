@@ -54,7 +54,7 @@ void initiateClient(int argc, char **argv)
 	stop = 0;
 	while (!stop)
 	{
-		printf("Fill the buffer\n>");
+		printf("\nFill packet with data: \n\n>");
 		scanf("%s", (char *)p->data);
  
 		p->address.host = srvadd.host;	/* Set the destination host */
