@@ -22,7 +22,9 @@ void initiateServer(int argc, char **argv)
 	}
 	else
 	{
-    	printf("Host with name 'server' for network initialized successfully.\n");
+    	printf("\nHost with name 'gameserver' for network initialized successfully.\n\n");
+		printf("As a client, connect to 'localhost 2001' to join this server.\n");
+		printf("\nWaiting on incoming UDP-packets from connected clients... : \n");
 	}
 
 	/* Open a socket */
