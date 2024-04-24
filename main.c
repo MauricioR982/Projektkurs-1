@@ -54,7 +54,6 @@ void startGame(bool quit, SDL_Event e, SDL_Rect position, SDL_Rect hunterPositio
 
 GameState current_state;
 const int arrowYPositions[] = {100, 198, 288}; // Y-positions for our menu-options
-Player players[MAX_CLIENTS];
 Obstacle obstacles[NUM_OBSTACLES];
 
 int main(int argc, char* argv[])

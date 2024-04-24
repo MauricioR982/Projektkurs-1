@@ -24,11 +24,7 @@ void initiateClient(int argc, char **argv)
 		fprintf(stderr, "SDLNet_Init: %s\n", SDLNet_GetError());
 		exit(EXIT_FAILURE);
 	}
-	else
-	{
-    	printf("Client connected to network successfully.\n");
-	}
- 
+	
 	/* Open a socket on random port */
 	if (!(sd = SDLNet_UDP_Open(0)))
 	{
@@ -62,10 +58,11 @@ void initiateClient(int argc, char **argv)
  
 		p->len = strlen((char *)p->data) + 1;
 		SDLNet_UDP_Send(sd, -1, p); /* This sets the p->channel */
+		printf("Client initialized and ready to send data to server.\n");
  
 		/* Stop if packet contains "stop" */
 		if (!strcmp((char *)p->data, "stop"))
 			stop = 1;
 	}
 	SDLNet_FreePacket(p);
-} 
+}
