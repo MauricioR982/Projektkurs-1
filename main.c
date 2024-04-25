@@ -23,6 +23,8 @@
 #define WINDOW_HEIGHT 720
 #define HORIZONTAL_MARGIN 20 // Left & right boundary collision
 #define NUM_OBSTACLES 23
+#define MAX_PLAYERS 4
+
 
 typedef struct {
     int x;
@@ -39,6 +41,18 @@ typedef enum {
     ROLE_HUNTER
 } PlayerRole;
 
+typedef struct {
+    int playerId;          // Unique identifier for each player
+    SDL_Rect position;
+    PlayerRole role;
+    SDL_Texture *texture;
+    SDL_Rect spriteClips[8];
+    SDL_RendererFlip flip;
+    int currentFrame;
+} Player;
+
+
+
 bool init(SDL_Renderer **gRenderer);
 void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprinterSpriteClips[], SDL_Texture **mHunter, SDL_Rect gHunterSpriteClips[], SDL_Texture **mBackground, SDL_Texture **mMenu, SDL_Texture **mArrow);
 void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mBackground);
@@ -48,11 +62,14 @@ void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, PlayerRole role, O
 void updateFrame(int *frame, PlayerRole role, int frame1, int frame2);
 void drawDebugInfo(SDL_Renderer *gRenderer, Obstacle obstacles[], int numObstacles);
 void updateGameState(GameState new_state);
-
+void handlePlayerInput(SDL_Event e, Player *player);
+void initPlayers(SDL_Renderer *gRenderer, SDL_Texture *mSprinter, SDL_Rect gSprinterSpriteClips[], SDL_Texture *mHunter, SDL_Rect gHunterSpriteClips[]);
+void renderPlayers(SDL_Renderer *gRenderer);
 
 GameState current_state;
 const int arrowYPositions[] = {100, 198, 288}; // Y-positions for our menu-options
 Obstacle obstacles[NUM_OBSTACLES];
+Player players[MAX_PLAYERS];
 
 
 int main(int argc, char* argv[])
@@ -204,6 +221,7 @@ int main(int argc, char* argv[])
     }
 
     PlayerRole playerRole = (rand() % 2 == 0) ? ROLE_SPRINTER : ROLE_HUNTER;
+    initPlayers(gRenderer, mSprinter, gSpriteClips, mHunter, gHunterSpriteClips);
 
     // Game-loop
     while (!quit) {
@@ -211,47 +229,9 @@ int main(int argc, char* argv[])
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_QUIT) {
             quit = true;
-        }
-        else if (e.type == SDL_KEYDOWN) {
-            switch (e.key.keysym.sym) {
-                case SDLK_u:
-                    toggleObstacleDebugMode();
-                    break;
-                case SDLK_w:
-                case SDLK_UP:
-                    moveCharacter(playerRole == ROLE_SPRINTER ? &position : &hunterPosition, 0, -8, playerRole, obstacles, NUM_OBSTACLES);
-                    updateFrame(&frame, playerRole, 4, 5);
-                    break;
-                case SDLK_s:
-                case SDLK_DOWN:
-                    moveCharacter(playerRole == ROLE_SPRINTER ? &position : &hunterPosition, 0, 8, playerRole, obstacles, NUM_OBSTACLES);
-                    updateFrame(&frame, playerRole, 0, 1);
-                    break;
-                case SDLK_a:
-                case SDLK_LEFT:
-                    moveCharacter(playerRole == ROLE_SPRINTER ? &position : &hunterPosition, -8, 0, playerRole, obstacles, NUM_OBSTACLES);
-                    if (playerRole == ROLE_SPRINTER) {
-                        flip = SDL_FLIP_HORIZONTAL;
-                    } else if (playerRole == ROLE_HUNTER) {
-                        flipHunter = SDL_FLIP_HORIZONTAL;
-                    }
-                    updateFrame(&frame, playerRole, 2, 3);
-                    break;
-                case SDLK_d:
-                case SDLK_RIGHT:
-                    moveCharacter(playerRole == ROLE_SPRINTER ? &position : &hunterPosition, 8, 0, playerRole, obstacles, NUM_OBSTACLES);
-                    if (playerRole == ROLE_SPRINTER) {
-                        flip = SDL_FLIP_NONE;
-                    } else if (playerRole == ROLE_HUNTER) {
-                        flipHunter = SDL_FLIP_NONE;
-                    }
-                    updateFrame(&frame, playerRole, 2, 3);
-                    break;
-                    case SDLK_ESCAPE:
-                quit = true;  //Avsluta spelet med "Esc" istället för Ctrl + c från terminalen
-                break;
-                default:
-                    break;
+        } else if (e.type == SDL_KEYDOWN) {
+            for (int i = 0; i < MAX_PLAYERS; i++) {
+                handlePlayerInput(e, &players[i]);
             }
         }
     }
@@ -261,12 +241,7 @@ int main(int argc, char* argv[])
         renderBackground(gRenderer, mBackground);
         SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
         drawObstacles(gRenderer, obstacles, NUM_OBSTACLES);
-        if (playerRole == ROLE_SPRINTER) {
-            SDL_RenderCopyEx(gRenderer, mSprinter, &gSpriteClips[frame], &position, 0, NULL, flip);
-        } else if (playerRole == ROLE_HUNTER) {
-            SDL_RenderCopyEx(gRenderer, mHunter, &gHunterSpriteClips[frame], &hunterPosition, 0, NULL, flipHunter);
-        }
-        
+        renderPlayers(gRenderer);
         SDL_RenderPresent(gRenderer);
         SDL_Delay(16); // About 60 FPS
     }
@@ -494,4 +469,68 @@ void drawDebugInfo(SDL_Renderer *gRenderer, Obstacle obstacles[], int numObstacl
 void updateGameState(GameState new_state) {
     current_state = new_state;
     // Additional logic to handle state change
+}
+
+void initPlayers(SDL_Renderer *gRenderer, SDL_Texture *mSprinter, SDL_Rect gSprinterSpriteClips[], SDL_Texture *mHunter, SDL_Rect gHunterSpriteClips[]) {
+    sPosition startPos[] = {
+        {100, 64},   //1st pos
+        {100, 550},  //2nd pos
+        {1100, 64},  //3rd pos
+        {1100, 550}  //4th pos
+    };
+
+    SDL_Texture *roleTextures[2] = {mSprinter, mHunter};  // Use pointers directly without dereferencing
+
+    for (int i = 0; i < MAX_PLAYERS; i++) {
+        players[i].playerId = i + 1;  // Assigning a unique ID starting from 1
+        players[i].position.x = startPos[i].x;
+        players[i].position.y = startPos[i].y;
+        players[i].position.w = 32;
+        players[i].position.h = 32;
+        players[i].role = (i % 2 == 0) ? ROLE_SPRINTER : ROLE_HUNTER;
+        players[i].texture = roleTextures[players[i].role]; // Assign texture based on role
+        players[i].flip = SDL_FLIP_NONE;
+        players[i].currentFrame = 0;
+
+        // Copy sprite clips for each player based on their role
+        if (players[i].role == ROLE_SPRINTER) {
+            memcpy(players[i].spriteClips, gSprinterSpriteClips, sizeof(SDL_Rect) * 8);
+        } else {
+            memcpy(players[i].spriteClips, gHunterSpriteClips, sizeof(SDL_Rect) * 8);
+        }
+    }
+}
+
+void handlePlayerInput(SDL_Event e, Player *player) {
+    switch (e.key.keysym.sym) {
+        case SDLK_w:
+        case SDLK_UP:
+            moveCharacter(&player->position, 0, -8, player->role, obstacles, NUM_OBSTACLES);
+            updateFrame(&player->currentFrame, player->role, 4, 5);
+            break;
+        case SDLK_s:
+        case SDLK_DOWN:
+            moveCharacter(&player->position, 0, 8, player->role, obstacles, NUM_OBSTACLES);
+            updateFrame(&player->currentFrame, player->role, 0, 1);
+            break;
+        case SDLK_a:
+        case SDLK_LEFT:
+            moveCharacter(&player->position, -8, 0, player->role, obstacles, NUM_OBSTACLES);
+            player->flip = SDL_FLIP_HORIZONTAL;
+            updateFrame(&player->currentFrame, player->role, 2, 3);
+            break;
+        case SDLK_d:
+        case SDLK_RIGHT:
+            moveCharacter(&player->position, 8, 0, player->role, obstacles, NUM_OBSTACLES);
+            player->flip = SDL_FLIP_NONE;
+            updateFrame(&player->currentFrame, player->role, 2, 3);
+            break;
+    }
+}
+
+void renderPlayers(SDL_Renderer *gRenderer) {
+    for (int i = 0; i < MAX_PLAYERS; i++) {
+        printf("Rendering player %d at %d, %d\n", i, players[i].position.x, players[i].position.y); // Debug output
+        SDL_RenderCopyEx(gRenderer, players[i].texture, &players[i].spriteClips[players[i].currentFrame], &players[i].position, 0, NULL, players[i].flip);
+    }
 }
