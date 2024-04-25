@@ -7,7 +7,7 @@ typedef struct {
     int id;
 } Client;
 
-#define MAX_CLIENTS 3
+#define MAX_CLIENTS 4
 
 void initiateServer(int argc, char **argv);
 
