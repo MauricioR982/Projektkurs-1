@@ -46,7 +46,7 @@ void initiateClient(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	printf("Client initialized and ready to send data to server.\n");
+	printf("\nClient initialized and ready to send data to server.\n");
 	/* Main loop */
 	stop = 0;
 	while (!stop)
@@ -62,7 +62,9 @@ void initiateClient(int argc, char **argv)
  
 		/* Stop if packet contains "stop" */
 		if (!strcmp((char *)p->data, "stop"))
+		{
 			stop = 1;
+		}
 	}
 	SDLNet_FreePacket(p);
 }

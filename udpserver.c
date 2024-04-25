@@ -5,6 +5,7 @@
 #include "udpserver.h"
 
 Client clients[MAX_CLIENTS];
+int nrOfClients = 0;
 
 void initClients();
 
@@ -23,6 +24,7 @@ void initiateServer(int argc, char **argv)
 	else
 	{
     	printf("\nHost with name 'gameserver' for network initialized successfully.\n\n");
+		printf("Server listens on port 2001.\n");
 		printf("As a client, connect to 'localhost 2001' to join this server.\n");
 		printf("\nWaiting on incoming UDP-packets from connected clients... : \n");
 	}
@@ -45,10 +47,13 @@ void initiateServer(int argc, char **argv)
 
 	/* Main loop */
 	stop = 0;
-	while (!stop) {
-        if (SDLNet_UDP_Recv(sd, p)) {
+	while (!stop)
+	{
+        if (SDLNet_UDP_Recv(sd, p))
+		{
             int clientIndex = -1;
-            for (int i = 0; i < MAX_CLIENTS; i++) {
+            for (int i = 0; i < MAX_CLIENTS; i++)
+			{
                 if (clients[i].active &&
                     clients[i].address.host == p->address.host &&
                     clients[i].address.port == p->address.port) {
@@ -57,20 +62,30 @@ void initiateServer(int argc, char **argv)
                 }
             }
 
-            if (clientIndex == -1) {
-                for (int i = 0; i < MAX_CLIENTS; i++) {
-                    if (!clients[i].active) {
+            if (clientIndex == -1)
+			{
+				if(nrOfClients >= MAX_CLIENTS)
+				{
+					printf("\n4th client tried to send packet. Server is full.\n");
+				}
+                for (int i = 0; i < MAX_CLIENTS; i++)
+				{
+                    if (!clients[i].active)
+					{
                         clients[i].active = 1;
                         clients[i].address = p->address;
 						int index = i;
                         clients[i].id = index+1;
                         clientIndex = index;
                         printf("\nNew client, registered ID: %d\n", clients[i].id);
+						nrOfClients++;
                         break;
                     }
                 }
             }
-            if (clientIndex != -1) {
+
+            if (clientIndex != -1)
+			{
                 // Hantera paket från klient
                 printf("\n*** UDP-packet incoming ***:\n\n");
 				printf("    %-15s    %d\n", "Client ID:", clients[clientIndex].id);
@@ -82,19 +97,23 @@ void initiateServer(int argc, char **argv)
 				printf("    %-15s    %s %u\n", "Sender address:", SDLNet_ResolveIP(&p->address), (p->address.port));
 
                 // Stoppa servern om klient skickar "stop"
-                if (strcmp((char *)p->data, "stop") == 0) {
+                if (strcmp((char *)p->data, "stop") == 0)
+				{
                     stop = 1;
                 }
-            } else {
-                printf("No available slots for new clients.\n");
-            }
+            	}
+				else
+				{
+                	printf("No available slots for new clients.\n");
+            	}
         }
     }
 	SDLNet_FreePacket(p);
 }
 
 void initClients() {
-    for (int i = 0; i < MAX_CLIENTS; i++) {
+    for (int i = 0; i < MAX_CLIENTS; i++)
+	{
         clients[i].active = 0;
     }
 } 
