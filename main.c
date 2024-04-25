@@ -52,7 +52,6 @@ typedef struct {
 } Player;
 
 
-
 bool init(SDL_Renderer **gRenderer);
 void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprinterSpriteClips[], SDL_Texture **mHunter, SDL_Rect gHunterSpriteClips[], SDL_Texture **mBackground, SDL_Texture **mMenu, SDL_Texture **mArrow);
 void renderBackground(SDL_Renderer *gRenderer, SDL_Texture *mBackground);
@@ -473,13 +472,13 @@ void updateGameState(GameState new_state) {
 
 void initPlayers(SDL_Renderer *gRenderer, SDL_Texture *mSprinter, SDL_Rect gSprinterSpriteClips[], SDL_Texture *mHunter, SDL_Rect gHunterSpriteClips[]) {
     sPosition startPos[] = {
-        {100, 64},   //1st pos
-        {100, 550},  //2nd pos
-        {1100, 64},  //3rd pos
-        {1100, 550}  //4th pos
+        {100, 64},    // Sprinter
+        {100, 550},   // Sprinter
+        {600, 300},   // Hunter (new central position)
+        {1100, 550}   
     };
 
-    SDL_Texture *roleTextures[2] = {mSprinter, mHunter};  // Use pointers directly without dereferencing
+    SDL_Texture *roleTextures[2] = {mSprinter, mHunter};  // Sprinter, Hunter
 
     for (int i = 0; i < MAX_PLAYERS; i++) {
         players[i].playerId = i + 1;  // Assigning a unique ID starting from 1
@@ -487,7 +486,8 @@ void initPlayers(SDL_Renderer *gRenderer, SDL_Texture *mSprinter, SDL_Rect gSpri
         players[i].position.y = startPos[i].y;
         players[i].position.w = 32;
         players[i].position.h = 32;
-        players[i].role = (i % 2 == 0) ? ROLE_SPRINTER : ROLE_HUNTER;
+        // Assigning roles in alternating order starting with Sprinters
+        players[i].role = i < 2 ? ROLE_SPRINTER : ROLE_HUNTER;  
         players[i].texture = roleTextures[players[i].role]; // Assign texture based on role
         players[i].flip = SDL_FLIP_NONE;
         players[i].currentFrame = 0;
@@ -500,6 +500,7 @@ void initPlayers(SDL_Renderer *gRenderer, SDL_Texture *mSprinter, SDL_Rect gSpri
         }
     }
 }
+
 
 void handlePlayerInput(SDL_Event e, Player *player) {
     switch (e.key.keysym.sym) {
