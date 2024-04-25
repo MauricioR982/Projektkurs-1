@@ -83,6 +83,21 @@ void initiateServer(int argc, char **argv)
                     }
                 }
             }
+			else
+			{
+                if (strcmp((char *)p->data, "startgame") == 0)
+				{
+                    for (int i = 0; i < MAX_CLIENTS; i++)
+					{
+                        if (i != clientIndex && clients[i].active)
+						{
+                            SDLNet_UDP_Send(sd, -1, p);  // Send the packet to other clients
+                        }
+                    }
+                    continue;  // Do not process 'startgame' for server
+                }
+                // Process other messages or commands here
+            }
 
             if (clientIndex != -1)
 			{
