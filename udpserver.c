@@ -24,7 +24,6 @@ void initiateServer(int argc, char **argv)
 	else
 	{
     	printf("\nHost with name 'gameserver' for network initialized successfully.\n\n");
-		printf("Server listens on port 2001.\n");
 		printf("As a client, connect to 'localhost 2001' to join this server.\n");
 		printf("\nWaiting on incoming UDP-packets from connected clients... : \n");
 	}
