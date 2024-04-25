@@ -66,7 +66,7 @@ void initiateServer(int argc, char **argv)
 			{
 				if(nrOfClients >= MAX_CLIENTS)
 				{
-					printf("\n4th client tried to send packet. Server is full.\n");
+					printf("\n5th client tried to send packet. Server is full.\n");
 				}
                 for (int i = 0; i < MAX_CLIENTS; i++)
 				{
