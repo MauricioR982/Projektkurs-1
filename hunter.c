@@ -39,7 +39,5 @@ PUBLIC int getHunterWidth(){
 }
 
 PUBLIC void hunterTick(Hunter h, int direction){
-    
-    
+       
 }
-
