@@ -15,8 +15,6 @@
 #include "obstacle.h"
 #include "game_states.h"
 #include "game_types.h"
-#include "udpclient.h"
-#include "udpserver.h"
 
 #undef main
 
@@ -58,18 +56,7 @@ Obstacle obstacles[NUM_OBSTACLES];
 
 int main(int argc, char* argv[])
 {
-    if (argc > 1)
-    {
-        if (strcmp(argv[1], "gameserver") == 0)
-        {
-            initiateServer(argc, argv);
-        }
-        else
-        {
-            initiateClient(argc, argv);
-        }
-    }
-
+   
     sPosition startPos[] = {
     {100, 64},   //1st pos
     {100, 550},  //2nd pos
@@ -131,11 +118,6 @@ int main(int argc, char* argv[])
     initializeGameState();
     setGameState(STATE_MENU);
     
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
-        fprintf(stderr, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
-        return 1;
-    }
-
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
         fprintf(stderr, "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
         SDL_Quit();
@@ -162,9 +144,6 @@ int main(int argc, char* argv[])
     Mix_FreeMusic(menuMusic);
     Mix_FreeMusic(gameMusic);
     Mix_CloseAudio();
-    printf("Shutting down network...\n");
-    SDLNet_Quit();
-    printf("Network shutdown complete.\n");
     SDL_Quit();
     return 0;
 }

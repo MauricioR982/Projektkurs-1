@@ -18,7 +18,7 @@ $(TARGET): $(OBJS)
 	$(CC) -o $(TARGET) $(OBJS) $(LFLAGS)
 
 # Rule to compile the main object file
-main.o: main.c game_types.h udpclient.h udpserver.h
+main.o: main.c game_types.h
 	$(CC) $(CFLAGS) main.c
 
 # Rule to compile the sprinter object file
@@ -36,14 +36,6 @@ obstacle.o: obstacle.c game_types.h
 # Rule to compile the game states object file
 game_states.o: game_states.c game_types.h
 	$(CC) $(CFLAGS) game_states.c
-
-# Rule to compile the UDP client object file
-udpclient.o: udpclient.c udpclient.h
-	$(CC) $(CFLAGS) udpclient.c
-
-# Rule to compile the UDP server object file
-udpserver.o: udpserver.c udpserver.h
-	$(CC) $(CFLAGS) udpserver.c
 
 # Rule to clean up compiled files
 clean:
