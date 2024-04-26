@@ -11,7 +11,7 @@ LFLAGS = -L"C:/SDL2/lib" -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_net -lS
 TARGET = theGame
 
 # Define object files
-OBJS = main.o sprinter.o hunter.o obstacle.o game_states.o udpclient.o udpserver.o
+OBJS = main.o sprinter.o hunter.o obstacle.o game_states.o
 
 # Rule to link the object files into the executable
 $(TARGET): $(OBJS)
