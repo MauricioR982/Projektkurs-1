@@ -23,7 +23,7 @@
 #define WINDOW_HEIGHT 720
 #define HORIZONTAL_MARGIN 20 // Left & right boundary collision
 #define NUM_OBSTACLES 23
-#define MAX_PLAYERS 4
+#define MAX_PLAYERS 2
 
 
 typedef struct {
@@ -112,7 +112,7 @@ int main(int argc, char* argv[])
     hunterPosition.h = 32;
     hunterPosition.w = 32;
     int hunterFrame = 0;
-
+//
     // Obstacles
     initObstacles(obstacles, NUM_OBSTACLES);
 
@@ -473,9 +473,7 @@ void updateGameState(GameState new_state) {
 void initPlayers(SDL_Renderer *gRenderer, SDL_Texture *mSprinter, SDL_Rect gSprinterSpriteClips[], SDL_Texture *mHunter, SDL_Rect gHunterSpriteClips[]) {
     sPosition startPos[] = {
         {100, 64},    // Sprinter
-        {100, 550},   // Sprinter
-        {600, 300},   // Hunter (new central position)
-        {1100, 550}   
+        {600, 300}    // Hunter (new central position)
     };
 
     SDL_Texture *roleTextures[2] = {mSprinter, mHunter};  // Sprinter, Hunter
@@ -487,7 +485,7 @@ void initPlayers(SDL_Renderer *gRenderer, SDL_Texture *mSprinter, SDL_Rect gSpri
         players[i].position.w = 32;
         players[i].position.h = 32;
         // Assigning roles in alternating order starting with Sprinters
-        players[i].role = i < 2 ? ROLE_SPRINTER : ROLE_HUNTER;  
+        players[i].role = i == 0 ? ROLE_SPRINTER : ROLE_HUNTER;  
         players[i].texture = roleTextures[players[i].role]; // Assign texture based on role
         players[i].flip = SDL_FLIP_NONE;
         players[i].currentFrame = 0;
