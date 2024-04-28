@@ -529,7 +529,7 @@ void handlePlayerInput(SDL_Event e, Player *player) {
 
 void renderPlayers(SDL_Renderer *gRenderer) {
     for (int i = 0; i < MAX_PLAYERS; i++) {
-        printf("Rendering player %d at %d, %d\n", i, players[i].position.x, players[i].position.y); // Debug output
+        //printf("Rendering player %d at %d, %d\n", i, players[i].position.x, players[i].position.y); // Debug output
         SDL_RenderCopyEx(gRenderer, players[i].texture, &players[i].spriteClips[players[i].currentFrame], &players[i].position, 0, NULL, players[i].flip);
     }
 }
