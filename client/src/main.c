@@ -10,7 +10,7 @@
 #include "hunter.h"
 #include "obstacle.h"
 #include "sprinter.h"
-
+//comment
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
 
