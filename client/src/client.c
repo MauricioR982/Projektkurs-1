@@ -5,7 +5,8 @@
 #include <SDL2/SDL_net.h>
 
 struct game {
-    
+    SDL_Window *pWindow;
+    SDL_Renderer *pRenderer;
 
 
 
