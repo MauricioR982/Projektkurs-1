@@ -1,22 +1,25 @@
-# Define compiler and compiler flag variables
-CC = gcc
-CFLAGS = -c -I C:/SDL2/include/SDL2
-LFLAGS = -L C:/SDL2/lib -lmingw32 -lSDL2main -lSDL2 -lSDL2_net
+SRCDIR=./src
+COMMONSRCDIR=../lib/src
+INCDIR=../lib/include
+CC=gcc
+INCLUDE = -IC:/msys64/mingw64/include/SDL2 -I$(INCDIR) 
+CFLAGS = -g $(INCLUDE) -c
+LDFLAGS = -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_net -mwindows -lm
 
-# Define your target executable
-TARGET = client.exe
+gameClient: main.o sprinter.o hunter.o obstacle.o game_states.o
+	$(CC) -o gameClient sprinter.o hunter.o obstacle.o game_states.o $(LDFLAGS)
 
-# Define object files
-OBJS = client.o
+main.o: $(SRCDIR)/main.c $(INCDIR)/sprinter.h $(INCDIR)/hunter.h $(INCDIR)/obstacle.h $(INCDIR)/game_states.h
+	$(CC) $(CFLAGS) $(SRCDIR)/main.c
 
-# Compile the main executable
-$(TARGET): $(OBJS)
-	$(CC) -o $(TARGET) $(OBJS) $(LFLAGS)
+sprinter.o: $(COMMONSRCDIR)/sprinter.c $(INCDIR)/sprinter.h
+	$(CC) $(CFLAGS) $(COMMONSRCDIR)/sprinter.c
 
-# Compile the client object file
-client.o: client.c
-	$(CC) $(CFLAGS) -c client.c -o client.o
+hunter.o: $(COMMONSRCDIR)/hunter.c $(INCDIR)/hunter.h
+	$(CC) $(CFLAGS) $(COMMONSRCDIR)/hunter.c
 
-# Clean up compiled files
-clean:
-	del $(OBJS) $(TARGET)
+obstacle.o: $(COMMONSRCDIR)/obstacle.c $(INCDIR)/obstacle.h
+	$(CC) $(CFLAGS) $(COMMONSRCDIR)/obstacle.c
+
+game_states.o: $(COMMONSRCDIR)/game_states.c $(INCDIR)/game_states.h
+	$(CC) $(CFLAGS) $(COMMONSRCDIR)/game_states.c
