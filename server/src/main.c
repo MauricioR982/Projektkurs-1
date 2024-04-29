@@ -32,7 +32,10 @@ void run(Game *pGame);
 void close(Game *pGame);
 
 int main(int argv, char** args){
-
+    Game g={0};
+    if(!initiate(&g)) return 1;
+    run(&g);
+    close(&g);
 
     return 0;
 }
