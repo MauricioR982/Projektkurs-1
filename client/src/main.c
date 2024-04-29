@@ -46,7 +46,6 @@ GameState current_state;
 
 const int arrowYPositions[] = {100, 198, 288}; // Y-positions for our menu-options
 Obstacle obstacles[NUM_OBSTACLES];
-Player players[MAX_PLAYERS];
 
 struct game
 {
