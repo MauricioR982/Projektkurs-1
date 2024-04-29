@@ -6,10 +6,10 @@ INCLUDE = -IC:/msys64/mingw64/include/SDL2 -I$(INCDIR)
 CFLAGS = -g $(INCLUDE) -c
 LDFLAGS = -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_net -mwindows -lm
 
-gameClient: main.o sprinter.o hunter.o obstacle.o game_states.o
-	$(CC) -o gameClient sprinter.o hunter.o obstacle.o game_states.o $(LDFLAGS)
+gameClient: main.o sprinter.o hunter.o obstacle.o game_data.o
+	$(CC) -o gameClient main.o sprinter.o hunter.o obstacle.o game_data.o $(LDFLAGS)
 
-main.o: $(SRCDIR)/main.c $(INCDIR)/sprinter.h $(INCDIR)/hunter.h $(INCDIR)/obstacle.h $(INCDIR)/game_states.h
+main.o: $(SRCDIR)/main.c $(INCDIR)/sprinter.h $(INCDIR)/hunter.h $(INCDIR)/obstacle.h $(INCDIR)/game_data.h
 	$(CC) $(CFLAGS) $(SRCDIR)/main.c
 
 sprinter.o: $(COMMONSRCDIR)/sprinter.c $(INCDIR)/sprinter.h
@@ -21,5 +21,5 @@ hunter.o: $(COMMONSRCDIR)/hunter.c $(INCDIR)/hunter.h
 obstacle.o: $(COMMONSRCDIR)/obstacle.c $(INCDIR)/obstacle.h
 	$(CC) $(CFLAGS) $(COMMONSRCDIR)/obstacle.c
 
-game_states.o: $(COMMONSRCDIR)/game_states.c $(INCDIR)/game_states.h
-	$(CC) $(CFLAGS) $(COMMONSRCDIR)/game_states.c
+game_data.o: $(COMMONSRCDIR)/game_data.c $(INCDIR)/game_data.h
+	$(CC) $(CFLAGS) $(COMMONSRCDIR)/game_data.c

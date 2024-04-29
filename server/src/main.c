@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <windows.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
@@ -10,7 +11,6 @@
 #include "obstacle.h"
 #include "sprinter.h"
 
-
 struct game {
     SDL_Window *pWindow;
     SDL_Renderer *pRenderer;
@@ -19,9 +19,10 @@ struct game {
 
 
     UDPsocket pSocket;
-	IPaddress serverAddress;
 	UDPpacket *pPacket;
-
+    //IPaddress clients[MAX_ROCKETS]; ändra max rockets till antal spelare
+    int nrOfClients;
+    ServerData sData;
 
 };
 typedef struct game Game;
