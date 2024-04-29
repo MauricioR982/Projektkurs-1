@@ -15,7 +15,7 @@
 #include "sprinter.h"
 #include "hunter.h"
 #include "obstacle.h"
-#include "game_states.h"
+#include "game_data.h"
 
 #undef main
 
@@ -51,6 +51,7 @@ typedef struct {
     int currentFrame;
 } Player;
 
+GameState current_state;
 
 bool init(SDL_Renderer **gRenderer);
 void loadMedia(SDL_Renderer *gRenderer, SDL_Texture **mSprinter, SDL_Rect gSprinterSpriteClips[], SDL_Texture **mHunter, SDL_Rect gHunterSpriteClips[], SDL_Texture **mBackground, SDL_Texture **mMenu, SDL_Texture **mArrow);
@@ -65,7 +66,6 @@ void handlePlayerInput(SDL_Event e, Player *player);
 void initPlayers(SDL_Renderer *gRenderer, SDL_Texture *mSprinter, SDL_Rect gSprinterSpriteClips[], SDL_Texture *mHunter, SDL_Rect gHunterSpriteClips[]);
 void renderPlayers(SDL_Renderer *gRenderer);
 
-GameState current_state;
 const int arrowYPositions[] = {100, 198, 288}; // Y-positions for our menu-options
 Obstacle obstacles[NUM_OBSTACLES];
 Player players[MAX_PLAYERS];

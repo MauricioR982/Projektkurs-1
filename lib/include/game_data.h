@@ -6,20 +6,17 @@
 #define WINDOW_HEIGHT 720
 #define MAX_PLAYERS 2
 
-/*typedef enum {
+enum gameState{
     STATE_MENU,
     STATE_START_GAME,
     STATE_TUTORIAL,
     STATE_TOTAL,
     STATE_CONNECTING,
-    STATE_LOBBY,
     STATE_PLAYING,
     STATE_GAME_OVER,
     STATE_EXIT
-} GameState;*/
+}; typedef enum gameState GameState;
 
-enum gameState{START, ONGOING, GAME_OVER};
-typedef enum gameState GameState;
 
 enum clientCommand{READY, RUN, LEFT, RIGHT, UP, DOWN};
 typedef enum clientCommand ClientCommand;
