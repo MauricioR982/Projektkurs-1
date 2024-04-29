@@ -20,6 +20,3 @@ hunter.o: $(COMMONSRCDIR)/hunter.c $(INCDIR)/hunter.h
 
 obstacle.o: $(COMMONSRCDIR)/obstacle.c $(INCDIR)/obstacle.h
 	$(CC) $(CFLAGS) $(COMMONSRCDIR)/obstacle.c
-
-game_data.o: $(COMMONSRCDIR)/game_data.c $(INCDIR)/game_data.h
-	$(CC) $(CFLAGS) $(COMMONSRCDIR)/game_data.c

@@ -27,8 +27,24 @@ struct game {
 };
 typedef struct game Game;
 
+int initiate(Game *pGame);
+void run(Game *pGame);
+void close(Game *pGame);
+
 int main(int argv, char** args){
 
 
     return 0;
+}
+
+int initiate(Game *pGame) {
+
+}
+
+void run(Game *pGame) {
+
+}
+
+void close(Game *pGame) {
+    
 }
