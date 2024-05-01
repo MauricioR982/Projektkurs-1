@@ -23,9 +23,7 @@ typedef struct {
     SDL_Texture *sprinterTexture;
     UDPsocket udpSocket;
     UDPpacket *packet;
-    IPaddress clients[MAX_PLAYERS];
-    int nrOfClients;
-    ServerData sData;
+    IPaddress serverAddress;
 } Game;
 
 Obstacle obstacles[NUM_OBSTACLES];
@@ -44,6 +42,7 @@ void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, int type, Obstacle
 void sendPlayerMovement(Game *pGame, Player *player);
 void updateFrame(int *frame, PlayerRole role, int frame1, int frame2);
 bool checkCollision(SDL_Rect a, SDL_Rect b);
+void startGame(Game *pGame);
 
 int main(int argc, char **argv) {
     Game g = {0};
@@ -99,7 +98,7 @@ int initiate(Game *pGame) {
     }
 
     // Resolve server host
-    if (SDLNet_ResolveHost(&pGame->clients[0], "127.0.0.1", SERVER_PORT) != 0) {
+    if (SDLNet_ResolveHost(&pGame->serverAddress, "127.0.0.1", SERVER_PORT) != 0) {
         fprintf(stderr, "Failed to resolve server address: %s\n", SDLNet_GetError());
         return 0;
     }
@@ -190,7 +189,7 @@ void renderPlayer(SDL_Renderer *renderer, Player *player) {
 void setupPlayerClips(Player *player) {
     for (int i = 0; i < 8; i++) {
         player->spriteClips[i] = (SDL_Rect){i * 16, 0, 16, 16};
-        printf("Clip %d: x=%d, y=%d, w=%d, h=%d\n", i, player->spriteClips[i].x, player->spriteClips[i].y, player->spriteClips[i].w, player->spriteClips[i].h);
+        //printf("Clip %d: x=%d, y=%d, w=%d, h=%d\n", i, player->spriteClips[i].x, player->spriteClips[i].y, player->spriteClips[i].w, player->spriteClips[i].h);
     }
 }
 
@@ -202,9 +201,11 @@ void renderPlayers(Game *pGame) {
 
 void receiveData(Game *pGame) {
     if (SDLNet_UDP_Recv(pGame->udpSocket, pGame->packet)) {
-        // Handle received data
-        printf("Received data: %s\n", pGame->packet->data);
-        // Update game state based on received data
+        printf("Received data: %s\n", (char*) pGame->packet->data);
+        if (strcmp((char*) pGame->packet->data, "Game Start") == 0) {
+            // Start the game only if the 'Game Start' message is received
+            startGame(pGame);
+        }
     }
 }
 
@@ -252,8 +253,16 @@ void sendPlayerMovement(Game *pGame, Player *player) {
 
     memcpy(pGame->packet->data, &move, sizeof(PlayerMovement));
     pGame->packet->len = sizeof(PlayerMovement);
-    SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet);
+    pGame->packet->address = pGame->serverAddress;  // Make sure this is set correctly each time
+
+    if (SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet) < 1) {
+        fprintf(stderr, "Failed to send packet: %s\n", SDLNet_GetError());
+    } else {
+        printf("Packet sent to server: Player %d at (%d, %d)\n", move.playerId, move.x, move.y);
+    }
 }
+
+
 
 
 void updateFrame(int *frame, PlayerRole role, int frame1, int frame2) {
@@ -267,4 +276,28 @@ bool checkCollision(SDL_Rect a, SDL_Rect b) {
         return false;
     }
     return true;
+}
+
+void startGame(Game *pGame) {
+    printf("Game starting!\n");
+    bool running = true;
+    SDL_Event e;
+    while (running) {
+        while (SDL_PollEvent(&e)) {
+            if (e.type == SDL_QUIT) {
+                running = false;
+            } else if (e.type == SDL_KEYDOWN) {
+                for (int i = 0; i < MAX_PLAYERS; i++) {
+                    if (pGame->players[i].isActive) {
+                        handlePlayerInput(pGame, e, &pGame->players[i]);
+                    }
+                }
+            }
+        }
+        SDL_RenderClear(pGame->pRenderer);
+        SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
+        renderPlayers(pGame);
+        SDL_RenderPresent(pGame->pRenderer);
+        SDL_Delay(16);
+    }
 }
