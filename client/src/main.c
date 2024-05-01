@@ -71,6 +71,30 @@ int initiate(Game *pGame) {
     return 1;
 }
 
+void run(Game *pGame) {
+    bool running = true;
+    SDL_Event e;
+    while (running) {
+        while (SDL_PollEvent(&e)) {
+            if (e.type == SDL_QUIT) running = false;
+        }
+        SDL_RenderClear(pGame->pRenderer);
+        SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
+        renderPlayers(pGame);
+        SDL_RenderPresent(pGame->pRenderer);
+        SDL_Delay(16);
+    }
+}
+
+void close(Game *pGame) {
+    if (pGame->hunterTexture) SDL_DestroyTexture(pGame->hunterTexture);
+    if (pGame->sprinterTexture) SDL_DestroyTexture(pGame->sprinterTexture);
+    if (pGame->backgroundTexture) SDL_DestroyTexture(pGame->backgroundTexture);
+    if (pGame->pRenderer) SDL_DestroyRenderer(pGame->pRenderer);
+    if (pGame->pWindow) SDL_DestroyWindow(pGame->pWindow);
+    SDL_Quit();
+}
+
 int loadGameResources(SDL_Renderer *renderer, Game *pGame) {
     SDL_Surface *bgSurface = IMG_Load("../lib/resources/Map.png");
     if (!bgSurface) {
@@ -117,28 +141,4 @@ void renderPlayers(Game *pGame) {
     for (int i = 0; i < 4; i++) {
         renderPlayer(pGame->pRenderer, &pGame->players[i]);
     }
-}
-
-void run(Game *pGame) {
-    bool running = true;
-    SDL_Event e;
-    while (running) {
-        while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT) running = false;
-        }
-        SDL_RenderClear(pGame->pRenderer);
-        SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
-        renderPlayers(pGame);
-        SDL_RenderPresent(pGame->pRenderer);
-        SDL_Delay(16);
-    }
-}
-
-void close(Game *pGame) {
-    if (pGame->hunterTexture) SDL_DestroyTexture(pGame->hunterTexture);
-    if (pGame->sprinterTexture) SDL_DestroyTexture(pGame->sprinterTexture);
-    if (pGame->backgroundTexture) SDL_DestroyTexture(pGame->backgroundTexture);
-    if (pGame->pRenderer) SDL_DestroyRenderer(pGame->pRenderer);
-    if (pGame->pWindow) SDL_DestroyWindow(pGame->pWindow);
-    SDL_Quit();
 }
