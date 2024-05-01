@@ -164,13 +164,7 @@ void run(Game *pGame) {
         SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
 
         // Render players
-        for (int i = 0; i < 4; i++) {
-            if (pGame->players[i].isActive) {
-                // Choose the appropriate texture based on player type
-                SDL_Texture *playerTexture = (pGame->players[i].type == HUNTER) ? pGame->hunterTexture : pGame->sprinterTexture;
-                SDL_RenderCopy(pGame->pRenderer, playerTexture, NULL, &pGame->players[i].position);
-            }
-        }
+        renderPlayers(pGame);
 
         // Update screen
         SDL_RenderPresent(pGame->pRenderer);
@@ -254,7 +248,10 @@ int loadGameResources(SDL_Renderer *renderer, Game *pGame) {
 void renderPlayers(Game *pGame) {
     for (int i = 0; i < 4; i++) {
         if (pGame->players[i].isActive) {
-            SDL_RenderCopy(pGame->pRenderer, pGame->players[i].texture, NULL, &pGame->players[i].position);
+            // Choose the appropriate texture based on player type
+            SDL_Texture *playerTexture = (pGame->players[i].type == HUNTER) ? pGame->hunterTexture : pGame->sprinterTexture;
+            SDL_RenderCopy(pGame->pRenderer, playerTexture, NULL, &pGame->players[i].position);
         }
     }
 }
+
