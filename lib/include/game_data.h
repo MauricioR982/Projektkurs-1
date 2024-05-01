@@ -4,7 +4,10 @@
 
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
-#define MAX_PLAYERS 2
+#define MAX_PLAYERS 4
+
+#define HUNTER 0
+#define SPRINTER 1
 
 enum gameState{
     STATE_MENU,
@@ -39,5 +42,20 @@ struct serverData{
 };
 typedef struct serverData ServerData;
 
+typedef struct {
+    int playerId;          // Unique identifier for each player
+    SDL_Rect position;
+    SDL_Texture *texture;
+    SDL_Rect spriteClips[8];
+    SDL_RendererFlip flip;
+    int currentFrame;
+    int isActive;          // Indicates if the player is active in the game
+    int type;              // Type of the player (HUNTER or SPRINTER)
+} Player;
+
+typedef enum {
+    ROLE_SPRINTER,
+    ROLE_HUNTER
+} PlayerRole;
 
 #endif // GAME_DATA_H

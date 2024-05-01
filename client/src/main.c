@@ -14,13 +14,11 @@
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
 
-#define MAX_PLAYERS 2
-
 struct game
 {
     SDL_Window *pWindow;
     SDL_Renderer *pRenderer;
-
+    Player players[4]; // Array for four players
     GameState state;
 
     UDPsocket pSocket;
@@ -38,6 +36,7 @@ int initiate(Game *pGame);
 void run(Game *pGame);
 void close(Game *pGame);
 int loadGameResources(SDL_Renderer *renderer, Game *pGame);
+void renderPlayers(Game *pGame);
 
 int main(int argv, char** args){
     Game g = {0};
@@ -122,10 +121,28 @@ int initiate(Game *pGame) {
         // Perform cleanup if necessary
         return 0;
     }
+    
+    // Set isActive flag for all players
+    for (int i = 0; i < 4; i++) {
+        pGame->players[i].isActive = 1;
+    }
 
+    // Set initial player positions
+    pGame->players[0].position.x = 100;
+    pGame->players[0].position.y = 100;
+
+    pGame->players[1].position.x = 200;
+    pGame->players[1].position.y = 200;
+
+    pGame->players[2].position.x = 300;
+    pGame->players[2].position.y = 300;
+
+    pGame->players[3].position.x = 400;
+    pGame->players[3].position.y = 400;
 
     return 1;
 }
+
 
 
 void run(Game *pGame) {
@@ -146,7 +163,14 @@ void run(Game *pGame) {
         // Render background
         SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
 
-        // Logic to render hunter and sprinter goes here...
+        // Render players
+        for (int i = 0; i < 4; i++) {
+            if (pGame->players[i].isActive) {
+                // Choose the appropriate texture based on player type
+                SDL_Texture *playerTexture = (pGame->players[i].type == HUNTER) ? pGame->hunterTexture : pGame->sprinterTexture;
+                SDL_RenderCopy(pGame->pRenderer, playerTexture, NULL, &pGame->players[i].position);
+            }
+        }
 
         // Update screen
         SDL_RenderPresent(pGame->pRenderer);
@@ -154,6 +178,7 @@ void run(Game *pGame) {
         SDL_Delay(16); // ~60 frames per second
     }
 }
+
 
 
 void close(Game *pGame) {
@@ -226,3 +251,10 @@ int loadGameResources(SDL_Renderer *renderer, Game *pGame) {
     return 1;
 }
 
+void renderPlayers(Game *pGame) {
+    for (int i = 0; i < 4; i++) {
+        if (pGame->players[i].isActive) {
+            SDL_RenderCopy(pGame->pRenderer, pGame->players[i].texture, NULL, &pGame->players[i].position);
+        }
+    }
+}
