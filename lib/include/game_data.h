@@ -1,6 +1,7 @@
-// game_data.h
 #ifndef GAME_DATA_H
 #define GAME_DATA_H
+
+#include <SDL2/SDL.h>
 
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
@@ -8,8 +9,11 @@
 
 #define HUNTER 0
 #define SPRINTER 1
+#define HORIZONTAL_MARGIN 20 // Margin for character movement constraints
+#define NUM_OBSTACLES 23 // Number of obstacles if this is constant
 
-enum gameState{
+// Game state enumeration
+enum gameState {
     STATE_MENU,
     STATE_START_GAME,
     STATE_TUTORIAL,
@@ -18,30 +22,42 @@ enum gameState{
     STATE_PLAYING,
     STATE_GAME_OVER,
     STATE_EXIT
-}; typedef enum gameState GameState;
+};
+typedef enum gameState GameState;
 
-
-enum clientCommand{READY, RUN, LEFT, RIGHT, UP, DOWN};
+// Commands that can be sent from the client to the server
+enum clientCommand {
+    READY,
+    RUN,
+    LEFT,
+    RIGHT,
+    UP,
+    DOWN
+};
 typedef enum clientCommand ClientCommand;
 
-struct clientData{
+// Data structure for client commands
+struct clientData {
     ClientCommand command;
     int playerNumber;
 };
 typedef struct clientData ClientData;
 
-struct playerData{
+// Data structure representing the position and size of a player
+struct playerData {
     float x, y, h, w;    
 };
-typedef struct playerData playerData;   
+typedef struct playerData PlayerData;
 
-struct serverData{
-    playerData players[MAX_PLAYERS];
+// Data sent from the server to the clients
+struct serverData {
+    PlayerData players[MAX_PLAYERS];
     int playerNr;
     GameState gState;
 };
 typedef struct serverData ServerData;
 
+// Player structure used in the game
 typedef struct {
     int playerId;          // Unique identifier for each player
     SDL_Rect position;
@@ -53,9 +69,18 @@ typedef struct {
     int type;              // Type of the player (HUNTER or SPRINTER)
 } Player;
 
+// Player roles
 typedef enum {
     ROLE_SPRINTER,
     ROLE_HUNTER
 } PlayerRole;
+
+// Structure for transmitting player movement
+struct playerMovement {
+    int playerId;
+    int x;
+    int y;
+};
+typedef struct playerMovement PlayerMovement;
 
 #endif // GAME_DATA_H
