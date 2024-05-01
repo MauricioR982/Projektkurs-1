@@ -157,17 +157,31 @@ void run(Game *pGame) {
 
 
 void close(Game *pGame) {
+    if (pGame->hunterTexture) {
+        SDL_DestroyTexture(pGame->hunterTexture);
+    }
+    if (pGame->sprinterTexture) {
+        SDL_DestroyTexture(pGame->sprinterTexture);
+    }
+    if (pGame->backgroundTexture) {
+        SDL_DestroyTexture(pGame->backgroundTexture);
+    }
     if (pGame->pRenderer) {
         SDL_DestroyRenderer(pGame->pRenderer);
-        pGame->pRenderer = NULL;
     }
     if (pGame->pWindow) {
         SDL_DestroyWindow(pGame->pWindow);
-        pGame->pWindow = NULL;
+    }
+    if (pGame->pPacket) {
+        SDLNet_FreePacket(pGame->pPacket);
+    }
+    if (pGame->pSocket) {
+        SDLNet_UDP_Close(pGame->pSocket);
     }
     SDLNet_Quit();
     SDL_Quit();
 }
+
 
 int loadGameResources(SDL_Renderer *renderer, Game *pGame) {
     // Load background
