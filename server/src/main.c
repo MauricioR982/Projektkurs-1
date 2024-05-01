@@ -84,27 +84,24 @@ int initiate(Game *pGame) {
 
 void run(Game *pGame) {
     printf("Server is running. Waiting for at least 2 clients to connect...\n");
+
     bool running = true;
     SDL_Event event;
 
-    while (running) {
-        // Check for events
+    // Initial loop to wait for enough clients to connect
+    while (running && pGame->nrOfClients < 2) {
         while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {
-                running = false;
-            }
-            if (event.type == SDL_KEYDOWN) {
-                if (event.key.keysym.sym == SDLK_ESCAPE) {
-                    running = false;
-                }
+            if (event.type == SDL_QUIT || (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE)) {
+                printf("Shutdown command received. Exiting...\n");
+                running = false; // Exit the loop
             }
         }
 
-        // Existing UDP receive code
         if (SDLNet_UDP_Recv(pGame->pSocket, pGame->pPacket)) {
-            printf("Received packet from %x %hu\n",
-                   pGame->pPacket->address.host, pGame->pPacket->address.port);
-            // Processing of the packet
+            printf("Received packet from %x %hu\n", pGame->pPacket->address.host, pGame->pPacket->address.port);
+            ClientData receivedData;
+            memcpy(&receivedData, pGame->pPacket->data, sizeof(ClientData));
+            processClientData(pGame, &receivedData, pGame->pPacket->address);
         } else {
             printf("No packets received. Waiting...\n");
         }
@@ -112,9 +109,33 @@ void run(Game *pGame) {
         SDL_Delay(10);  // Reduce CPU usage
     }
 
+    // If we have enough clients, start the game logic
+    if (running && pGame->nrOfClients >= 2) {
+        printf("Minimum number of clients connected. Game can start now.\n");
+        broadcastGameState(pGame);  // Notify clients that the game is starting
+
+        while (running) {
+            while (SDL_PollEvent(&event)) {
+                if (event.type == SDL_QUIT || (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE)) {
+                    printf("Shutdown command received. Exiting...\n");
+                    running = false; // Exit the loop
+                }
+            }
+
+            if (SDLNet_UDP_Recv(pGame->pSocket, pGame->pPacket)) {
+                printf("Game logic processing packet from %x %hu\n",
+                       pGame->pPacket->address.host, pGame->pPacket->address.port);
+                ClientData receivedData;
+                memcpy(&receivedData, pGame->pPacket->data, sizeof(ClientData));
+                processClientData(pGame, &receivedData, pGame->pPacket->address);
+            }
+
+            SDL_Delay(16);  // Match frame delay, roughly 60 FPS
+        }
+    }
+
     printf("Server shutting down...\n");
 }
-
 
 
 
