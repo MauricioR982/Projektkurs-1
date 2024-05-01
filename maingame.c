@@ -527,13 +527,9 @@ void handlePlayerInput(SDL_Event e, Player *player) {
     }
 }
 
-void renderPlayers(Game *pGame) {
-    for (int i = 0; i < 4; i++) {
-        printf("Player %d - Active: %d, Position: (%d, %d)\n", i, pGame->players[i].isActive, pGame->players[i].position.x, pGame->players[i].position.y);
-        if (pGame->players[i].isActive) {
-            SDL_Texture *playerTexture = (pGame->players[i].type == HUNTER) ? pGame->hunterTexture : pGame->sprinterTexture;
-            SDL_RenderCopy(pGame->pRenderer, playerTexture, NULL, &pGame->players[i].position);
-        }
+void renderPlayers(SDL_Renderer *gRenderer) {
+    for (int i = 0; i < MAX_PLAYERS; i++) {
+        //printf("Rendering player %d at %d, %d\n", i, players[i].position.x, players[i].position.y); // Debug output
+        SDL_RenderCopyEx(gRenderer, players[i].texture, &players[i].spriteClips[players[i].currentFrame], &players[i].position, 0, NULL, players[i].flip);
     }
 }
-
