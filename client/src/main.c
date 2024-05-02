@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_net.h>
 #include "game_data.h"
 #include "hunter.h"
@@ -24,6 +25,7 @@ typedef struct {
     UDPsocket udpSocket;
     UDPpacket *packet;
     IPaddress serverAddress;
+    GameState state;
 } Game;
 
 Obstacle obstacles[NUM_OBSTACLES];
@@ -53,57 +55,63 @@ int main(int argc, char **argv) {
 }
 
 int initiate(Game *pGame) {
+    // Initialize SDL, SDL_ttf, and SDL_net
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {
         fprintf(stderr, "SDL could not initialize: %s\n", SDL_GetError());
         return 0;
     }
+    if (TTF_Init() != 0) {
+        fprintf(stderr, "TTF could not initialize: %s\n", TTF_GetError());
+        SDL_Quit();
+        return 0;
+    }
     if (SDLNet_Init() != 0) {
         fprintf(stderr, "SDLNet could not initialize: %s\n", SDLNet_GetError());
+        TTF_Quit();
         SDL_Quit();
         return 0;
     }
 
+    // Create Window and Renderer
     pGame->pWindow = SDL_CreateWindow("Game Client", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
-    if (!pGame->pWindow) {
-        fprintf(stderr, "Window could not be created: %s\n", SDL_GetError());
-        return 0;
-    }
-
     pGame->pRenderer = SDL_CreateRenderer(pGame->pWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    if (!pGame->pRenderer) {
-        SDL_DestroyWindow(pGame->pWindow);
+    if (!pGame->pWindow || !pGame->pRenderer) {
+        TTF_Quit();
         SDL_Quit();
         return 0;
     }
 
+    // Load game resources, including fonts
     if (!loadGameResources(pGame->pRenderer, pGame)) {
         SDL_DestroyRenderer(pGame->pRenderer);
         SDL_DestroyWindow(pGame->pWindow);
+        TTF_Quit();
         SDL_Quit();
         return 0;
     }
 
-    // Setup network communication
+    // Network setup
     pGame->udpSocket = SDLNet_UDP_Open(0);  // Open a socket on any available port
     if (!pGame->udpSocket) {
-        fprintf(stderr, "Failed to open UDP socket: %s\n", SDLNet_GetError());
+        TTF_Quit();
+        SDL_Quit();
         return 0;
     }
-
-    // Setup packet for communication
-    pGame->packet = SDLNet_AllocPacket(512);  // allocate a packet of size 512
+    pGame->packet = SDLNet_AllocPacket(512);  // Allocate a packet of size 512
     if (!pGame->packet) {
-        fprintf(stderr, "Failed to allocate UDP packet: %s\n", SDLNet_GetError());
+        SDLNet_Quit();
+        TTF_Quit();
+        SDL_Quit();
         return 0;
     }
-
-    // Resolve server host
     if (SDLNet_ResolveHost(&pGame->serverAddress, "127.0.0.1", SERVER_PORT) != 0) {
-        fprintf(stderr, "Failed to resolve server address: %s\n", SDLNet_GetError());
+        SDLNet_Quit();
+        TTF_Quit();
+        SDL_Quit();
         return 0;
     }
 
-    // Initialize players and their properties
+    // Initialize players
     for (int i = 0; i < MAX_PLAYERS; i++) {
         pGame->players[i].isActive = 1;
         pGame->players[i].texture = (i % 2 == 0) ? pGame->hunterTexture : pGame->sprinterTexture;
@@ -111,32 +119,71 @@ int initiate(Game *pGame) {
         pGame->players[i].position = (SDL_Rect){100 + i * 100, 100, 32, 32};
     }
 
+    // Set initial game state
+    pGame->state = GAME_WAITING;
+
     return 1;
 }
 
 void run(Game *pGame) {
     bool running = true;
     SDL_Event e;
+
+    // Setup for text rendering
+    SDL_Color textColor = {255, 255, 255};  // White color for the text
+    TTF_Font* font = TTF_OpenFont("../lib/resources/arial.ttf", 28); // Adjust the path and size
+    SDL_Surface* surface = TTF_RenderText_Solid(font, "Press space to connect to the server", textColor);
+    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(pGame->pRenderer, surface);
+    SDL_Rect textRect = {50, 50, surface->w, surface->h};  // Position and size of the text
+    SDL_FreeSurface(surface);
+
     while (running) {
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) {
                 running = false;
             } else if (e.type == SDL_KEYDOWN) {
-                for (int i = 0; i < MAX_PLAYERS; i++) {
-                    if (pGame->players[i].isActive) {
-                        handlePlayerInput(pGame, e, &pGame->players[i]);
-                    }
+                switch (e.key.keysym.sym) {
+                    case SDLK_SPACE:
+                        if (pGame->state == GAME_WAITING) {
+                            pGame->state = GAME_READY;
+                            ClientData data = {CMD_READY, -1};  // Set up data for ready signal
+                            memcpy(pGame->packet->data, &data, sizeof(ClientData));
+                            pGame->packet->len = sizeof(ClientData);
+                            SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet);
+                            printf("Ready signal sent. Waiting for game start...\n");
+                        }
+                        break;
                 }
             }
         }
-        receiveData(pGame);
+
+        // Listen for server commands
+        if (SDLNet_UDP_Recv(pGame->udpSocket, pGame->packet)) {
+            char* receivedData = (char*)pGame->packet->data;
+            if (strcmp(receivedData, "Game Start") == 0) {
+                pGame->state = GAME_ONGOING;
+                printf("Game has started!\n");
+            }
+        }
+
+        // Rendering based on game state
         SDL_RenderClear(pGame->pRenderer);
-        SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
-        renderPlayers(pGame);
+        if (pGame->state == GAME_ONGOING) {
+            renderPlayers(pGame);
+        } else if (pGame->state == GAME_READY || pGame->state == GAME_WAITING) {
+            SDL_RenderCopy(pGame->pRenderer, textTexture, NULL, &textRect);
+        }
         SDL_RenderPresent(pGame->pRenderer);
-        SDL_Delay(16);
+        SDL_Delay(16); // simulate frame update roughly every 16ms (about 60fps)
     }
+
+    // Clean up resources
+    SDL_DestroyTexture(textTexture);
+    TTF_CloseFont(font);
 }
+
+
+
 
 
 void close(Game *pGame) {

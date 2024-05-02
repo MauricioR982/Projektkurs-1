@@ -5,82 +5,71 @@
 
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
-#define MAX_PLAYERS 4
+#define MAX_PLAYERS 2
 
 #define HUNTER 0
 #define SPRINTER 1
 #define HORIZONTAL_MARGIN 20 // Margin for character movement constraints
-#define NUM_OBSTACLES 23 // Number of obstacles if this is constant
+#define NUM_OBSTACLES 23 // Number of obstacles
 
-// Game state enumeration
-enum gameState {
-    STATE_MENU,
-    STATE_START_GAME,
-    STATE_TUTORIAL,
-    STATE_TOTAL,
-    STATE_CONNECTING,
-    STATE_PLAYING,
-    STATE_GAME_OVER,
-    STATE_EXIT
-};
-typedef enum gameState GameState;
+// Enumerations for different game states
+typedef enum {
+    GAME_WAITING, // Waiting for players to be ready
+    GAME_READY,   // Player has signaled readiness
+    GAME_ONGOING, // Game is in progress
+    GAME_OVER     // Game has ended
+} GameState;
 
 // Commands that can be sent from the client to the server
-enum clientCommand {
-    READY,
-    RUN,
-    LEFT,
-    RIGHT,
-    UP,
-    DOWN
-};
-typedef enum clientCommand ClientCommand;
+typedef enum {
+    CMD_READY, // Command to signal readiness to start the game
+    CMD_RUN,
+    CMD_LEFT,
+    CMD_RIGHT,
+    CMD_UP,
+    CMD_DOWN
+} ClientCommand;
 
-// Data structure for client commands
-struct clientData {
-    ClientCommand command;
-    int playerNumber;
-};
-typedef struct clientData ClientData;
+// Structure for client commands
+typedef struct {
+    ClientCommand command; // Command type
+    int playerNumber;      // Which player is sending the command
+} ClientData;
 
-// Data structure representing the position and size of a player
-struct playerData {
-    float x, y, h, w;    
-};
-typedef struct playerData PlayerData;
+// Structure representing a player's position and size
+typedef struct {
+    float x, y, w, h;
+} PlayerData;
 
-// Data sent from the server to the clients
-struct serverData {
-    PlayerData players[MAX_PLAYERS];
-    int playerNr;
-    GameState gState;
-};
-typedef struct serverData ServerData;
+// Data structure sent from server to clients
+typedef struct {
+    PlayerData players[MAX_PLAYERS]; // Player data for all players
+    int playerNr;                    // Number of the player to which the data is being sent
+    GameState state;                 // Current state of the game
+} ServerData;
 
-// Player structure used in the game
+// Structure for each player in the game
 typedef struct {
     int playerId;          // Unique identifier for each player
-    SDL_Rect position;
-    SDL_Texture *texture;
-    SDL_Rect spriteClips[8];
-    SDL_RendererFlip flip;
-    int currentFrame;
-    int isActive;          // Indicates if the player is active in the game
+    SDL_Rect position;     // Position and size of the player
+    SDL_Texture *texture;  // Texture used for rendering the player
+    SDL_Rect spriteClips[8]; // Animation frames for the player
+    SDL_RendererFlip flip; // Rendering flip state
+    int currentFrame;      // Current frame of animation
+    int isActive;          // Indicates if the player is active
     int type;              // Type of the player (HUNTER or SPRINTER)
 } Player;
 
-// Player roles
+// Enumeration for player roles
 typedef enum {
     ROLE_SPRINTER,
     ROLE_HUNTER
 } PlayerRole;
 
-// Structure for transmitting player movement
-struct playerMovement {
-    int playerId;
-    int x;
-    int y;
-};
-typedef struct playerMovement PlayerMovement;
+// Structure for transmitting player movement information
+typedef struct {
+    int playerId; // Player ID
+    int x, y;     // New coordinates of the player
+} PlayerMovement;
 
 #endif // GAME_DATA_H

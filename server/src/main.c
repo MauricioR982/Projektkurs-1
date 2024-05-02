@@ -17,9 +17,6 @@ struct game {
     SDL_Window *pWindow;
     SDL_Renderer *pRenderer;
     int nrOfPlayers;
-
-
-
     UDPsocket pSocket;
 	UDPpacket *pPacket;
     IPaddress clients[MAX_PLAYERS];
