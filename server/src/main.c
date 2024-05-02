@@ -5,6 +5,7 @@
 #include <windows.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_mixer.h>
 #include <SDL2/SDL_net.h>
 #include "game_data.h"
@@ -53,22 +54,34 @@ int initiate(Game *pGame) {
         fprintf(stderr, "SDL could not initialize: %s\n", SDL_GetError());
         return 0;
     }
-    printf("Initializing SDL_net...\n");
-    if (SDLNet_Init() != 0) {
-        fprintf(stderr, "SDLNet could not initialize: %s\n", SDLNet_GetError());
+
+    // Initialize TTF for text rendering
+    if (TTF_Init() != 0) {
+        fprintf(stderr, "TTF could not initialize: %s\n", TTF_GetError());
         SDL_Quit();
         return 0;
     }
+
+    printf("Initializing SDL_net...\n");
+    if (SDLNet_Init() != 0) {
+        fprintf(stderr, "SDLNet could not initialize: %s\n", SDLNet_GetError());
+        TTF_Quit();
+        SDL_Quit();
+        return 0;
+    }
+
     printf("Opening UDP socket...\n");
     pGame->pSocket = SDLNet_UDP_Open(1234);
     if (!pGame->pSocket) {
         fprintf(stderr, "Failed to open UDP socket: %s\n", SDLNet_GetError());
         SDLNet_Quit();
+        TTF_Quit();
         SDL_Quit();
         return 0;
     } else {
         printf("UDP socket opened successfully on port 1234.\n");
     }
+
     printf("Allocating UDP packet...\n");
     pGame->pPacket = SDLNet_AllocPacket(512);
     if (!pGame->pPacket) {
@@ -78,6 +91,55 @@ int initiate(Game *pGame) {
         SDL_Quit();
         return 0;
     }
+
+    // Create SDL Window and Renderer
+    pGame->pWindow = SDL_CreateWindow("Game Server", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1280, 720, 0);
+    if (!pGame->pWindow) {
+        fprintf(stderr, "Window could not be created: %s\n", SDL_GetError());
+        TTF_Quit();
+        SDLNet_Quit();
+        SDL_Quit();
+        return 0;
+    }
+
+    pGame->pRenderer = SDL_CreateRenderer(pGame->pWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    if (!pGame->pRenderer) {
+        SDL_DestroyWindow(pGame->pWindow);
+        fprintf(stderr, "Renderer could not be created: %s\n", SDL_GetError());
+        TTF_Quit();
+        SDLNet_Quit();
+        SDL_Quit();
+        return 0;
+    }
+
+    // Load a font
+    TTF_Font *font = TTF_OpenFont("../lib/resources/Arial.ttf", 24);  // Make sure to have this font file available
+    if (!font) {
+        fprintf(stderr, "Failed to load font: %s\n", TTF_GetError());
+        SDL_DestroyRenderer(pGame->pRenderer);
+        SDL_DestroyWindow(pGame->pWindow);
+        TTF_Quit();
+        SDLNet_Quit();
+        SDL_Quit();
+        return 0;
+    }
+
+    // Set text color
+    SDL_Color textColor = {255, 255, 255}; // White
+    SDL_Surface* textSurface = TTF_RenderText_Solid(font, "Waiting for clients...", textColor);
+    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(pGame->pRenderer, textSurface);
+
+    // Clear the renderer and draw the texture
+    SDL_RenderClear(pGame->pRenderer);
+    SDL_Rect textRect = { 100, 200, textSurface->w, textSurface->h };  // Position for the text
+    SDL_RenderCopy(pGame->pRenderer, textTexture, NULL, &textRect);
+    SDL_RenderPresent(pGame->pRenderer);
+
+    // Clean up text objects
+    SDL_DestroyTexture(textTexture);
+    SDL_FreeSurface(textSurface);
+    TTF_CloseFont(font);
+
     return 1; // Initialization successful
 }
 
