@@ -171,6 +171,7 @@ void run(Game *pGame) {
                 pGame->state = GAME_ONGOING;
             }
         }
+        receiveData(pGame); // This function must be polled frequently.
 
         // Rendering based on game state
         SDL_RenderClear(pGame->pRenderer);
@@ -190,9 +191,6 @@ void run(Game *pGame) {
     SDL_DestroyTexture(waitingTextTexture);
     TTF_CloseFont(font);
 }
-
-
-
 
 void close(Game *pGame) {
     if (pGame->packet) SDLNet_FreePacket(pGame->packet);
@@ -255,12 +253,12 @@ void renderPlayers(Game *pGame) {
 }
 
 void receiveData(Game *pGame) {
-    if (SDLNet_UDP_Recv(pGame->udpSocket, pGame->packet)) {
-        printf("Received data: %s\n", (char*)pGame->packet->data);
+    while (SDLNet_UDP_Recv(pGame->udpSocket, pGame->packet)) {
+        printf("Data received: %s\n", (char*)pGame->packet->data);
+
         if (strcmp((char*)pGame->packet->data, "Game Start") == 0) {
-            printf("Game has started!\n");
+            printf("Received 'Game Start' message from server.\n");
             pGame->state = GAME_ONGOING;
-            // Load game elements like background and sprites here
             startGame(pGame);
         }
     }

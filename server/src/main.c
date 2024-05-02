@@ -142,9 +142,10 @@ int initiate(Game *pGame) {
 
 
 void run(Game *pGame) {
-    printf("Server is running. Waiting for at least 2 clients to connect...\n");
+    printf("Server is running. Waiting for clients...\n");
     bool running = true;
     SDL_Event event;
+    int readyClients = 0;  // Tracks how many clients are ready to start the game
 
     while (running && pGame->nrOfClients < 2) {
         while (SDL_PollEvent(&event)) {
@@ -156,24 +157,34 @@ void run(Game *pGame) {
         if (SDLNet_UDP_Recv(pGame->pSocket, pGame->pPacket)) {
             ClientData receivedData;
             memcpy(&receivedData, pGame->pPacket->data, sizeof(ClientData));
-            if (processClientData(pGame, &receivedData, pGame->pPacket->address)) {
-                if (pGame->nrOfClients == 2) {
-                    broadcastGameStart(pGame);
-                    break;  // Exit waiting loop and proceed to game logic
+
+            if (receivedData.command == CMD_READY) {
+                if (processClientData(pGame, &receivedData, pGame->pPacket->address)) {
+                    readyClients++;
+                    printf("Client %d is ready. Total ready: %d\n", receivedData.playerNumber, readyClients);
+                    if (readyClients >= 2) {
+                        broadcastGameStart(pGame);
+                        break;  // Break out of the waiting loop
+                    }
                 }
             }
         }
     }
 
-    // Game logic loop
-    while (running) {
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {
-                running = false;
+    // Start the main game loop
+    if (running && readyClients >= 2) {
+        printf("All clients are ready. Starting the game...\n");
+        while (running) {
+            while (SDL_PollEvent(&event)) {
+                if (event.type == SDL_QUIT) {
+                    running = false;
+                }
             }
-        }
 
-        // Additional game logic and state management
+            // Game logic goes here
+            broadcastGameState(pGame);  // This function should manage and send game state updates
+            SDL_Delay(16);  // Approximate frame delay for ~60 FPS
+        }
     }
 }
 
