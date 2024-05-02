@@ -131,11 +131,19 @@ void run(Game *pGame) {
 
     // Setup for text rendering
     SDL_Color textColor = {255, 255, 255};  // White color for the text
-    TTF_Font* font = TTF_OpenFont("../lib/resources/arial.ttf", 28); // Adjust the path and size
-    SDL_Surface* surface = TTF_RenderText_Solid(font, "Press space to connect to the server", textColor);
-    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(pGame->pRenderer, surface);
-    SDL_Rect textRect = {50, 50, surface->w, surface->h};  // Position and size of the text
-    SDL_FreeSurface(surface);
+    TTF_Font* font = TTF_OpenFont("../lib/resources/arial.ttf", 28); // Ensure the path is correct
+
+    // Text for initial prompt
+    SDL_Surface* initialSurface = TTF_RenderText_Solid(font, "Press space to connect to the server", textColor);
+    SDL_Texture* initialTextTexture = SDL_CreateTextureFromSurface(pGame->pRenderer, initialSurface);
+    SDL_Rect initialTextRect = {50, 50, initialSurface->w, initialSurface->h};
+    SDL_FreeSurface(initialSurface);
+
+    // Text for waiting message
+    SDL_Surface* waitingSurface = TTF_RenderText_Solid(font, "Waiting for server...", textColor);
+    SDL_Texture* waitingTextTexture = SDL_CreateTextureFromSurface(pGame->pRenderer, waitingSurface);
+    SDL_Rect waitingTextRect = {50, 100, waitingSurface->w, waitingSurface->h};
+    SDL_FreeSurface(waitingSurface);
 
     while (running) {
         while (SDL_PollEvent(&e)) {
@@ -150,7 +158,6 @@ void run(Game *pGame) {
                             memcpy(pGame->packet->data, &data, sizeof(ClientData));
                             pGame->packet->len = sizeof(ClientData);
                             SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet);
-                            printf("Ready signal sent. Waiting for game start...\n");
                         }
                         break;
                 }
@@ -162,7 +169,6 @@ void run(Game *pGame) {
             char* receivedData = (char*)pGame->packet->data;
             if (strcmp(receivedData, "Game Start") == 0) {
                 pGame->state = GAME_ONGOING;
-                printf("Game has started!\n");
             }
         }
 
@@ -170,18 +176,20 @@ void run(Game *pGame) {
         SDL_RenderClear(pGame->pRenderer);
         if (pGame->state == GAME_ONGOING) {
             renderPlayers(pGame);
-        } else if (pGame->state == GAME_READY || pGame->state == GAME_WAITING) {
-            SDL_RenderCopy(pGame->pRenderer, textTexture, NULL, &textRect);
+        } else if (pGame->state == GAME_READY) {
+            SDL_RenderCopy(pGame->pRenderer, waitingTextTexture, NULL, &waitingTextRect);
+        } else if (pGame->state == GAME_WAITING) {
+            SDL_RenderCopy(pGame->pRenderer, initialTextTexture, NULL, &initialTextRect);
         }
         SDL_RenderPresent(pGame->pRenderer);
         SDL_Delay(16); // simulate frame update roughly every 16ms (about 60fps)
     }
 
     // Clean up resources
-    SDL_DestroyTexture(textTexture);
+    SDL_DestroyTexture(initialTextTexture);
+    SDL_DestroyTexture(waitingTextTexture);
     TTF_CloseFont(font);
 }
-
 
 
 
