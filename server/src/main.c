@@ -29,7 +29,7 @@ typedef struct game Game;
 int initiate(Game *pGame);
 void run(Game *pGame);
 void close(Game *pGame);
-void processClientData(Game *pGame, ClientData *data, IPaddress clientAddr);
+bool processClientData(Game *pGame, ClientData *data, IPaddress clientAddr);
 void updatePlayerState(Game *pGame, ClientData *data, IPaddress clientAddr);
 void broadcastGameState(Game *pGame);
 void updateGameState(Game *pGame);
@@ -143,64 +143,39 @@ int initiate(Game *pGame) {
 
 void run(Game *pGame) {
     printf("Server is running. Waiting for at least 2 clients to connect...\n");
-
     bool running = true;
     SDL_Event event;
 
-    // Initial loop to wait for enough clients to connect
     while (running && pGame->nrOfClients < 2) {
         while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT || (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE)) {
-                printf("Shutdown command received. Exiting...\n");
-                running = false; // Exit the loop
+            if (event.type == SDL_QUIT) {
+                running = false;
             }
         }
 
         if (SDLNet_UDP_Recv(pGame->pSocket, pGame->pPacket)) {
-            printf("Received packet from %x %hu\n", pGame->pPacket->address.host, pGame->pPacket->address.port);
             ClientData receivedData;
             memcpy(&receivedData, pGame->pPacket->data, sizeof(ClientData));
-            processClientData(pGame, &receivedData, pGame->pPacket->address);
-        } else {
-            printf("No packets received. Waiting...\n");
-        }
-
-        SDL_Delay(10);  // Reduce CPU usage
-    }
-
-    // If we have enough clients, start the game logic
-    if (running && pGame->nrOfClients >= 2) {
-        printf("Minimum number of clients connected. Game can start now.\n");
-        broadcastGameState(pGame);  // Notify clients that the game is starting
-
-        while (running) {
-            while (SDL_PollEvent(&event)) {
-                if (event.type == SDL_QUIT || (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE)) {
-                    printf("Shutdown command received. Exiting...\n");
-                    running = false; // Exit the loop
+            if (processClientData(pGame, &receivedData, pGame->pPacket->address)) {
+                if (pGame->nrOfClients == 2) {
+                    broadcastGameStart(pGame);
+                    break;  // Exit waiting loop and proceed to game logic
                 }
             }
-
-            if (SDLNet_UDP_Recv(pGame->pSocket, pGame->pPacket)) {
-                printf("Game logic processing packet from %x %hu\n",
-                       pGame->pPacket->address.host, pGame->pPacket->address.port);
-                ClientData receivedData;
-                memcpy(&receivedData, pGame->pPacket->data, sizeof(ClientData));
-                processClientData(pGame, &receivedData, pGame->pPacket->address);
-            }
-
-            SDL_Delay(16);  // Match frame delay, roughly 60 FPS
         }
     }
 
-    printf("Server shutting down...\n");
+    // Game logic loop
+    while (running) {
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) {
+                running = false;
+            }
+        }
+
+        // Additional game logic and state management
+    }
 }
-
-
-
-
-
-
 
 
 void close(Game *pGame) {
@@ -211,27 +186,23 @@ void close(Game *pGame) {
 }
 
 
-void processClientData(Game *pGame, ClientData *data, IPaddress clientAddr) {
-    // Check if this client is already added
-    bool clientExists = false;
+bool processClientData(Game *pGame, ClientData *data, IPaddress clientAddr) {
     for (int i = 0; i < pGame->nrOfClients; i++) {
         if (SDLNet_Read32(&clientAddr.host) == SDLNet_Read32(&pGame->clients[i].host) &&
             clientAddr.port == pGame->clients[i].port) {
-            clientExists = true;
-            break;
+            return false; // Client already exists
         }
     }
 
-    // If new client, add to list
-    if (!clientExists && pGame->nrOfClients < MAX_PLAYERS) {
-        pGame->clients[pGame->nrOfClients] = clientAddr;
-        pGame->nrOfClients++;
-        printf("New client added. Total clients: %d\n", pGame->nrOfClients);
+    // Add new client
+    if (pGame->nrOfClients < MAX_PLAYERS) {
+        pGame->clients[pGame->nrOfClients++] = clientAddr;
+        printf("New client connected. Total clients: %d\n", pGame->nrOfClients);
+        return true; // New client added
     }
-
-    // Update player state based on command
-    updatePlayerState(pGame, data, clientAddr);
+    return false;
 }
+
 
 
 void updatePlayerState(Game *pGame, ClientData *data, IPaddress clientAddr) {
@@ -254,9 +225,10 @@ void broadcastGameStart(Game *pGame) {
     memcpy(pGame->pPacket->data, startMsg, strlen(startMsg) + 1);
     pGame->pPacket->len = strlen(startMsg) + 1;
 
-    for (int i = 0; i < pGame->nrOfClients; ++i) {
+    for (int i = 0; i < pGame->nrOfClients; i++) {
         pGame->pPacket->address = pGame->clients[i];
         SDLNet_UDP_Send(pGame->pSocket, -1, pGame->pPacket);
+        printf("Game start message sent to client %d\n", i + 1);
     }
 }
 

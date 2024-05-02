@@ -39,7 +39,7 @@ void renderPlayer(SDL_Renderer *renderer, Player *player);
 void setupPlayerClips(Player *player);
 void renderPlayers(Game *pGame);
 void receiveData(Game *pGame);
-void handlePlayerInput(Game *pGame, SDL_Event e, Player *player);
+void handlePlayerInput(Game *pGame, SDL_Event e);
 void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, int type, Obstacle obstacles[], int numObstacles);
 void sendPlayerMovement(Game *pGame, Player *player);
 void updateFrame(int *frame, PlayerRole role, int frame1, int frame2);
@@ -256,31 +256,39 @@ void renderPlayers(Game *pGame) {
 
 void receiveData(Game *pGame) {
     if (SDLNet_UDP_Recv(pGame->udpSocket, pGame->packet)) {
-        printf("Received data: %s\n", (char*) pGame->packet->data);
-        if (strcmp((char*) pGame->packet->data, "Game Start") == 0) {
-            // Start the game only if the 'Game Start' message is received
+        printf("Received data: %s\n", (char*)pGame->packet->data);
+        if (strcmp((char*)pGame->packet->data, "Game Start") == 0) {
+            printf("Game has started!\n");
+            pGame->state = GAME_ONGOING;
+            // Load game elements like background and sprites here
             startGame(pGame);
         }
     }
 }
 
-void handlePlayerInput(Game *pGame, SDL_Event e, Player *player) {
-    int deltaX = 0, deltaY = 0;
-    bool moved = false;
 
-    switch (e.key.keysym.sym) {
-        case SDLK_w: deltaY -= 8; moved = true; break;
-        case SDLK_s: deltaY += 8; moved = true; break;
-        case SDLK_a: deltaX -= 8; moved = true; break;
-        case SDLK_d: deltaX += 8; moved = true; break;
-    }
+void handlePlayerInput(Game *pGame, SDL_Event e) {
+    for (int i = 0; i < MAX_PLAYERS; i++) {
+        if (pGame->players[i].isActive) {
+            int deltaX = 0, deltaY = 0;
+            bool moved = false;
 
-    if (moved) {
-        moveCharacter(&player->position, deltaX, deltaY, player->type, obstacles, NUM_OBSTACLES);
-        updateFrame(&player->currentFrame, player->type, 2, 3);
-        sendPlayerMovement(pGame, player);
+            switch (e.key.keysym.sym) {
+                case SDLK_w: deltaY -= 8; moved = true; break;
+                case SDLK_s: deltaY += 8; moved = true; break;
+                case SDLK_a: deltaX -= 8; moved = true; break;
+                case SDLK_d: deltaX += 8; moved = true; break;
+            }
+
+            if (moved) {
+                moveCharacter(&pGame->players[i].position, deltaX, deltaY, pGame->players[i].type, obstacles, NUM_OBSTACLES);
+                updateFrame(&pGame->players[i].currentFrame, pGame->players[i].type, 2, 3);
+                sendPlayerMovement(pGame, &pGame->players[i]);
+            }
+        }
     }
 }
+
 
 // Function to move character with collision checking
 void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, int type, Obstacle obstacles[], int numObstacles) {
@@ -335,24 +343,36 @@ bool checkCollision(SDL_Rect a, SDL_Rect b) {
 
 void startGame(Game *pGame) {
     printf("Game starting!\n");
+    pGame->state = GAME_ONGOING; // Set game state to ongoing
+
+    // Ensure all players are properly initialized and set as active
+    for (int i = 0; i < MAX_PLAYERS; i++) {
+        pGame->players[i].isActive = true; // Ensure all players are active at start
+        setupPlayerClips(&pGame->players[i]); // Setup sprite clips if not already done
+    }
+
     bool running = true;
     SDL_Event e;
+
+    // Game loop
     while (running) {
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) {
-                running = false;
+                running = false; // Exit the loop if window is closed
             } else if (e.type == SDL_KEYDOWN) {
-                for (int i = 0; i < MAX_PLAYERS; i++) {
-                    if (pGame->players[i].isActive) {
-                        handlePlayerInput(pGame, e, &pGame->players[i]);
-                    }
-                }
+                handlePlayerInput(pGame, e); // Handle player inputs for all players
             }
         }
+
+        // Update game state here if necessary, such as moving NPCs or handling game logic
+
+        // Render the game state
         SDL_RenderClear(pGame->pRenderer);
-        SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
-        renderPlayers(pGame);
+        SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL); // Draw the background
+        renderPlayers(pGame); // Draw all players
         SDL_RenderPresent(pGame->pRenderer);
-        SDL_Delay(16);
+
+        SDL_Delay(16); // Delay to cap frame rate at about 60 fps
     }
 }
+
