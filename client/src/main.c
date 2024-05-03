@@ -263,20 +263,21 @@ void renderPlayers(Game *pGame) {
 
 void receiveData(Game *pGame) {
     while (SDLNet_UDP_Recv(pGame->udpSocket, pGame->packet)) {
+        ServerData *srvData = (ServerData *)pGame->packet->data;
         printf("Data received: %s\n", (char*)pGame->packet->data);
 
-        // Check for the specific game start message from the server
-        if (strcmp((char*)pGame->packet->data, "Game Start") == 0) {
+        // Handle different server messages
+        if (srvData->state == GAME_ONGOING) {
+            pGame->state = GAME_ONGOING;
+            // Update only the client's player data
+            pGame->players[0].position.x = srvData->players[pGame->players[0].playerId].x;
+            pGame->players[0].position.y = srvData->players[pGame->players[0].playerId].y;
+        } else if (strcmp((char*)pGame->packet->data, "Game Start") == 0) {
             printf("Received 'Game Start' message from server.\n");
-            pGame->state = GAME_ONGOING;  // Transition to GAME_ONGOING
             startGame(pGame);
         }
     }
 }
-
-
-
-
 
 void handlePlayerInput(Game *pGame, SDL_Event e) {
     for (int i = 0; i < MAX_PLAYERS; i++) {

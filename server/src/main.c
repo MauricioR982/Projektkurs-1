@@ -35,6 +35,7 @@ void updatePlayerState(Game *pGame, ClientData *data, IPaddress clientAddr);
 void broadcastGameState(Game *pGame);
 void updateGameState(Game *pGame);
 void broadcastGameStart(Game *pGame);
+void renderGameState(Game *pGame);
 
 
 int main(int argv, char** args){
@@ -210,6 +211,7 @@ void run(Game *pGame) {
 
             // Game logic goes here
             broadcastGameState(pGame);  // This function should manage and send game state updates
+            renderGameState(pGame);
             SDL_Delay(16);  // Approximate frame delay for ~60 FPS
         }
     }
@@ -316,4 +318,20 @@ void broadcastGameState(Game *pGame) {
         pGame->pPacket->address = pGame->clients[i];
         SDLNet_UDP_Send(pGame->pSocket, -1, pGame->pPacket);
     }
+}
+
+void renderGameState(Game *pGame) {
+    SDL_SetRenderDrawColor(pGame->pRenderer, 0, 0, 0, 255);  // Set background to black
+    SDL_RenderClear(pGame->pRenderer);
+
+    // Render each player
+    for (int i = 0; i < MAX_PLAYERS; i++) {
+        if (pGame->clientReady[i]) {  // Only draw players that are connected and ready
+            SDL_Rect playerRect = {pGame->sData.players[i].x, pGame->sData.players[i].y, 32, 32};
+            SDL_SetRenderDrawColor(pGame->pRenderer, 255, 0, 0, 255);  // Set color to red for visualization
+            SDL_RenderFillRect(pGame->pRenderer, &playerRect);
+        }
+    }
+
+    SDL_RenderPresent(pGame->pRenderer);
 }
