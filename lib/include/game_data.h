@@ -15,7 +15,8 @@
 // Enumerations for different game states
 typedef enum {
     GAME_WAITING, // Waiting for players to be ready
-    GAME_READY,   // Player has signaled readiness
+    GAME_READY, // Player has signaled readiness
+    GAME_START,  //Start the game
     GAME_ONGOING, // Game is in progress
     GAME_OVER     // Game has ended
 } GameState;

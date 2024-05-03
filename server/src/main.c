@@ -21,6 +21,7 @@ struct game {
 	UDPpacket *pPacket;
     IPaddress clients[MAX_PLAYERS];
     int nrOfClients;
+    bool clientReady[MAX_PLAYERS];  // Array to track readiness of each client
     ServerData sData;
 
 };
@@ -89,6 +90,12 @@ int initiate(Game *pGame) {
         return 0;
     }
 
+    // Initialize client readiness states
+    for (int i = 0; i < MAX_PLAYERS; i++) {
+        pGame->clientReady[i] = false;
+    }
+
+
     // Create SDL Window and Renderer
     pGame->pWindow = SDL_CreateWindow("Game Server", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1280, 720, 0);
     if (!pGame->pWindow) {
@@ -142,38 +149,58 @@ int initiate(Game *pGame) {
 
 
 void run(Game *pGame) {
-    printf("Server is running. Waiting for clients...\n");
     bool running = true;
     SDL_Event event;
-    int readyClients = 0;  // Tracks how many clients are ready to start the game
-
-    while (running && pGame->nrOfClients < 2) {
+    while (running) {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
                 running = false;
             }
         }
 
+        // Listen for incoming packets
         if (SDLNet_UDP_Recv(pGame->pSocket, pGame->pPacket)) {
             ClientData receivedData;
             memcpy(&receivedData, pGame->pPacket->data, sizeof(ClientData));
+            printf("Received data from a client...\n");
 
             if (receivedData.command == CMD_READY) {
+                // Process data and check if the client is now ready
                 if (processClientData(pGame, &receivedData, pGame->pPacket->address)) {
-                    readyClients++;
-                    printf("Client %d is ready. Total ready: %d\n", receivedData.playerNumber, readyClients);
-                    if (readyClients >= 2) {
-                        broadcastGameStart(pGame);
-                        break;  // Break out of the waiting loop
+                    // Display readiness state for all clients
+                    printf("Current client states:\n");
+                    for (int i = 0; i < pGame->nrOfClients; i++) {
+                        printf("Client %d: %s\n", i + 1, pGame->clientReady[i] ? "Ready" : "Not Ready");
+                    }
+
+                    // Check if all clients are ready
+                    bool allReady = true;
+                    if (pGame->nrOfClients == MAX_PLAYERS) {
+                        for (int i = 0; i < pGame->nrOfClients; i++) {
+                            if (!pGame->clientReady[i]) {
+                                allReady = false;
+                                break;
+                            }
+                        }
+
+                        // Check if all connected clients are ready and the maximum number of players has been reached
+                        if (allReady && pGame->nrOfClients == MAX_PLAYERS) {
+                            printf("All clients are ready. Starting the game...\n");
+                            broadcastGameStart(pGame);
+                            break;  // Exit the waiting loop
+                        }
+                    } else {
+                        printf("Waiting for all clients to connect and signal readiness...\n");
                     }
                 }
             }
+        } else {
+            //printf("No data received...\n");
         }
     }
 
-    // Start the main game loop
-    if (running && readyClients >= 2) {
-        printf("All clients are ready. Starting the game...\n");
+    // Main game loop
+    if (running) {
         while (running) {
             while (SDL_PollEvent(&event)) {
                 if (event.type == SDL_QUIT) {
@@ -189,6 +216,9 @@ void run(Game *pGame) {
 }
 
 
+
+
+
 void close(Game *pGame) {
     if (pGame->pPacket) SDLNet_FreePacket(pGame->pPacket);
     if (pGame->pSocket) SDLNet_UDP_Close(pGame->pSocket);
@@ -198,21 +228,33 @@ void close(Game *pGame) {
 
 
 bool processClientData(Game *pGame, ClientData *data, IPaddress clientAddr) {
+    int clientIndex = -1;
+    // Check if this client is already connected
     for (int i = 0; i < pGame->nrOfClients; i++) {
         if (SDLNet_Read32(&clientAddr.host) == SDLNet_Read32(&pGame->clients[i].host) &&
             clientAddr.port == pGame->clients[i].port) {
-            return false; // Client already exists
+            clientIndex = i;
+            break;
         }
     }
 
-    // Add new client
-    if (pGame->nrOfClients < MAX_PLAYERS) {
-        pGame->clients[pGame->nrOfClients++] = clientAddr;
+    // Add new client if not already connected
+    if (clientIndex == -1 && pGame->nrOfClients < MAX_PLAYERS) {
+        clientIndex = pGame->nrOfClients;
+        pGame->clients[clientIndex] = clientAddr;
+        pGame->nrOfClients++;
         printf("New client connected. Total clients: %d\n", pGame->nrOfClients);
-        return true; // New client added
+    }
+
+    // Update client readiness state
+    if (clientIndex != -1 && data->command == CMD_READY) {
+        pGame->clientReady[clientIndex] = true;
+        printf("Client %d is ready. \n", clientIndex + 1);
+        return true; // Client was updated
     }
     return false;
 }
+
 
 
 
@@ -236,12 +278,15 @@ void broadcastGameStart(Game *pGame) {
     memcpy(pGame->pPacket->data, startMsg, strlen(startMsg) + 1);
     pGame->pPacket->len = strlen(startMsg) + 1;
 
+    pGame->sData.state = GAME_ONGOING;  // Update the game state to ongoing
+
     for (int i = 0; i < pGame->nrOfClients; i++) {
         pGame->pPacket->address = pGame->clients[i];
         SDLNet_UDP_Send(pGame->pSocket, -1, pGame->pPacket);
         printf("Game start message sent to client %d\n", i + 1);
     }
 }
+
 
 
 void broadcastGameState(Game *pGame) {

@@ -104,12 +104,24 @@ int initiate(Game *pGame) {
         SDL_Quit();
         return 0;
     }
-    if (SDLNet_ResolveHost(&pGame->serverAddress, "127.0.0.1", SERVER_PORT) != 0) {
-        SDLNet_Quit();
-        TTF_Quit();
-        SDL_Quit();
-        return 0;
+    if (SDLNet_ResolveHost(&pGame->serverAddress, "127.0.0.1", SERVER_PORT) == -1) {
+        fprintf(stderr, "SDLNet_ResolveHost: %s\n", SDLNet_GetError());
+        exit(EXIT_FAILURE);
     }
+
+    pGame->packet->address.host = pGame->serverAddress.host; // Important: Ensure the packet knows where to go
+    pGame->packet->address.port = pGame->serverAddress.port; // Important: Ensure the packet knows where to go
+
+    // Prepare the packet to send
+    ClientData data = {CMD_READY, -1};  // Your actual player ID should replace -1
+    memcpy(pGame->packet->data, &data, sizeof(ClientData));
+    pGame->packet->len = sizeof(ClientData);
+
+    // Send the packet
+    if (SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet) == 0) {
+        fprintf(stderr, "SDLNet_UDP_Send: %s\n", SDLNet_GetError());
+    }
+
 
     // Initialize players
     for (int i = 0; i < MAX_PLAYERS; i++) {
@@ -121,7 +133,6 @@ int initiate(Game *pGame) {
 
     // Set initial game state
     pGame->state = GAME_WAITING;
-
     return 1;
 }
 
@@ -150,33 +161,30 @@ void run(Game *pGame) {
             if (e.type == SDL_QUIT) {
                 running = false;
             } else if (e.type == SDL_KEYDOWN) {
-                switch (e.key.keysym.sym) {
-                    case SDLK_SPACE:
-                        if (pGame->state == GAME_WAITING) {
-                            pGame->state = GAME_READY;
-                            ClientData data = {CMD_READY, -1};  // Set up data for ready signal
-                            memcpy(pGame->packet->data, &data, sizeof(ClientData));
-                            pGame->packet->len = sizeof(ClientData);
-                            SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet);
-                        }
-                        break;
+                if (e.key.keysym.sym == SDLK_SPACE && pGame->state == GAME_WAITING) {
+                    pGame->state = GAME_READY;
+                    ClientData data = {CMD_READY, -1};
+                    memcpy(pGame->packet->data, &data, sizeof(ClientData));
+                    pGame->packet->len = sizeof(ClientData);
+                    if (SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet) < 1) {
+                        fprintf(stderr, "Failed to send packet: %s\n", SDLNet_GetError());
+                    } else {
+                        printf("Packet sent. Length: %d\n", pGame->packet->len);
+                    }
+
                 }
             }
         }
 
         // Listen for server commands
-        if (SDLNet_UDP_Recv(pGame->udpSocket, pGame->packet)) {
-            char* receivedData = (char*)pGame->packet->data;
-            if (strcmp(receivedData, "Game Start") == 0) {
-                pGame->state = GAME_ONGOING;
-            }
+        if (pGame->state == GAME_READY || pGame->state == GAME_ONGOING) {
+            receiveData(pGame); // This function must be polled frequently.
         }
-        receiveData(pGame); // This function must be polled frequently.
 
         // Rendering based on game state
         SDL_RenderClear(pGame->pRenderer);
         if (pGame->state == GAME_ONGOING) {
-            renderPlayers(pGame);
+            renderPlayers(pGame); // Render all active players
         } else if (pGame->state == GAME_READY) {
             SDL_RenderCopy(pGame->pRenderer, waitingTextTexture, NULL, &waitingTextRect);
         } else if (pGame->state == GAME_WAITING) {
@@ -191,6 +199,7 @@ void run(Game *pGame) {
     SDL_DestroyTexture(waitingTextTexture);
     TTF_CloseFont(font);
 }
+
 
 void close(Game *pGame) {
     if (pGame->packet) SDLNet_FreePacket(pGame->packet);
@@ -258,11 +267,13 @@ void receiveData(Game *pGame) {
 
         if (strcmp((char*)pGame->packet->data, "Game Start") == 0) {
             printf("Received 'Game Start' message from server.\n");
-            pGame->state = GAME_ONGOING;
+            pGame->state = GAME_ONGOING;  // Only transition to GAME_ONGOING when this message is received
             startGame(pGame);
         }
     }
 }
+
+
 
 
 void handlePlayerInput(Game *pGame, SDL_Event e) {
@@ -317,6 +328,7 @@ void sendPlayerMovement(Game *pGame, Player *player) {
     pGame->packet->address = pGame->serverAddress;  // Make sure this is set correctly each time
 
     if (SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet) < 1) {
+        printf("Trying to send data to server...\n");
         fprintf(stderr, "Failed to send packet: %s\n", SDLNet_GetError());
     } else {
         printf("Packet sent to server: Player %d at (%d, %d)\n", move.playerId, move.x, move.y);
