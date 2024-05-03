@@ -256,7 +256,7 @@ void setupPlayerClips(Player *player) {
 }
 
 void renderPlayers(Game *pGame) {
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 2; i++) {
         renderPlayer(pGame->pRenderer, &pGame->players[i]);
     }
 }
@@ -265,13 +265,15 @@ void receiveData(Game *pGame) {
     while (SDLNet_UDP_Recv(pGame->udpSocket, pGame->packet)) {
         printf("Data received: %s\n", (char*)pGame->packet->data);
 
+        // Check for the specific game start message from the server
         if (strcmp((char*)pGame->packet->data, "Game Start") == 0) {
             printf("Received 'Game Start' message from server.\n");
-            pGame->state = GAME_ONGOING;  // Only transition to GAME_ONGOING when this message is received
+            pGame->state = GAME_ONGOING;  // Transition to GAME_ONGOING
             startGame(pGame);
         }
     }
 }
+
 
 
 

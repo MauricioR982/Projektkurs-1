@@ -249,11 +249,27 @@ bool processClientData(Game *pGame, ClientData *data, IPaddress clientAddr) {
     // Update client readiness state
     if (clientIndex != -1 && data->command == CMD_READY) {
         pGame->clientReady[clientIndex] = true;
-        printf("Client %d is ready. \n", clientIndex + 1);
+        printf("Client %d is ready.\n", clientIndex + 1);
+
+        // Check if all clients are ready
+        bool allReady = true;
+        for (int i = 0; i < MAX_PLAYERS; i++) {
+            if (!pGame->clientReady[i]) {
+                allReady = false;
+                break;
+            }
+        }
+
+        if (allReady && pGame->nrOfClients == MAX_PLAYERS) {
+            printf("All clients are ready. Starting the game...\n");
+            broadcastGameStart(pGame);
+        }
+        
         return true; // Client was updated
     }
     return false;
 }
+
 
 
 
@@ -286,7 +302,6 @@ void broadcastGameStart(Game *pGame) {
         printf("Game start message sent to client %d\n", i + 1);
     }
 }
-
 
 
 void broadcastGameState(Game *pGame) {
