@@ -272,10 +272,6 @@ bool processClientData(Game *pGame, ClientData *data, IPaddress clientAddr) {
     return false;
 }
 
-
-
-
-
 void updatePlayerState(Game *pGame, ClientData *data, IPaddress clientAddr) {
     // Find the player associated with this IP and update their state
     for (int i = 0; i < pGame->nrOfClients; ++i) {
