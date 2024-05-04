@@ -16,16 +16,18 @@
 struct game {
     SDL_Window *pWindow;
     SDL_Renderer *pRenderer;
+    SDL_Texture *backgroundTexture;  // Add this line for background texture
+    Player players[MAX_PLAYERS];
     int nrOfPlayers;
     UDPsocket pSocket;
-	UDPpacket *pPacket;
+    UDPpacket *pPacket;
     IPaddress clients[MAX_PLAYERS];
     int nrOfClients;
-    bool clientReady[MAX_PLAYERS];  // Array to track readiness of each client
+    bool clientReady[MAX_PLAYERS];
     ServerData sData;
-
 };
 typedef struct game Game;
+
 
 int initiate(Game *pGame);
 void run(Game *pGame);
@@ -36,6 +38,7 @@ void broadcastGameState(Game *pGame);
 void updateGameState(Game *pGame);
 void broadcastGameStart(Game *pGame);
 void renderGameState(Game *pGame);
+int loadGameResources(SDL_Renderer *renderer, Game *pGame);
 
 
 int main(int argv, char** args){
@@ -144,6 +147,14 @@ int initiate(Game *pGame) {
     SDL_DestroyTexture(textTexture);
     SDL_FreeSurface(textSurface);
     TTF_CloseFont(font);
+
+    if (!loadGameResources(pGame->pRenderer, pGame)) {
+        SDL_DestroyRenderer(pGame->pRenderer);
+        SDL_DestroyWindow(pGame->pWindow);
+        TTF_Quit();
+        SDL_Quit();
+        return 0;
+    }
 
     return 1; // Initialization successful
 }
@@ -317,17 +328,36 @@ void broadcastGameState(Game *pGame) {
 }
 
 void renderGameState(Game *pGame) {
-    SDL_SetRenderDrawColor(pGame->pRenderer, 0, 0, 0, 255);  // Set background to black
+    SDL_SetRenderDrawColor(pGame->pRenderer, 0, 0, 0, 255);  // Black background
     SDL_RenderClear(pGame->pRenderer);
+
+    // Render the background first
+    if (pGame->backgroundTexture) {
+        SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
+    }
 
     // Render each player
     for (int i = 0; i < MAX_PLAYERS; i++) {
         if (pGame->clientReady[i]) {  // Only draw players that are connected and ready
             SDL_Rect playerRect = {pGame->sData.players[i].x, pGame->sData.players[i].y, 32, 32};
-            SDL_SetRenderDrawColor(pGame->pRenderer, 255, 0, 0, 255);  // Set color to red for visualization
+            SDL_SetRenderDrawColor(pGame->pRenderer, 255, 0, 0, 255);  // Players in red for visualization
             SDL_RenderFillRect(pGame->pRenderer, &playerRect);
         }
     }
 
     SDL_RenderPresent(pGame->pRenderer);
+}
+
+
+int loadGameResources(SDL_Renderer *renderer, Game *pGame) {
+    // Load the map background
+    SDL_Surface *bgSurface = IMG_Load("../lib/resources/Map.png");
+    if (!bgSurface) {
+        fprintf(stderr, "Failed to load background image: %s\n", IMG_GetError());
+        return 0;
+    }
+    pGame->backgroundTexture = SDL_CreateTextureFromSurface(renderer, bgSurface);
+    SDL_FreeSurface(bgSurface);
+
+    return 1;  // Add more resource loading here if necessary
 }
