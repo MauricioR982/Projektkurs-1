@@ -247,7 +247,26 @@ void add(IPaddress address, IPaddress client[] , int *pNrOfClents){
 }
 
 void executeCommand(Game *pGame, ClientData cData){
+    int deltaX = 0, deltaY = 0;
+    switch (cData.command)
+    {
+    case CMD_UP:
+        deltaY -= 8;
+        break;
+    case CMD_DOWN:
+        deltaY += 8;
+        break;
+    case CMD_LEFT:
+        deltaX -= 8;
+        break;
+    case CMD_RIGHT:
+        deltaX += 8;
+        break;
+    
+    }
 
+    moveCharacter(&pGame->players[cData.playerNumber].position, deltaX, deltaY, pGame->players[cData.playerNumber].type, obstacles, NUM_OBSTACLES);
+    updateFrame(&pGame->players[cData.playerNumber].currentFrame, pGame->players[cData.playerNumber].type, 2, 3);
 
 }
 

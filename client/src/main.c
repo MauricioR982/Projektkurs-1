@@ -303,24 +303,30 @@ void handlePlayerInput(Game *pGame, SDL_Event *pEvent) {
         {
         case SDL_SCANCODE_W:
         case SDL_SCANCODE_UP:
-            deltaY -= 8; 
+            deltaY -= 8;
+            cData.command = CMD_UP; 
             break;
         case SDL_SCANCODE_S:
         case SDL_SCANCODE_DOWN:
             deltaY += 8;
+            cData.command = CMD_DOWN; 
             break;
         case SDL_SCANCODE_A:
         case SDL_SCANCODE_LEFT:
             deltaX -= 8;
+            cData.command = CMD_LEFT; 
             break;
         case SDL_SCANCODE_D:
         case SDL_SCANCODE_RIGHT:
             deltaX += 8;
+            cData.command = CMD_RIGHT; 
             break;
         }
         moveCharacter(&pGame->players[pGame->playerNr].position, deltaX, deltaY, pGame->players[pGame->playerNr].type, obstacles, NUM_OBSTACLES);
         updateFrame(&pGame->players[pGame->playerNr].currentFrame, pGame->players[pGame->playerNr].type, 2, 3);
-        sendPlayerMovement(pGame, &pGame->players[pGame->playerNr]);
+        memcpy(pGame->packet->data, &cData, sizeof(ClientData));
+        pGame->packet->len = sizeof(ClientData);
+        SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet);
     }
     
     /*for (int i = 0; i < MAX_PLAYERS; i++) {
