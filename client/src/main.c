@@ -81,7 +81,7 @@ int initiate(Game *pGame) {
     }
 
     // Text for initial prompt
-    SDL_Surface* initialSurface = TTF_RenderText_Solid(font, "Press space to connect to the server", textColor);
+    SDL_Surface* initialSurface = TTF_RenderText_Solid(pGame->font, "Press space to connect to the server", textColor);
     pGame->initialTextTexture = SDL_CreateTextureFromSurface(pGame->pRenderer, initialSurface);
     SDL_Rect initialTextRect = {50, 50, initialSurface->w, initialSurface->h};
     SDL_FreeSurface(initialSurface);
@@ -187,14 +187,14 @@ void run(Game *pGame) {
         } else if (pGame->state == GAME_READY) {
             SDL_RenderCopy(pGame->pRenderer, waitingTextTexture, NULL, &waitingTextRect);
         } else if (pGame->state == GAME_WAITING) {
-            SDL_RenderCopy(pGame->pRenderer, initialTextTexture, NULL, &initialTextRect);
+            SDL_RenderCopy(pGame->pRenderer, pGame->initialTextTexture, NULL, &initialTextRect);
         }
         SDL_RenderPresent(pGame->pRenderer);
         SDL_Delay(16); // simulate frame update roughly every 16ms (about 60fps)
     }
 
     // Clean up resources
-    SDL_DestroyTexture(initialTextTexture);
+    SDL_DestroyTexture(pGame->initialTextTexture);
     SDL_DestroyTexture(waitingTextTexture);
     TTF_CloseFont(font);
 }
