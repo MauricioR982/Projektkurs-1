@@ -20,6 +20,7 @@ typedef struct {
     SDL_Window *pWindow;
     SDL_Renderer *pRenderer;
     Player players[MAX_PLAYERS];
+    int playerNr;
     SDL_Texture *backgroundTexture, *hunterTexture, *sprinterTexture, *initialTextTexture;
     UDPsocket udpSocket;
     UDPpacket *packet;
@@ -40,7 +41,7 @@ void renderPlayer(SDL_Renderer *renderer, Player *player);
 void setupPlayerClips(Player *player);
 void renderPlayers(Game *pGame);
 void receiveData(Game *pGame);
-void handlePlayerInput(Game *pGame, SDL_Event e);
+void handlePlayerInput(Game *pGame, SDL_Event *pEvent);
 void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, int type, Obstacle obstacles[], int numObstacles);
 void sendPlayerMovement(Game *pGame, Player *player);
 void updateFrame(int *frame, PlayerRole role, int frame1, int frame2);
@@ -278,8 +279,37 @@ void receiveData(Game *pGame) {
     }
 }
 
-void handlePlayerInput(Game *pGame, SDL_Event e) {
-    for (int i = 0; i < MAX_PLAYERS; i++) {
+void handlePlayerInput(Game *pGame, SDL_Event *pEvent) {
+    int deltaX = 0, deltaY = 0;
+    if (pEvent->type == SDL_KEYDOWN)
+    {
+        ClientData cData;
+        cData.playerNumber = pGame->playerNr;
+        switch (pEvent->key.keysym.scancode)
+        {
+        case SDL_SCANCODE_W:
+        case SDL_SCANCODE_UP:
+            deltaY -= 8; 
+            break;
+        case SDL_SCANCODE_S:
+        case SDL_SCANCODE_DOWN:
+            deltaY += 8;
+            break;
+        case SDL_SCANCODE_A:
+        case SDL_SCANCODE_LEFT:
+            deltaX -= 8;
+            break;
+        case SDL_SCANCODE_D:
+        case SDL_SCANCODE_RIGHT:
+            deltaX += 8;
+            break;
+        }
+        moveCharacter(&pGame->players[pGame->playerNr].position, deltaX, deltaY, pGame->players[pGame->playerNr].type, obstacles, NUM_OBSTACLES);
+        updateFrame(&pGame->players[pGame->playerNr].currentFrame, pGame->players[pGame->playerNr].type, 2, 3);
+        sendPlayerMovement(pGame, &pGame->players[pGame->playerNr]);
+    }
+    
+    /*for (int i = 0; i < MAX_PLAYERS; i++) {
         if (pGame->players[i].isActive) {
             int deltaX = 0, deltaY = 0;
             bool moved = false;
@@ -297,7 +327,7 @@ void handlePlayerInput(Game *pGame, SDL_Event e) {
                 sendPlayerMovement(pGame, &pGame->players[i]);
             }
         }
-    }
+    }*/
 }
 
 
@@ -372,7 +402,7 @@ void startGame(Game *pGame) {
             if (e.type == SDL_QUIT) {
                 running = false; // Exit the loop if window is closed
             } else if (e.type == SDL_KEYDOWN) {
-                handlePlayerInput(pGame, e); // Handle player inputs for all players
+                handlePlayerInput(pGame, &e); // Handle player inputs for all players
             }
         }
 
@@ -391,5 +421,13 @@ void startGame(Game *pGame) {
 void updateWithServerData(Game *pGAme){
     ServerData sData;
     memcpy(&sData, pGAme->packet->data, sizeof(ServerData));
+    pGAme->playerNr = sData.playerNr;
     pGAme->state = sData.state;
+    for (int i = 0; i < MAX_PLAYERS; i++)
+    {
+        //updatePlayerWithRecivedData(pGame->pPlyer[i], &(sData.players[i]));
+        // pGame-> pPlayer[i].x =pGame->sData.players[i].x;
+       // pGame-> pPlayer[i].y =pGame->sData.players[i].y;
+    }
+    
 }
