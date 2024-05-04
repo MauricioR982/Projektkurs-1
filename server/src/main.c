@@ -84,7 +84,7 @@ int initiate(Game *pGame) {
     }
  
     // Create Window and Renderer
-    pGame->pWindow = SDL_CreateWindow("Game Client", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
+    pGame->pWindow = SDL_CreateWindow("Game Sever", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
     pGame->pRenderer = SDL_CreateRenderer(pGame->pWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (!pGame->pWindow || !pGame->pRenderer) {
         TTF_Quit();
@@ -123,7 +123,7 @@ int initiate(Game *pGame) {
         return 0;
     }
     
-    pGame->pWaitingText = createText(pGame->pRenderer, 255, 255, 255, pGame->pFont,  "Waitin for sever ......", 750,WINDOW_HEIGHT-75);
+    pGame->pWaitingText = createText(pGame->pRenderer, 255, 255, 255, pGame->pFont,  "Waitin for clienters ......", 750,WINDOW_HEIGHT-75);
     if (!pGame->pWaitingText)
     {
         printf("WainErorr creating text: %s\n", SDL_GetError());
@@ -182,13 +182,29 @@ void setUpGame(Game *pGame){
     pGame->state = GAME_ONGOING;
 }
 void add(IPaddress address, IPaddress client[] , int *pNrOfClents){
-    for (int  i = 0; i < *pNrOfClents; i++)
-    {
-        if(address.host == client[i].host && address.port == client[i].port) return;
-    }
+     printf("Adding player\n");
 
-    client[*pNrOfClents] = address;
-    (*pNrOfClents);
+    if ((*pNrOfClents) >= MAX_PLAYERS)
+    {
+        printf("Abort adding player\n");
+    }
+    
+
+    for (size_t i = 0; i < (*pNrOfClents); i++)
+    {
+        if (client[i].host == address.host && client[i].port == address.port)
+        {
+            printf("Abort adding player\n");
+            return;
+        }
+    }
+    
+    client[(*pNrOfClents)] = address;
+    printf("\n\n%d\n\n",address.host);
+    printf("\n\n%d\n\n",address.port);
+    (*pNrOfClents)++;
+    printf("\n\nnrOfClients: %d\n\n",(*pNrOfClents));
+    printf("Player added successfully\n");
     
 }
 
