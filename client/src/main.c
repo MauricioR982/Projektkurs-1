@@ -101,27 +101,24 @@ int initiate(Game *pGame) {
         return 0;
     }
 
-    // Network setup
-    pGame->udpSocket = SDLNet_UDP_Open(0);  // Open a socket on any available port
-    if (!pGame->udpSocket) {
-        TTF_Quit();
-        SDL_Quit();
-        return 0;
+    if (!(pGame->udpSocket = SDLNet_UDP_Open(0)))
+    {
+        printf("SDLNet_UDP_Open: %s\n", SDLNet_GetError());
+		return 0;
     }
-    pGame->packet = SDLNet_AllocPacket(512);  // Allocate a packet of size 512
-    if (!pGame->packet) {
-        SDLNet_Quit();
-        TTF_Quit();
-        SDL_Quit();
-        return 0;
+    if (SDLNet_ResolveHost(&(pGame->serverAddress), "127.0.0.1", 2000))
+    {
+        printf("SDLNet_ResolveHost(127.0.0.1 2000): %s\n", SDLNet_GetError());
+		return 0;
     }
-    if (SDLNet_ResolveHost(&pGame->serverAddress, "127.0.0.1", SERVER_PORT) == -1) {
-        fprintf(stderr, "SDLNet_ResolveHost: %s\n", SDLNet_GetError());
-        exit(EXIT_FAILURE);
+    if (!(pGame->packet = SDLNet_AllocPacket(512)))
+    {
+        printf("SDLNet_AllocPacket: %s\n", SDLNet_GetError());
+		return 0;
     }
-
-    pGame->packet->address.host = pGame->serverAddress.host; // Important: Ensure the packet knows where to go
-    pGame->packet->address.port = pGame->serverAddress.port; // Important: Ensure the packet knows where to go
+    pGame->packet->address.host = pGame->serverAddress.host;
+    pGame->packet->address.port = pGame->serverAddress.port;
+    
 
     pGame->pJoinText = createText(pGame->pRenderer, 255, 255, 255, pGame->pFont, "Press space to join server", 750,WINDOW_HEIGHT-75);
     if (!pGame->pJoinText)
@@ -152,9 +149,10 @@ int initiate(Game *pGame) {
 }
 
 void run(Game *pGame) {
-    bool running = true, joining = false;
+    bool running = true;
     SDL_Event e;
     ClientData cData;
+    int joining = 0;
 
     while (running) {
 
@@ -183,7 +181,7 @@ void run(Game *pGame) {
                 if (e.type == SDL_QUIT) running = false;
                 else if (!joining && e.type == SDL_KEYDOWN && e.key.keysym.scancode == SDL_SCANCODE_SPACE)
                 {
-                    joining = true;
+                    joining = 1;
                     cData.command = CMD_READY;
                     cData.playerNumber = -1;
                     memcpy(pGame->packet->data, &cData, sizeof(ClientData));

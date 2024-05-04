@@ -108,18 +108,16 @@ int initiate(Game *pGame) {
         return 0;
     }
 
-    // Network setup
-    pGame->udpSocket = SDLNet_UDP_Open(2000);  // Open a socket on any available port
-    if (!pGame->udpSocket) {
-        TTF_Quit();
-        SDL_Quit();
+    if (!(pGame->udpSocket = SDLNet_UDP_Open(2000)))
+    {
+        printf("SDLNet_UDP_Open: %s\n", SDLNet_GetError());
+		close(pGame);
         return 0;
     }
-    pGame->packet = SDLNet_AllocPacket(512);  // Allocate a packet of size 512
-    if (!pGame->packet) {
-        SDLNet_Quit();
-        TTF_Quit();
-        SDL_Quit();
+    if (!(pGame->packet = SDLNet_AllocPacket(512)))
+    {
+        printf("SDLNet_AllocPacket: %s\n", SDLNet_GetError());
+		close(pGame);
         return 0;
     }
     
@@ -169,6 +167,7 @@ void run(Game *pGame) {
             if(SDL_PollEvent(&e)) if (e.type == SDL_QUIT) running = false;
             if (SDLNet_UDP_Recv(pGame->udpSocket,pGame->packet)==1)
             {
+
                 add(pGame->packet->address, pGame->clients, &(pGame->nrOfClients));
                 if(pGame->nrOfClients == MAX_PLAYERS) setUpGame(pGame);
             }
