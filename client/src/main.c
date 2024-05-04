@@ -125,10 +125,10 @@ int initiate(Game *pGame) {
         close(pGame);
         return 0;
     }
-    pGame->pWaitingText = createText(pGame->pRenderer, 255, 255, 255, pGame->pFont,  "Waiting for server ......", 750,WINDOW_HEIGHT-75);
+    pGame->pWaitingText = createText(pGame->pRenderer, 255, 255, 255, pGame->pFont,  "Waitin for sever ......", 750,WINDOW_HEIGHT-75);
     if (!pGame->pWaitingText)
     {
-        printf("Waiting Error creating text: %s\n", SDL_GetError());
+        printf("WainErorr creating text: %s\n", SDL_GetError());
         close(pGame);
         return 0;
     }
@@ -348,4 +348,5 @@ void updateWithServerData(Game *pGAme){
        pGAme->players[i].position.y = sData.players[i].y;
 
     }
+
 }
