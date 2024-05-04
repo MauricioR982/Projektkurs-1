@@ -19,13 +19,12 @@ typedef struct {
     SDL_Window *pWindow;
     SDL_Renderer *pRenderer;
     Player players[MAX_PLAYERS];
-    SDL_Texture *backgroundTexture;
-    SDL_Texture *hunterTexture;
-    SDL_Texture *sprinterTexture;
+    SDL_Texture *backgroundTexture, *hunterTexture, *sprinterTexture, *initialTextTexture;
     UDPsocket udpSocket;
     UDPpacket *packet;
     IPaddress serverAddress;
     GameState state;
+    TTF_Font *font;
 } Game;
 
 Obstacle obstacles[NUM_OBSTACLES];
@@ -80,6 +79,12 @@ int initiate(Game *pGame) {
         SDL_Quit();
         return 0;
     }
+
+    // Text for initial prompt
+    SDL_Surface* initialSurface = TTF_RenderText_Solid(font, "Press space to connect to the server", textColor);
+    pGame->initialTextTexture = SDL_CreateTextureFromSurface(pGame->pRenderer, initialSurface);
+    SDL_Rect initialTextRect = {50, 50, initialSurface->w, initialSurface->h};
+    SDL_FreeSurface(initialSurface);
 
     // Load game resources, including fonts
     if (!loadGameResources(pGame->pRenderer, pGame)) {
@@ -142,13 +147,7 @@ void run(Game *pGame) {
 
     // Setup for text rendering
     SDL_Color textColor = {255, 255, 255};  // White color for the text
-    TTF_Font* font = TTF_OpenFont("../lib/resources/arial.ttf", 28); // Ensure the path is correct
-
-    // Text for initial prompt
-    SDL_Surface* initialSurface = TTF_RenderText_Solid(font, "Press space to connect to the server", textColor);
-    SDL_Texture* initialTextTexture = SDL_CreateTextureFromSurface(pGame->pRenderer, initialSurface);
-    SDL_Rect initialTextRect = {50, 50, initialSurface->w, initialSurface->h};
-    SDL_FreeSurface(initialSurface);
+    pGame->font = TTF_OpenFont("../lib/resources/arial.ttf", 28); // Ensure the path is correct
 
     // Text for waiting message
     SDL_Surface* waitingSurface = TTF_RenderText_Solid(font, "Waiting for server...", textColor);
