@@ -18,6 +18,7 @@ Text *createText(SDL_Renderer *pRenderer, int r, int g, int b, TTF_Font *pFont, 
         printf("Error: %s\n",SDL_GetError());
         return NULL;
     }
+    printf("dsa");
     pText->pTexture = SDL_CreateTextureFromSurface(pRenderer,pSurface);
     SDL_FreeSurface(pSurface);
     if(!pText->pTexture){
