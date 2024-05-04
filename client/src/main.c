@@ -49,9 +49,7 @@ void startGame(Game *pGame);
 void updateWithServerData(Game *pGAme);
 
 int main(int argc, char **argv) {
-    printf("A");
     Game g = {0};
-    printf("A");
     if (!initiate(&g)) return 1;
     run(&g);
     close(&g);
@@ -61,11 +59,11 @@ int main(int argc, char **argv) {
 int initiate(Game *pGame) {
     
     // Initialize SDL, SDL_ttf, and SDL_net
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {
+    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         fprintf(stderr, "SDL could not initialize: %s\n", SDL_GetError());
         return 0;
     }
-    printf("A");
+
     if (TTF_Init() != 0) {
         fprintf(stderr, "TTF could not initialize: %s\n", TTF_GetError());
         SDL_Quit();
@@ -77,7 +75,7 @@ int initiate(Game *pGame) {
         SDL_Quit();
         return 0;
     }
-    printf("A");
+ 
     // Create Window and Renderer
     pGame->pWindow = SDL_CreateWindow("Game Client", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
     pGame->pRenderer = SDL_CreateRenderer(pGame->pWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
@@ -135,7 +133,7 @@ int initiate(Game *pGame) {
     pGame->pWaitingText = createText(pGame->pRenderer, 255, 255, 255, pGame->pFont,  "Waitin for sever ......", 500,WINDOW_HEIGHT-75);
     if (!pGame->pWaitingText)
     {
-        printf("Erorr creating text: %s\n", SDL_GetError());
+        printf("AAErorr creating text: %s\n", SDL_GetError());
         close(pGame);
         return 0;
     }
