@@ -1,7 +1,7 @@
 {
-    "files.associations": {
-        "sprinter.h": "c",
-        "sdl_net.h": "c"
-    }
-    
+  "files.associations": {
+    "sprinter.h": "c",
+    "sdl_net.h": "c"
+  },
+  "C_Cpp_Runner.msvcBatchPath": ""
 }
