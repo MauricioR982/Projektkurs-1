@@ -125,7 +125,7 @@ int initiate(Game *pGame) {
         close(pGame);
         return 0;
     }
-    pGame->pWaitingText = createText(pGame->pRenderer, 255, 255, 255, pGame->pFont,  "Waitin for sever ......", 750,WINDOW_HEIGHT-75);
+    pGame->pWaitingText = createText(pGame->pRenderer, 255, 255, 255, pGame->pFont,  "Waiting for server...", 750,WINDOW_HEIGHT-75);
     if (!pGame->pWaitingText)
     {
         printf("WainErorr creating text: %s\n", SDL_GetError());
