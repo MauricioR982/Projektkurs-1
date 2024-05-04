@@ -124,7 +124,7 @@ int initiate(Game *pGame) {
     pGame->packet->address.port = pGame->serverAddress.port; // Important: Ensure the packet knows where to go
 
     pGame->pJoinText = createText(pGame->pRenderer, 255, 255, 255, pGame->pFont, "Press space to join server", 500,WINDOW_HEIGHT-75);
-    if (!pGame->pWaitingText)
+    if (!pGame->pJoinText)
     {
         printf("Erorr creating text: %s\n", SDL_GetError());
         close(pGame);
