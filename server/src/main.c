@@ -169,7 +169,7 @@ void run(Game *pGame) {
             //renderPlayer(pGame->pRenderer, &pGame->players[1]);
             
             SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
-
+            renderPlayers(pGame); // Draw all players
             SDL_RenderPresent(pGame->pRenderer);
         
             
