@@ -448,6 +448,10 @@ void updateWithServerData(Game *pGAme){
         //updatePlayerWithRecivedData(pGame->pPlyer[i], &(sData.players[i]));
         // pGame-> pPlayer[i].x =pGame->sData.players[i].x;
        // pGame-> pPlayer[i].y =pGame->sData.players[i].y;
+
+       pGAme->players[i].position.x = sData.players[i].x;
+       pGAme->players[i].position.y = sData.players[i].y;
+
     }
     
 }

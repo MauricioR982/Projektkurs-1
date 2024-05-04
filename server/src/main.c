@@ -205,7 +205,9 @@ void sendGameData(Game *pGame){
     {
         // get players position getPlayerSendData(pGame-> pPlayer[i], &(pGame->sData.players[i]))
         // pGame->sData.players[i].x = pGame-> pPlayer[i].x;  
-        // pGame->sData.players[i].y = pGame-> pPlayer[i].y; 
+        // pGame->sData.players[i].y = pGame-> pPlayer[i].y;
+        pGame->sData.players[i].x = pGame->players[i].position.x;
+        pGame->sData.players[i].y = pGame->players[i].position.y;
     }
 
     for (int i = 0; i < MAX_PLAYERS; i++)
