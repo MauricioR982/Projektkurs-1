@@ -44,13 +44,9 @@ int loadGameResources(SDL_Renderer *renderer, Game *pGame);
 void renderPlayer(SDL_Renderer *renderer, Player *player);
 void setupPlayerClips(Player *player);
 void renderPlayers(Game *pGame);
-void receiveData(Game *pGame);
-void handlePlayerInput(Game *pGame, SDL_Event e);
 void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, int type, Obstacle obstacles[], int numObstacles);
-void sendPlayerMovement(Game *pGame, Player *player);
 void updateFrame(int *frame, PlayerRole role, int frame1, int frame2);
 bool checkCollision(SDL_Rect a, SDL_Rect b);
-void startGame(Game *pGame);
 void updateWithServerData(Game *pGAme);
 void add(IPaddress address, IPaddress client[] , int *pNrOfClents);
 void setUpGame(Game *pGame);
@@ -195,17 +191,14 @@ void run(Game *pGame) {
     }
 }
 
-
 void setUpGame(Game *pGame){
     pGame->state = GAME_ONGOING;
 }
+
 void sendGameData(Game *pGame){
     pGame->sData.state = pGame->state;
     for (int i = 0; i < MAX_PLAYERS; i++)
     {
-        // get players position getPlayerSendData(pGame-> pPlayer[i], &(pGame->sData.players[i]))
-        // pGame->sData.players[i].x = pGame-> pPlayer[i].x;  
-        // pGame->sData.players[i].y = pGame-> pPlayer[i].y;
         pGame->sData.players[i].x = pGame->players[i].position.x;
         pGame->sData.players[i].y = pGame->players[i].position.y;
     }
@@ -217,10 +210,9 @@ void sendGameData(Game *pGame){
         pGame->packet->len = sizeof(ServerData);
         pGame->packet->address = pGame->clients[i];
         SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet);
-    }
-    
-    
+    }    
 }
+
 void add(IPaddress address, IPaddress client[] , int *pNrOfClents){
     //printf("Adding player\n");
 
@@ -271,7 +263,6 @@ void executeCommand(Game *pGame, ClientData cData){
     updateFrame(&pGame->players[cData.playerNumber].currentFrame, pGame->players[cData.playerNumber].type, 2, 3);
 
 }
-
 
 void close(Game *pGame) {
     if (pGame->packet) SDLNet_FreePacket(pGame->packet);
@@ -332,48 +323,6 @@ void renderPlayers(Game *pGame) {
         renderPlayer(pGame->pRenderer, &pGame->players[i]);
     }
 }
-
-void receiveData(Game *pGame) {
-    while (SDLNet_UDP_Recv(pGame->udpSocket, pGame->packet)) {
-        ServerData *srvData = (ServerData *)pGame->packet->data;
-        printf("Data received: %s\n", (char*)pGame->packet->data);
-
-        // Handle different server messages
-        if (srvData->state == GAME_ONGOING) {
-            pGame->state = GAME_ONGOING;
-            // Update only the client's player data
-            pGame->players[0].position.x = srvData->players[pGame->players[0].playerId].x;
-            pGame->players[0].position.y = srvData->players[pGame->players[0].playerId].y;
-        } else if (strcmp((char*)pGame->packet->data, "Game Start") == 0) {
-            printf("Received 'Game Start' message from server.\n");
-            startGame(pGame);
-        }
-    }
-}
-
-void handlePlayerInput(Game *pGame, SDL_Event e) {
-    for (int i = 0; i < MAX_PLAYERS; i++) {
-        if (pGame->players[i].isActive) {
-            int deltaX = 0, deltaY = 0;
-            bool moved = false;
-
-            switch (e.key.keysym.sym) {
-                case SDLK_w: deltaY -= 8; moved = true; break;
-                case SDLK_s: deltaY += 8; moved = true; break;
-                case SDLK_a: deltaX -= 8; moved = true; break;
-                case SDLK_d: deltaX += 8; moved = true; break;
-            }
-
-            if (moved) {
-                moveCharacter(&pGame->players[i].position, deltaX, deltaY, pGame->players[i].type, obstacles, NUM_OBSTACLES);
-                updateFrame(&pGame->players[i].currentFrame, pGame->players[i].type, 2, 3);
-                sendPlayerMovement(pGame, &pGame->players[i]);
-            }
-        }
-    }
-}
-
-
 // Function to move character with collision checking
 void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, int type, Obstacle obstacles[], int numObstacles) {
     SDL_Rect newPos = {charPos->x + deltaX, charPos->y + deltaY, charPos->w, charPos->h};
@@ -391,28 +340,6 @@ void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, int type, Obstacle
     *charPos = newPos;
 }
 
-
-void sendPlayerMovement(Game *pGame, Player *player) {
-    PlayerMovement move;
-    move.playerId = player->playerId;
-    move.x = player->position.x;
-    move.y = player->position.y;
-
-    memcpy(pGame->packet->data, &move, sizeof(PlayerMovement));
-    pGame->packet->len = sizeof(PlayerMovement);
-    pGame->packet->address = pGame->serverAddress;  // Make sure this is set correctly each time
-
-    if (SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet) < 1) {
-        printf("Trying to send data to server...\n");
-        fprintf(stderr, "Failed to send packet: %s\n", SDLNet_GetError());
-    } else {
-        printf("Packet sent to server: Player %d at (%d, %d)\n", move.playerId, move.x, move.y);
-    }
-}
-
-
-
-
 void updateFrame(int *frame, PlayerRole role, int frame1, int frame2) {
     *frame = (*frame == frame1) ? frame2 : frame1;
 }
@@ -424,43 +351,4 @@ bool checkCollision(SDL_Rect a, SDL_Rect b) {
         return false;
     }
     return true;
-}
-
-void startGame(Game *pGame) {
-    printf("Game starting!\n");
-    pGame->state = GAME_ONGOING; // Set game state to ongoing
-
-    // Ensure all players are properly initialized and set as active
-    for (int i = 0; i < MAX_PLAYERS; i++) {
-        pGame->players[i].isActive = true; // Ensure all players are active at start
-        setupPlayerClips(&pGame->players[i]); // Setup sprite clips if not already done
-    }
-
-    bool running = true;
-    SDL_Event e;
-
-    // Game loop
-    while (running) {
-        while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT) {
-                running = false; // Exit the loop if window is closed
-            } else if (e.type == SDL_KEYDOWN) {
-                handlePlayerInput(pGame, e); // Handle player inputs for all players
-            }
-        }
-
-        // Update game state here if necessary, such as moving NPCs or handling game logic
-
-        // Render the game state
-        SDL_RenderClear(pGame->pRenderer);
-        SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL); // Draw the background
-        renderPlayers(pGame); // Draw all players
-        SDL_RenderPresent(pGame->pRenderer);
-
-        SDL_Delay(16); // Delay to cap frame rate at about 60 fps
-    }
-}
-
-void updateWithServerData(Game *pGAme){
-
 }
