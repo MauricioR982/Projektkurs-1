@@ -9,6 +9,7 @@
 #include "hunter.h"
 #include "obstacle.h"
 #include "sprinter.h"
+#include "text.h"
 
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
@@ -24,7 +25,8 @@ typedef struct {
     UDPpacket *packet;
     IPaddress serverAddress;
     GameState state;
-    TTF_Font *font;
+    TTF_Font *pFont;
+    Text *pWaitingText, *pJoinText;
 } Game;
 
 Obstacle obstacles[NUM_OBSTACLES];
@@ -44,9 +46,12 @@ void sendPlayerMovement(Game *pGame, Player *player);
 void updateFrame(int *frame, PlayerRole role, int frame1, int frame2);
 bool checkCollision(SDL_Rect a, SDL_Rect b);
 void startGame(Game *pGame);
+void updateWithServerData(Game *pGAme);
 
 int main(int argc, char **argv) {
+    printf("A");
     Game g = {0};
+    printf("A");
     if (!initiate(&g)) return 1;
     run(&g);
     close(&g);
@@ -54,11 +59,13 @@ int main(int argc, char **argv) {
 }
 
 int initiate(Game *pGame) {
+    
     // Initialize SDL, SDL_ttf, and SDL_net
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {
         fprintf(stderr, "SDL could not initialize: %s\n", SDL_GetError());
         return 0;
     }
+    printf("A");
     if (TTF_Init() != 0) {
         fprintf(stderr, "TTF could not initialize: %s\n", TTF_GetError());
         SDL_Quit();
@@ -70,7 +77,7 @@ int initiate(Game *pGame) {
         SDL_Quit();
         return 0;
     }
-
+    printf("A");
     // Create Window and Renderer
     pGame->pWindow = SDL_CreateWindow("Game Client", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
     pGame->pRenderer = SDL_CreateRenderer(pGame->pWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
@@ -80,12 +87,13 @@ int initiate(Game *pGame) {
         return 0;
     }
 
-    // Text for initial prompt
-    SDL_Surface* initialSurface = TTF_RenderText_Solid(font, "Press space to connect to the server", textColor);
-    pGame->initialTextTexture = SDL_CreateTextureFromSurface(pGame->pRenderer, initialSurface);
-    SDL_Rect initialTextRect = {50, 50, initialSurface->w, initialSurface->h};
-    SDL_FreeSurface(initialSurface);
-
+    pGame->pFont = TTF_OpenFont("../lib/resources/arial.ttf", 40);
+    if (!pGame->pFont)
+    {
+        printf("ERROR TTF_OpenFont: %s\n", TTF_GetError());
+        close(pGame);
+        return 0;
+    }
     // Load game resources, including fonts
     if (!loadGameResources(pGame->pRenderer, pGame)) {
         SDL_DestroyRenderer(pGame->pRenderer);
@@ -117,16 +125,20 @@ int initiate(Game *pGame) {
     pGame->packet->address.host = pGame->serverAddress.host; // Important: Ensure the packet knows where to go
     pGame->packet->address.port = pGame->serverAddress.port; // Important: Ensure the packet knows where to go
 
-    // Prepare the packet to send
-    ClientData data = {CMD_READY, -1};  // Your actual player ID should replace -1
-    memcpy(pGame->packet->data, &data, sizeof(ClientData));
-    pGame->packet->len = sizeof(ClientData);
-
-    // Send the packet
-    if (SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet) == 0) {
-        fprintf(stderr, "SDLNet_UDP_Send: %s\n", SDLNet_GetError());
+    pGame->pJoinText = createText(pGame->pRenderer, 255, 255, 255, pGame->pFont, "Press space to join server", 500,WINDOW_HEIGHT-75);
+    if (!pGame->pWaitingText)
+    {
+        printf("Erorr creating text: %s\n", SDL_GetError());
+        close(pGame);
+        return 0;
     }
-
+    pGame->pWaitingText = createText(pGame->pRenderer, 255, 255, 255, pGame->pFont,  "Waitin for sever ......", 500,WINDOW_HEIGHT-75);
+    if (!pGame->pWaitingText)
+    {
+        printf("Erorr creating text: %s\n", SDL_GetError());
+        close(pGame);
+        return 0;
+    }
 
     // Initialize players
     for (int i = 0; i < MAX_PLAYERS; i++) {
@@ -137,66 +149,58 @@ int initiate(Game *pGame) {
     }
 
     // Set initial game state
-    pGame->state = GAME_WAITING;
+    pGame->state = GAME_START;
     return 1;
 }
 
 void run(Game *pGame) {
-    bool running = true;
+    bool running = true, joining = false;
     SDL_Event e;
-
-    // Setup for text rendering
-    SDL_Color textColor = {255, 255, 255};  // White color for the text
-    pGame->font = TTF_OpenFont("../lib/resources/arial.ttf", 28); // Ensure the path is correct
-
-    // Text for waiting message
-    SDL_Surface* waitingSurface = TTF_RenderText_Solid(font, "Waiting for server...", textColor);
-    SDL_Texture* waitingTextTexture = SDL_CreateTextureFromSurface(pGame->pRenderer, waitingSurface);
-    SDL_Rect waitingTextRect = {50, 100, waitingSurface->w, waitingSurface->h};
-    SDL_FreeSurface(waitingSurface);
+    ClientData cData;
 
     while (running) {
-        while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT) {
-                running = false;
-            } else if (e.type == SDL_KEYDOWN) {
-                if (e.key.keysym.sym == SDLK_SPACE && pGame->state == GAME_WAITING) {
-                    pGame->state = GAME_READY;
-                    ClientData data = {CMD_READY, -1};
-                    memcpy(pGame->packet->data, &data, sizeof(ClientData));
-                    pGame->packet->len = sizeof(ClientData);
-                    if (SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet) < 1) {
-                        fprintf(stderr, "Failed to send packet: %s\n", SDLNet_GetError());
-                    } else {
-                        printf("Packet sent. Length: %d\n", pGame->packet->len);
-                    }
 
+        switch (pGame->state)
+        {
+        case GAME_ONGOING:
+            printf("connect");
+            break;
+        
+        case GAME_OVER:
+            /* code */
+            break;
+        case GAME_START:
+            if(!joining){
+                SDL_RenderClear(pGame->pRenderer);
+                SDL_SetRenderDrawColor(pGame->pRenderer,50,50,50,200);
+                drawText(pGame->pJoinText);
+            }else
+            {
+                SDL_RenderClear(pGame->pRenderer);
+                SDL_SetRenderDrawColor(pGame->pRenderer,50,50,50,200);
+                drawText(pGame->pWaitingText);
+            }
+            SDL_RenderPresent(pGame->pRenderer);
+            if(SDL_PollEvent(&e)){
+                if (e.type == SDL_QUIT) running = false;
+                else if (!joining && e.type == SDL_KEYDOWN && e.key.keysym.scancode == SDL_SCANCODE_SPACE)
+                {
+                    joining = true;
+                    cData.command = CMD_READY;
+                    cData.playerNumber = -1;
+                    memcpy(pGame->packet->data, &cData, sizeof(ClientData));
+                    pGame->packet->len = sizeof(ClientData);
                 }
             }
+            if (joining) SDLNet_UDP_Send(pGame->udpSocket,-1,pGame->packet);
+            if (SDLNet_UDP_Recv(pGame->udpSocket,pGame->packet))
+            {
+                updateWithServerData(pGame);
+                if(pGame->state == GAME_ONGOING) joining =false;
+            }
+            break;
         }
-
-        // Listen for server commands
-        if (pGame->state == GAME_READY || pGame->state == GAME_ONGOING) {
-            receiveData(pGame); // This function must be polled frequently.
-        }
-
-        // Rendering based on game state
-        SDL_RenderClear(pGame->pRenderer);
-        if (pGame->state == GAME_ONGOING) {
-            renderPlayers(pGame); // Render all active players
-        } else if (pGame->state == GAME_READY) {
-            SDL_RenderCopy(pGame->pRenderer, waitingTextTexture, NULL, &waitingTextRect);
-        } else if (pGame->state == GAME_WAITING) {
-            SDL_RenderCopy(pGame->pRenderer, initialTextTexture, NULL, &initialTextRect);
-        }
-        SDL_RenderPresent(pGame->pRenderer);
-        SDL_Delay(16); // simulate frame update roughly every 16ms (about 60fps)
     }
-
-    // Clean up resources
-    SDL_DestroyTexture(initialTextTexture);
-    SDL_DestroyTexture(waitingTextTexture);
-    TTF_CloseFont(font);
 }
 
 
@@ -388,3 +392,6 @@ void startGame(Game *pGame) {
     }
 }
 
+void updateWithServerData(Game *pGAme){
+
+}
