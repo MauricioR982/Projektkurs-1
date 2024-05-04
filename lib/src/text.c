@@ -18,13 +18,13 @@ Text *createText(SDL_Renderer *pRenderer, int r, int g, int b, TTF_Font *pFont, 
         printf("Error: %s\n",SDL_GetError());
         return NULL;
     }
-    printf("dsa");
     pText->pTexture = SDL_CreateTextureFromSurface(pRenderer,pSurface);
     SDL_FreeSurface(pSurface);
     if(!pText->pTexture){
         printf("Error: %s\n",SDL_GetError());
         return NULL;
     }
+    printf("felllle");
     SDL_QueryTexture(pText->pTexture,NULL,NULL,&pText->rect.w,&pText->rect.h);
     pText->rect.x = x - pText->rect.w/2;
     pText->rect.y = y - pText->rect.h/2;
