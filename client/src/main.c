@@ -160,8 +160,21 @@ void run(Game *pGame) {
         switch (pGame->state)
         {
         case GAME_ONGOING:
-            //printf("connect");
+            while (SDLNet_UDP_Recv(pGame->udpSocket, pGame->packet))
+            {
+                updateWithServerData(pGame);
+            }
             
+            if (SDL_PollEvent(&e))
+            {
+                if (e.type == SDL_QUIT)
+                    running = false;
+                else
+                    handleInput(pGame, &e);
+            }
+            SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
+
+            SDL_RenderPresent(pGame->pRenderer);
             break;
         
         case GAME_OVER:

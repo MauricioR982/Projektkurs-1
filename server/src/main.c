@@ -162,6 +162,7 @@ void run(Game *pGame) {
                 memcpy(&cData, pGame->packet->data,sizeof(ClientData));
                 executeCommand(pGame,cData);
             }
+            if (SDL_PollEvent(&e)) if (e.type == SDL_QUIT) running = false;
             SDL_RenderClear(pGame->pRenderer);
             ////// 
             //renderPlayer(pGame->pRenderer, &pGame->players[0]);
