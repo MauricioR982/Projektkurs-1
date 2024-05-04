@@ -54,6 +54,8 @@ void startGame(Game *pGame);
 void updateWithServerData(Game *pGAme);
 void add(IPaddress address, IPaddress client[] , int *pNrOfClents);
 void setUpGame(Game *pGame);
+void sendGameData(Game *pGame);
+void executeCommand(Game *pGame, ClientData cData);
 
 int main(int argc, char **argv) {
     Game g = {0};
@@ -153,7 +155,15 @@ void run(Game *pGame) {
         switch (pGame->state)
         {
         case GAME_ONGOING:
-            printf("connect");
+            sendGameData(pGame);
+            while (SDLNet_UDP_Recv(pGame->udpSocket,pGame->packet) == 1)
+            {
+                memcpy(&cData, pGame->packet->data,sizeof(ClientData));
+                executeCommand(pGame,cData);
+            }
+
+            ////// 
+            
             break;
         
         case GAME_OVER:
@@ -180,6 +190,26 @@ void run(Game *pGame) {
 void setUpGame(Game *pGame){
     pGame->state = GAME_ONGOING;
 }
+void sendGameData(Game *pGame){
+    pGame->sData.state = pGame->state;
+    for (int i = 0; i < MAX_PLAYERS; i++)
+    {
+        // get players position getPlayerSendData(pGame-> pPlayer[i], &(pGame->sData.players[i]))
+        // pGame->sData.players[i] = pGame-> pPlayer[i].x;  
+        // pGame->sData.players[i] = pGame-> pPlayer[i].x; 
+    }
+
+    for (int i = 0; i < MAX_PLAYERS; i++)
+    {
+        pGame->sData.playerNr = i;
+        memcpy(pGame->packet->data, &(pGame->sData), sizeof(ServerData));
+        pGame->packet->len = sizeof(ServerData);
+        pGame->packet->address = pGame->clients[i];
+        SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet);
+    }
+    
+    
+}
 void add(IPaddress address, IPaddress client[] , int *pNrOfClents){
      printf("Adding player\n");
 
@@ -205,6 +235,11 @@ void add(IPaddress address, IPaddress client[] , int *pNrOfClents){
     printf("\n\nnrOfClients: %d\n\n",(*pNrOfClents));
     printf("Player added successfully\n");
     
+}
+
+void executeCommand(Game *pGame, ClientData cData){
+
+
 }
 
 
