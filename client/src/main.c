@@ -170,7 +170,7 @@ void run(Game *pGame) {
                 if (e.type == SDL_QUIT)
                     running = false;
                 else
-                    handleInput(pGame, &e);
+                    handlePlayerInput(pGame, &e);
             }
             SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
 
