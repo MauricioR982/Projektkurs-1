@@ -56,6 +56,7 @@ void add(IPaddress address, IPaddress client[] , int *pNrOfClents);
 void setUpGame(Game *pGame);
 void sendGameData(Game *pGame);
 void executeCommand(Game *pGame, ClientData cData);
+void renderPlayer(SDL_Renderer *renderer, Player *player);
 
 int main(int argc, char **argv) {
     Game g = {0};
@@ -161,8 +162,15 @@ void run(Game *pGame) {
                 memcpy(&cData, pGame->packet->data,sizeof(ClientData));
                 executeCommand(pGame,cData);
             }
-
+            SDL_RenderClear(pGame->pRenderer);
             ////// 
+            //renderPlayer(pGame->pRenderer, &pGame->players[0]);
+            //renderPlayer(pGame->pRenderer, &pGame->players[1]);
+            
+            SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
+
+            SDL_RenderPresent(pGame->pRenderer);
+        
             
             break;
         
@@ -211,7 +219,7 @@ void sendGameData(Game *pGame){
     
 }
 void add(IPaddress address, IPaddress client[] , int *pNrOfClents){
-     printf("Adding player\n");
+    //printf("Adding player\n");
 
     if ((*pNrOfClents) >= MAX_PLAYERS)
     {

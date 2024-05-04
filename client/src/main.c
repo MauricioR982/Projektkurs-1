@@ -159,7 +159,8 @@ void run(Game *pGame) {
         switch (pGame->state)
         {
         case GAME_ONGOING:
-            printf("connect");
+            //printf("connect");
+            
             break;
         
         case GAME_OVER:
