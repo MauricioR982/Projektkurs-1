@@ -123,14 +123,14 @@ int initiate(Game *pGame) {
     pGame->packet->address.host = pGame->serverAddress.host; // Important: Ensure the packet knows where to go
     pGame->packet->address.port = pGame->serverAddress.port; // Important: Ensure the packet knows where to go
 
-    pGame->pJoinText = createText(pGame->pRenderer, 255, 255, 255, pGame->pFont, "Press space to join server", 500,WINDOW_HEIGHT-75);
+    pGame->pJoinText = createText(pGame->pRenderer, 255, 255, 255, pGame->pFont, "Press space to join server", 750,WINDOW_HEIGHT-75);
     if (!pGame->pJoinText)
     {
         printf("Erorr creating text: %s\n", SDL_GetError());
         close(pGame);
         return 0;
     }
-    pGame->pWaitingText = createText(pGame->pRenderer, 255, 255, 255, pGame->pFont,  "Waitin for sever ......", 500,WINDOW_HEIGHT-75);
+    pGame->pWaitingText = createText(pGame->pRenderer, 255, 255, 255, pGame->pFont,  "Waitin for sever ......", 750,WINDOW_HEIGHT-75);
     if (!pGame->pWaitingText)
     {
         printf("WainErorr creating text: %s\n", SDL_GetError());
@@ -391,5 +391,7 @@ void startGame(Game *pGame) {
 }
 
 void updateWithServerData(Game *pGAme){
-
+    ServerData sData;
+    memcpy(&sData, pGAme->packet->data, sizeof(ServerData));
+    pGAme->state = sData.state;
 }

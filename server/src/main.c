@@ -1,333 +1,386 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <time.h>
-#include <windows.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
-#include <SDL2/SDL_mixer.h>
 #include <SDL2/SDL_net.h>
 #include "game_data.h"
 #include "hunter.h"
 #include "obstacle.h"
 #include "sprinter.h"
+#include "text.h"
 
-struct game {
+#define WINDOW_WIDTH 1280
+#define WINDOW_HEIGHT 720
+#define SERVER_PORT 1234
+
+
+typedef struct {
     SDL_Window *pWindow;
     SDL_Renderer *pRenderer;
-    int nrOfPlayers;
-    UDPsocket pSocket;
-	UDPpacket *pPacket;
+    Player players[MAX_PLAYERS];
+    SDL_Texture *backgroundTexture, *hunterTexture, *sprinterTexture, *initialTextTexture;
+    
+    IPaddress serverAddress;
+    GameState state;
+    TTF_Font *pFont;
+    Text *pWaitingText;
+
+    UDPsocket udpSocket;
+    UDPpacket *packet;
     IPaddress clients[MAX_PLAYERS];
     int nrOfClients;
-    bool clientReady[MAX_PLAYERS];  // Array to track readiness of each client
     ServerData sData;
+} Game;
 
-};
-typedef struct game Game;
+Obstacle obstacles[NUM_OBSTACLES];
 
+// Function declarations
 int initiate(Game *pGame);
 void run(Game *pGame);
 void close(Game *pGame);
-bool processClientData(Game *pGame, ClientData *data, IPaddress clientAddr);
-void updatePlayerState(Game *pGame, ClientData *data, IPaddress clientAddr);
-void broadcastGameState(Game *pGame);
-void updateGameState(Game *pGame);
-void broadcastGameStart(Game *pGame);
-void renderGameState(Game *pGame);
+int loadGameResources(SDL_Renderer *renderer, Game *pGame);
+void renderPlayer(SDL_Renderer *renderer, Player *player);
+void setupPlayerClips(Player *player);
+void renderPlayers(Game *pGame);
+void receiveData(Game *pGame);
+void handlePlayerInput(Game *pGame, SDL_Event e);
+void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, int type, Obstacle obstacles[], int numObstacles);
+void sendPlayerMovement(Game *pGame, Player *player);
+void updateFrame(int *frame, PlayerRole role, int frame1, int frame2);
+bool checkCollision(SDL_Rect a, SDL_Rect b);
+void startGame(Game *pGame);
+void updateWithServerData(Game *pGAme);
+void add(IPaddress address, IPaddress client[] , int *pNrOfClents);
+void setUpGame(Game *pGame);
 
-
-int main(int argv, char** args){
-    Game g={0};
-    if(!initiate(&g)) return 1;
+int main(int argc, char **argv) {
+    Game g = {0};
+    if (!initiate(&g)) return 1;
     run(&g);
     close(&g);
-
     return 0;
 }
 
 int initiate(Game *pGame) {
-    printf("Initializing SDL...\n");
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {
+    
+    // Initialize SDL, SDL_ttf, and SDL_net
+    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         fprintf(stderr, "SDL could not initialize: %s\n", SDL_GetError());
         return 0;
     }
 
-    // Initialize TTF for text rendering
     if (TTF_Init() != 0) {
         fprintf(stderr, "TTF could not initialize: %s\n", TTF_GetError());
         SDL_Quit();
         return 0;
     }
-
-    printf("Initializing SDL_net...\n");
     if (SDLNet_Init() != 0) {
         fprintf(stderr, "SDLNet could not initialize: %s\n", SDLNet_GetError());
         TTF_Quit();
         SDL_Quit();
         return 0;
     }
-
-    printf("Opening UDP socket...\n");
-    pGame->pSocket = SDLNet_UDP_Open(1234);
-    if (!pGame->pSocket) {
-        fprintf(stderr, "Failed to open UDP socket: %s\n", SDLNet_GetError());
-        SDLNet_Quit();
-        TTF_Quit();
-        SDL_Quit();
-        return 0;
-    } else {
-        printf("UDP socket opened successfully on port 1234.\n");
-    }
-
-    printf("Allocating UDP packet...\n");
-    pGame->pPacket = SDLNet_AllocPacket(512);
-    if (!pGame->pPacket) {
-        fprintf(stderr, "Failed to allocate UDP packet: %s\n", SDLNet_GetError());
-        SDLNet_UDP_Close(pGame->pSocket);
-        SDLNet_Quit();
-        SDL_Quit();
-        return 0;
-    }
-
-    // Initialize client readiness states
-    for (int i = 0; i < MAX_PLAYERS; i++) {
-        pGame->clientReady[i] = false;
-    }
-
-
-    // Create SDL Window and Renderer
-    pGame->pWindow = SDL_CreateWindow("Game Server", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1280, 720, 0);
-    if (!pGame->pWindow) {
-        fprintf(stderr, "Window could not be created: %s\n", SDL_GetError());
-        TTF_Quit();
-        SDLNet_Quit();
-        SDL_Quit();
-        return 0;
-    }
-
+ 
+    // Create Window and Renderer
+    pGame->pWindow = SDL_CreateWindow("Game Client", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
     pGame->pRenderer = SDL_CreateRenderer(pGame->pWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    if (!pGame->pRenderer) {
-        SDL_DestroyWindow(pGame->pWindow);
-        fprintf(stderr, "Renderer could not be created: %s\n", SDL_GetError());
+    if (!pGame->pWindow || !pGame->pRenderer) {
         TTF_Quit();
-        SDLNet_Quit();
         SDL_Quit();
         return 0;
     }
 
-    // Load a font
-    TTF_Font *font = TTF_OpenFont("../lib/resources/Arial.ttf", 24);  // Make sure to have this font file available
-    if (!font) {
-        fprintf(stderr, "Failed to load font: %s\n", TTF_GetError());
+    pGame->pFont = TTF_OpenFont("../lib/resources/arial.ttf", 40);
+    if (!pGame->pFont)
+    {
+        printf("ERROR TTF_OpenFont: %s\n", TTF_GetError());
+        close(pGame);
+        return 0;
+    }
+    // Load game resources, including fonts
+    if (!loadGameResources(pGame->pRenderer, pGame)) {
         SDL_DestroyRenderer(pGame->pRenderer);
         SDL_DestroyWindow(pGame->pWindow);
         TTF_Quit();
-        SDLNet_Quit();
         SDL_Quit();
         return 0;
     }
 
-    // Set text color
-    SDL_Color textColor = {255, 255, 255}; // White
-    SDL_Surface* textSurface = TTF_RenderText_Solid(font, "Waiting for clients...", textColor);
-    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(pGame->pRenderer, textSurface);
+    // Network setup
+    pGame->udpSocket = SDLNet_UDP_Open(2000);  // Open a socket on any available port
+    if (!pGame->udpSocket) {
+        TTF_Quit();
+        SDL_Quit();
+        return 0;
+    }
+    pGame->packet = SDLNet_AllocPacket(512);  // Allocate a packet of size 512
+    if (!pGame->packet) {
+        SDLNet_Quit();
+        TTF_Quit();
+        SDL_Quit();
+        return 0;
+    }
+    
+    pGame->pWaitingText = createText(pGame->pRenderer, 255, 255, 255, pGame->pFont,  "Waitin for sever ......", 750,WINDOW_HEIGHT-75);
+    if (!pGame->pWaitingText)
+    {
+        printf("WainErorr creating text: %s\n", SDL_GetError());
+        close(pGame);
+        return 0;
+    }
 
-    // Clear the renderer and draw the texture
-    SDL_RenderClear(pGame->pRenderer);
-    SDL_Rect textRect = { 100, 200, textSurface->w, textSurface->h };  // Position for the text
-    SDL_RenderCopy(pGame->pRenderer, textTexture, NULL, &textRect);
-    SDL_RenderPresent(pGame->pRenderer);
+    // Initialize players
+    for (int i = 0; i < MAX_PLAYERS; i++) {
+        pGame->players[i].isActive = 1;
+        pGame->players[i].texture = (i % 2 == 0) ? pGame->hunterTexture : pGame->sprinterTexture;
+        setupPlayerClips(&pGame->players[i]);
+        pGame->players[i].position = (SDL_Rect){100 + i * 100, 100, 32, 32};
+    }
 
-    // Clean up text objects
-    SDL_DestroyTexture(textTexture);
-    SDL_FreeSurface(textSurface);
-    TTF_CloseFont(font);
-
-    return 1; // Initialization successful
+    // Set initial game state
+    pGame->state = GAME_START;
+    pGame->nrOfClients =0;
+    return 1;
 }
-
 
 void run(Game *pGame) {
-    bool running = true;
-    SDL_Event event;
+    bool running = true, joining = false;
+    SDL_Event e;
+    ClientData cData;
+
     while (running) {
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {
-                running = false;
+
+        switch (pGame->state)
+        {
+        case GAME_ONGOING:
+            printf("connect");
+            break;
+        
+        case GAME_OVER:
+            /* code */
+            break;
+        case GAME_START:
+            SDL_RenderClear(pGame->pRenderer);
+            SDL_SetRenderDrawColor(pGame->pRenderer,50,50,50,200);
+            drawText(pGame->pWaitingText);
+            SDL_RenderPresent(pGame->pRenderer);
+            if(SDL_PollEvent(&e)) if (e.type == SDL_QUIT) running = false;
+            if (SDLNet_UDP_Recv(pGame->udpSocket,pGame->packet)==1)
+            {
+                add(pGame->packet->address, pGame->clients, &(pGame->nrOfClients));
+                if(pGame->nrOfClients == MAX_PLAYERS) setUpGame(pGame);
             }
-        }
-
-        // Listen for incoming packets
-        if (SDLNet_UDP_Recv(pGame->pSocket, pGame->pPacket)) {
-            ClientData receivedData;
-            memcpy(&receivedData, pGame->pPacket->data, sizeof(ClientData));
-            printf("Received data from a client...\n");
-
-            if (receivedData.command == CMD_READY) {
-                // Process data and check if the client is now ready
-                if (processClientData(pGame, &receivedData, pGame->pPacket->address)) {
-                    // Display readiness state for all clients
-                    printf("Current client states:\n");
-                    for (int i = 0; i < pGame->nrOfClients; i++) {
-                        printf("Client %d: %s\n", i + 1, pGame->clientReady[i] ? "Ready" : "Not Ready");
-                    }
-
-                    // Check if all clients are ready
-                    bool allReady = true;
-                    if (pGame->nrOfClients == MAX_PLAYERS) {
-                        for (int i = 0; i < pGame->nrOfClients; i++) {
-                            if (!pGame->clientReady[i]) {
-                                allReady = false;
-                                break;
-                            }
-                        }
-
-                        // Check if all connected clients are ready and the maximum number of players has been reached
-                        if (allReady && pGame->nrOfClients == MAX_PLAYERS) {
-                            printf("All clients are ready. Starting the game...\n");
-                            broadcastGameStart(pGame);
-                            break;  // Exit the waiting loop
-                        }
-                    } else {
-                        printf("Waiting for all clients to connect and signal readiness...\n");
-                    }
-                }
-            }
-        } else {
-            //printf("No data received...\n");
-        }
-    }
-
-    // Main game loop
-    if (running) {
-        while (running) {
-            while (SDL_PollEvent(&event)) {
-                if (event.type == SDL_QUIT) {
-                    running = false;
-                }
-            }
-
-            // Game logic goes here
-            broadcastGameState(pGame);  // This function should manage and send game state updates
-            renderGameState(pGame);
-            SDL_Delay(16);  // Approximate frame delay for ~60 FPS
+            break;
         }
     }
 }
 
 
+void setUpGame(Game *pGame){
+    pGame->state = GAME_ONGOING;
+}
+void add(IPaddress address, IPaddress client[] , int *pNrOfClents){
+    for (int  i = 0; i < *pNrOfClents; i++)
+    {
+        if(address.host == client[i].host && address.port == client[i].port) return;
+    }
 
+    client[*pNrOfClents] = address;
+    (*pNrOfClents);
+    
+}
 
 
 void close(Game *pGame) {
-    if (pGame->pPacket) SDLNet_FreePacket(pGame->pPacket);
-    if (pGame->pSocket) SDLNet_UDP_Close(pGame->pSocket);
+    if (pGame->packet) SDLNet_FreePacket(pGame->packet);
+    if (pGame->udpSocket) SDLNet_UDP_Close(pGame->udpSocket);
     SDLNet_Quit();
+    if (pGame->hunterTexture) SDL_DestroyTexture(pGame->hunterTexture);
+    if (pGame->sprinterTexture) SDL_DestroyTexture(pGame->sprinterTexture);
+    if (pGame->backgroundTexture) SDL_DestroyTexture(pGame->backgroundTexture);
+    if (pGame->pRenderer) SDL_DestroyRenderer(pGame->pRenderer);
+    if (pGame->pWindow) SDL_DestroyWindow(pGame->pWindow);
     SDL_Quit();
 }
 
+int loadGameResources(SDL_Renderer *renderer, Game *pGame) {
+    SDL_Surface *bgSurface = IMG_Load("../lib/resources/Map.png");
+    if (!bgSurface) {
+        fprintf(stderr, "Failed to load background image: %s\n", IMG_GetError());
+        return 0;
+    }
+    pGame->backgroundTexture = SDL_CreateTextureFromSurface(renderer, bgSurface);
+    SDL_FreeSurface(bgSurface);
 
-bool processClientData(Game *pGame, ClientData *data, IPaddress clientAddr) {
-    int clientIndex = -1;
-    // Check if this client is already connected
-    for (int i = 0; i < pGame->nrOfClients; i++) {
-        if (SDLNet_Read32(&clientAddr.host) == SDLNet_Read32(&pGame->clients[i].host) &&
-            clientAddr.port == pGame->clients[i].port) {
-            clientIndex = i;
-            break;
+    SDL_Surface *hunterSurface = IMG_Load("../lib/resources/HUNTER.png");
+    if (!hunterSurface) {
+        fprintf(stderr, "Failed to load hunter image: %s\n", IMG_GetError());
+        return 0;
+    }
+    pGame->hunterTexture = SDL_CreateTextureFromSurface(renderer, hunterSurface);
+    SDL_FreeSurface(hunterSurface);
+
+    SDL_Surface *sprinterSurface = IMG_Load("../lib/resources/SPRINTER.png");
+    if (!sprinterSurface) {
+        fprintf(stderr, "Failed to load sprinter image: %s\n", IMG_GetError());
+        return 0;
+    }
+    pGame->sprinterTexture = SDL_CreateTextureFromSurface(renderer, sprinterSurface);
+    SDL_FreeSurface(sprinterSurface);
+
+    return 1;
+}
+
+void renderPlayer(SDL_Renderer *renderer, Player *player) {
+    if (!player->isActive) return;
+    SDL_Rect srcRect = player->spriteClips[player->currentFrame];
+    SDL_Rect destRect = {player->position.x, player->position.y, player->position.w, player->position.h};
+    SDL_RenderCopyEx(renderer, player->texture, &srcRect, &destRect, 0, NULL, SDL_FLIP_NONE);
+}
+
+void setupPlayerClips(Player *player) {
+    for (int i = 0; i < 8; i++) {
+        player->spriteClips[i] = (SDL_Rect){i * 16, 0, 16, 16};
+        //printf("Clip %d: x=%d, y=%d, w=%d, h=%d\n", i, player->spriteClips[i].x, player->spriteClips[i].y, player->spriteClips[i].w, player->spriteClips[i].h);
+    }
+}
+
+void renderPlayers(Game *pGame) {
+    for (int i = 0; i < 2; i++) {
+        renderPlayer(pGame->pRenderer, &pGame->players[i]);
+    }
+}
+
+void receiveData(Game *pGame) {
+    while (SDLNet_UDP_Recv(pGame->udpSocket, pGame->packet)) {
+        ServerData *srvData = (ServerData *)pGame->packet->data;
+        printf("Data received: %s\n", (char*)pGame->packet->data);
+
+        // Handle different server messages
+        if (srvData->state == GAME_ONGOING) {
+            pGame->state = GAME_ONGOING;
+            // Update only the client's player data
+            pGame->players[0].position.x = srvData->players[pGame->players[0].playerId].x;
+            pGame->players[0].position.y = srvData->players[pGame->players[0].playerId].y;
+        } else if (strcmp((char*)pGame->packet->data, "Game Start") == 0) {
+            printf("Received 'Game Start' message from server.\n");
+            startGame(pGame);
+        }
+    }
+}
+
+void handlePlayerInput(Game *pGame, SDL_Event e) {
+    for (int i = 0; i < MAX_PLAYERS; i++) {
+        if (pGame->players[i].isActive) {
+            int deltaX = 0, deltaY = 0;
+            bool moved = false;
+
+            switch (e.key.keysym.sym) {
+                case SDLK_w: deltaY -= 8; moved = true; break;
+                case SDLK_s: deltaY += 8; moved = true; break;
+                case SDLK_a: deltaX -= 8; moved = true; break;
+                case SDLK_d: deltaX += 8; moved = true; break;
+            }
+
+            if (moved) {
+                moveCharacter(&pGame->players[i].position, deltaX, deltaY, pGame->players[i].type, obstacles, NUM_OBSTACLES);
+                updateFrame(&pGame->players[i].currentFrame, pGame->players[i].type, 2, 3);
+                sendPlayerMovement(pGame, &pGame->players[i]);
+            }
+        }
+    }
+}
+
+
+// Function to move character with collision checking
+void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, int type, Obstacle obstacles[], int numObstacles) {
+    SDL_Rect newPos = {charPos->x + deltaX, charPos->y + deltaY, charPos->w, charPos->h};
+
+    for (int i = 0; i < numObstacles; i++) {
+        if (checkCollision(newPos, obstacles[i].bounds)) {
+            return;  // Collision detected, do not update position
         }
     }
 
-    // Add new client if not already connected
-    if (clientIndex == -1 && pGame->nrOfClients < MAX_PLAYERS) {
-        clientIndex = pGame->nrOfClients;
-        pGame->clients[clientIndex] = clientAddr;
-        pGame->nrOfClients++;
-        printf("New client connected. Total clients: %d\n", pGame->nrOfClients);
+    // Apply movement constraints (e.g., boundaries of the playing field)
+    newPos.x = SDL_clamp(newPos.x, HORIZONTAL_MARGIN, WINDOW_WIDTH - newPos.w - HORIZONTAL_MARGIN);
+    newPos.y = SDL_clamp(newPos.y, 0, WINDOW_HEIGHT - newPos.h);
+
+    *charPos = newPos;
+}
+
+
+void sendPlayerMovement(Game *pGame, Player *player) {
+    PlayerMovement move;
+    move.playerId = player->playerId;
+    move.x = player->position.x;
+    move.y = player->position.y;
+
+    memcpy(pGame->packet->data, &move, sizeof(PlayerMovement));
+    pGame->packet->len = sizeof(PlayerMovement);
+    pGame->packet->address = pGame->serverAddress;  // Make sure this is set correctly each time
+
+    if (SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet) < 1) {
+        printf("Trying to send data to server...\n");
+        fprintf(stderr, "Failed to send packet: %s\n", SDLNet_GetError());
+    } else {
+        printf("Packet sent to server: Player %d at (%d, %d)\n", move.playerId, move.x, move.y);
+    }
+}
+
+
+
+
+void updateFrame(int *frame, PlayerRole role, int frame1, int frame2) {
+    *frame = (*frame == frame1) ? frame2 : frame1;
+}
+
+bool checkCollision(SDL_Rect a, SDL_Rect b) {
+    // Check if there's no overlap
+    if (a.x + a.w <= b.x || b.x + b.w <= a.x ||
+        a.y + a.h <= b.y || b.y + b.h <= a.y) {
+        return false;
+    }
+    return true;
+}
+
+void startGame(Game *pGame) {
+    printf("Game starting!\n");
+    pGame->state = GAME_ONGOING; // Set game state to ongoing
+
+    // Ensure all players are properly initialized and set as active
+    for (int i = 0; i < MAX_PLAYERS; i++) {
+        pGame->players[i].isActive = true; // Ensure all players are active at start
+        setupPlayerClips(&pGame->players[i]); // Setup sprite clips if not already done
     }
 
-    // Update client readiness state
-    if (clientIndex != -1 && data->command == CMD_READY) {
-        pGame->clientReady[clientIndex] = true;
-        printf("Client %d is ready.\n", clientIndex + 1);
+    bool running = true;
+    SDL_Event e;
 
-        // Check if all clients are ready
-        bool allReady = true;
-        for (int i = 0; i < MAX_PLAYERS; i++) {
-            if (!pGame->clientReady[i]) {
-                allReady = false;
-                break;
+    // Game loop
+    while (running) {
+        while (SDL_PollEvent(&e)) {
+            if (e.type == SDL_QUIT) {
+                running = false; // Exit the loop if window is closed
+            } else if (e.type == SDL_KEYDOWN) {
+                handlePlayerInput(pGame, e); // Handle player inputs for all players
             }
         }
 
-        if (allReady && pGame->nrOfClients == MAX_PLAYERS) {
-            printf("All clients are ready. Starting the game...\n");
-            broadcastGameStart(pGame);
-        }
-        
-        return true; // Client was updated
-    }
-    return false;
-}
+        // Update game state here if necessary, such as moving NPCs or handling game logic
 
-void updatePlayerState(Game *pGame, ClientData *data, IPaddress clientAddr) {
-    // Find the player associated with this IP and update their state
-    for (int i = 0; i < pGame->nrOfClients; ++i) {
-        if (SDLNet_Read32(&clientAddr.host) == SDLNet_Read32(&pGame->clients[i].host) &&
-            clientAddr.port == pGame->clients[i].port) {
-            // Update player position or state here based on data->command
-            break;
-        }
+        // Render the game state
+        SDL_RenderClear(pGame->pRenderer);
+        SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL); // Draw the background
+        renderPlayers(pGame); // Draw all players
+        SDL_RenderPresent(pGame->pRenderer);
+
+        SDL_Delay(16); // Delay to cap frame rate at about 60 fps
     }
 }
 
-void updateGameState(Game *pGame) {
-    // Update your game logic here, e.g., checking for collisions or game rules
-}
+void updateWithServerData(Game *pGAme){
 
-void broadcastGameStart(Game *pGame) {
-    const char *startMsg = "Game Start";
-    memcpy(pGame->pPacket->data, startMsg, strlen(startMsg) + 1);
-    pGame->pPacket->len = strlen(startMsg) + 1;
-
-    pGame->sData.state = GAME_ONGOING;  // Update the game state to ongoing
-
-    for (int i = 0; i < pGame->nrOfClients; i++) {
-        pGame->pPacket->address = pGame->clients[i];
-        SDLNet_UDP_Send(pGame->pSocket, -1, pGame->pPacket);
-        printf("Game start message sent to client %d\n", i + 1);
-    }
-}
-
-
-void broadcastGameState(Game *pGame) {
-    if (!pGame->pPacket) return;
-
-    // Example: broadcasting a simple "Hello" message
-    const char* message = "Game State Update";
-    memcpy(pGame->pPacket->data, message, strlen(message) + 1);  // Include null terminator
-    pGame->pPacket->len = strlen(message) + 1;
-
-    for (int i = 0; i < pGame->nrOfClients; i++) {
-        pGame->pPacket->address = pGame->clients[i];
-        SDLNet_UDP_Send(pGame->pSocket, -1, pGame->pPacket);
-    }
-}
-
-void renderGameState(Game *pGame) {
-    SDL_SetRenderDrawColor(pGame->pRenderer, 0, 0, 0, 255);  // Set background to black
-    SDL_RenderClear(pGame->pRenderer);
-
-    // Render each player
-    for (int i = 0; i < MAX_PLAYERS; i++) {
-        if (pGame->clientReady[i]) {  // Only draw players that are connected and ready
-            SDL_Rect playerRect = {pGame->sData.players[i].x, pGame->sData.players[i].y, 32, 32};
-            SDL_SetRenderDrawColor(pGame->pRenderer, 255, 0, 0, 255);  // Set color to red for visualization
-            SDL_RenderFillRect(pGame->pRenderer, &playerRect);
-        }
-    }
-
-    SDL_RenderPresent(pGame->pRenderer);
 }
