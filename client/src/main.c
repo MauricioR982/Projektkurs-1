@@ -127,6 +127,8 @@ int initiate(Game *pGame) {
         close(pGame);
         return 0;
     }
+    
+    initObstacles(obstacles, NUM_OBSTACLES);
 
     // Initialize players
     for (int i = 0; i < MAX_PLAYERS; i++) {
@@ -164,7 +166,9 @@ void run(Game *pGame) {
                 else
                     handlePlayerInput(pGame, &e);
             }
+            SDL_RenderClear(pGame->pRenderer);   
             SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
+            drawObstacles(pGame->pRenderer, obstacles, NUM_OBSTACLES); //debug
             renderPlayers(pGame); // Draw all players
             SDL_RenderPresent(pGame->pRenderer);
             break;

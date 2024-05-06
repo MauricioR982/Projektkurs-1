@@ -40,6 +40,5 @@ PUBLIC int getSprinterWidth(){
 }
 
 PUBLIC void sprinterTick(Sprinter s, int direction){
-    
-    
+        
 }

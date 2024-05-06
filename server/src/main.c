@@ -123,6 +123,8 @@ int initiate(Game *pGame) {
         return 0;
     }
 
+    initObstacles(obstacles, NUM_OBSTACLES);
+
     // Initialize players
     for (int i = 0; i < MAX_PLAYERS; i++) {
         pGame->players[i].isActive = 1;
@@ -154,12 +156,9 @@ void run(Game *pGame) {
                 executeCommand(pGame,cData);
             }
             if (SDL_PollEvent(&e)) if (e.type == SDL_QUIT) running = false;
-            SDL_RenderClear(pGame->pRenderer);
-            ////// 
-            //renderPlayer(pGame->pRenderer, &pGame->players[0]);
-            //renderPlayer(pGame->pRenderer, &pGame->players[1]);
-            
+            SDL_RenderClear(pGame->pRenderer);          
             SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
+            drawObstacles(pGame->pRenderer, obstacles, NUM_OBSTACLES);
             renderPlayers(pGame); // Draw all players
             SDL_RenderPresent(pGame->pRenderer);
         
