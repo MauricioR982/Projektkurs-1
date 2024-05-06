@@ -8,7 +8,7 @@ void toggleObstacleDebugMode() {
 }
 
 void initObstacles(Obstacle obstacles[], int size) {
-    if (size >= 23) { // Make sure the size is sufficient to hold all defined obstacles
+    if (size >= 23) { 
         obstacles[0].bounds = (SDL_Rect){458, 48, 25, 25};
         obstacles[1].bounds = (SDL_Rect){475, 68, 25, 25};
         obstacles[2].bounds = (SDL_Rect){225, 545, 30, 30};
