@@ -11,11 +11,6 @@
 #include "sprinter.h"
 #include "text.h"
 
-#define WINDOW_WIDTH 1280
-#define WINDOW_HEIGHT 720
-#define SERVER_PORT 1234
-
-
 typedef struct {
     SDL_Window *pWindow;
     SDL_Renderer *pRenderer;
