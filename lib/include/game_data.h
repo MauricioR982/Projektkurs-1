@@ -73,4 +73,10 @@ typedef struct {
     int x, y;     // New coordinates of the player
 } PlayerMovement;
 
+SDL_Point sprinterSpawnPoints[] = {
+    {100, 64},   // First sprinter position
+    {100, 550},  // Second sprinter position
+    {1100, 64}   // Third sprinter position
+};
+
 #endif // GAME_DATA_H

@@ -30,6 +30,8 @@ typedef struct {
 } Game;
 
 Obstacle obstacles[NUM_OBSTACLES];
+Hunter hunter;  // One hunter
+Sprinter sprinters[MAX_PLAYERS - 1]; //Remaining players become sprinters
 
 // Function declarations
 int initiate(Game *pGame);
@@ -48,6 +50,7 @@ void setUpGame(Game *pGame);
 void sendGameData(Game *pGame);
 void executeCommand(Game *pGame, ClientData cData);
 void renderPlayer(SDL_Renderer *renderer, Player *player);
+void initializePlayers(Game *pGame);
 
 int main(int argc, char **argv) {
     Game g = {0};
@@ -124,14 +127,7 @@ int initiate(Game *pGame) {
     }
 
     initObstacles(obstacles, NUM_OBSTACLES);
-
-    // Initialize players
-    for (int i = 0; i < MAX_PLAYERS; i++) {
-        pGame->players[i].isActive = 1;
-        pGame->players[i].texture = (i % 2 == 0) ? pGame->hunterTexture : pGame->sprinterTexture;
-        setupPlayerClips(&pGame->players[i]);
-        pGame->players[i].position = (SDL_Rect){100 + i * 100, 100, 32, 32};
-    }
+    initializePlayers(pGame);
 
     // Set initial game state
     pGame->state = GAME_START;
@@ -345,4 +341,28 @@ bool checkCollision(SDL_Rect a, SDL_Rect b) {
         return false;
     }
     return true;
+}
+
+void initializePlayers(Game *pGame) {
+    int sprinterIndex = 0;
+
+    hunter = createHunterMan(600, 300);
+    pGame->players[0].isActive = 1;
+    pGame->players[0].texture = pGame->hunterTexture;
+    pGame->players[0].position = (SDL_Rect){getHunterPositionX(hunter), getHunterPositionY(hunter), 32, 32};
+    pGame->players[0].type = HUNTER;
+    setupPlayerClips(&pGame->players[0]);
+
+    for (int i = 1; i < MAX_PLAYERS; i++) {
+        SDL_Point spawn = sprinterSpawnPoints[sprinterIndex];
+        sprinters[sprinterIndex] = createSprinterMan(spawn.x, spawn.y);
+
+        pGame->players[i].isActive = 1;
+        pGame->players[i].texture = pGame->sprinterTexture;
+        pGame->players[i].position = (SDL_Rect){getSprinterPositionX(sprinters[sprinterIndex]), getSprinterPositionY(sprinters[sprinterIndex]), 32, 32};
+        pGame->players[i].type = SPRINTER;
+        setupPlayerClips(&pGame->players[i]);
+
+        sprinterIndex++;
+    }
 }
