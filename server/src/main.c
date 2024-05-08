@@ -255,40 +255,53 @@ void add(IPaddress address, IPaddress client[] , int *pNrOfClents){
     
 }
 
-void executeCommand(Game *pGame, ClientData cData){
+void executeCommand(Game *pGame, ClientData cData) {
     int deltaX = 0, deltaY = 0;
-    switch (cData.command)
-    {
-    case CMD_UP:
-        deltaY -= 8;
-        break;
-    case CMD_DOWN:
-        deltaY += 8;
-        break;
-    case CMD_LEFT:
-        deltaX -= 8;
-        break;
-    case CMD_RIGHT:
-        deltaX += 8;
-        break;
-    
+    switch (cData.command) {
+        case CMD_UP:
+            deltaY -= 8;
+            break;
+        case CMD_DOWN:
+            deltaY += 8;
+            break;
+        case CMD_LEFT:
+            deltaX -= 8;
+            break;
+        case CMD_RIGHT:
+            deltaX += 8;
+            break;
     }
 
+    // Move the player according to input command
     moveCharacter(&pGame->players[cData.playerNumber].position, deltaX, deltaY, pGame->players[cData.playerNumber].type, obstacles, NUM_OBSTACLES);
     updateFrame(&pGame->players[cData.playerNumber].currentFrame, pGame->players[cData.playerNumber].type, 2, 3);
 
-    // Check for collision between hunter and sprinters
+    // If the player is a hunter, check for collisions with sprinters
     if (pGame->players[cData.playerNumber].type == HUNTER) {
-        for (int i = 1; i < MAX_PLAYERS; i++) {
-            if (pGame->players[i].type == SPRINTER && checkCollision(pGame->players[0].position, pGame->players[i].position)) {
-                // Swap hunter with this sprinter
-                swapHunterAndSprinter(&pGame->players[0], &pGame->players[i], pGame->hunterTexture, pGame->sprinterTexture);
-                break;
+        for (int i = 0; i < MAX_PLAYERS; i++) {
+            // Ignore self and other hunters
+            if (i == cData.playerNumber || pGame->players[i].type == HUNTER) continue;
+
+            // If a collision occurs between the hunter and a sprinter
+            if (checkCollision(pGame->players[cData.playerNumber].position, pGame->players[i].position)) {
+                // Switch the sprinter to a hunter
+                pGame->players[i].type = HUNTER;
+                pGame->players[i].texture = pGame->hunterTexture;
+                pGame->players[i].currentFrame = 0;
+
+                // Change the previous hunter to a sprinter
+                pGame->players[cData.playerNumber].type = SPRINTER;
+                pGame->players[cData.playerNumber].texture = pGame->sprinterTexture;
+                pGame->players[cData.playerNumber].currentFrame = 0;
+
+                // You can add extra logic here (e.g., notifications or score updates)
+
+                break; // Exit loop after one successful swap
             }
         }
     }
-
 }
+
 
 void close(Game *pGame) {
     if (pGame->packet) SDLNet_FreePacket(pGame->packet);
