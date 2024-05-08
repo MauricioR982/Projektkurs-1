@@ -131,7 +131,7 @@ int initiate(Game *pGame) {
     initializePlayers(pGame);
 
     // Set initial game state
-    pGame->state = GAME_MENU;
+    pGame->state = GAME_START;
     pGame->nrOfClients =0;
     return 1;
 }

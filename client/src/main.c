@@ -37,7 +37,7 @@ typedef struct {
     SDL_Renderer *pRenderer;
     Player players[MAX_PLAYERS];
     int playerNr;
-    SDL_Texture *backgroundTexture, *hunterTexture, *sprinterTexture, *initialTextTexture, *tutorialTexture;
+    SDL_Texture *backgroundTexture, *hunterTexture, *sprinterTexture, *initialTextTexture, *tutorialTexture, *menuBackgroundTexture;
     UDPsocket udpSocket;
     UDPpacket *packet;
     IPaddress serverAddress;
@@ -307,6 +307,15 @@ void close(Game *pGame) {
 }
 
 int loadGameResources(SDL_Renderer *renderer, Game *pGame) {
+    // Load the MENU.png background image
+    SDL_Surface *menuSurface = IMG_Load("../lib/resources/MENU.png");
+    if (!menuSurface) {
+        fprintf(stderr, "Failed to load MENU background image: %s\n", IMG_GetError());
+        return 0;
+    }
+    pGame->menuBackgroundTexture = SDL_CreateTextureFromSurface(renderer, menuSurface);
+    SDL_FreeSurface(menuSurface);
+
     SDL_Surface *bgSurface = IMG_Load("../lib/resources/Map.png");
     if (!bgSurface) {
         fprintf(stderr, "Failed to load background image: %s\n", IMG_GetError());
@@ -480,12 +489,15 @@ void initializePlayers(Game *pGame) {
 void renderMenu(Game *pGame) {
     SDL_RenderClear(pGame->pRenderer);
 
+    // Render the MENU.png background
+    SDL_RenderCopy(pGame->pRenderer, pGame->menuBackgroundTexture, NULL, NULL);
+
     // Ensure Text objects are created and then drawn
     drawText(pGame->menu.pStartText);
     drawText(pGame->menu.pTutorialText);
     drawText(pGame->menu.pExitText);
 
-    // Highlight the selected item
+    /*// Highlight the selected item
     SDL_SetRenderDrawColor(pGame->pRenderer, 255, 255, 0, 255);
     SDL_Rect highlightRect = {0, 0, 0, 0};
     switch (pGame->menu.selectedItem) {
@@ -499,7 +511,7 @@ void renderMenu(Game *pGame) {
             highlightRect = pGame->menu.pExitText->rect;
             break;
     }
-    SDL_RenderDrawRect(pGame->pRenderer, &highlightRect);
+    SDL_RenderDrawRect(pGame->pRenderer, &highlightRect);*/
 
     SDL_RenderPresent(pGame->pRenderer);
 }
