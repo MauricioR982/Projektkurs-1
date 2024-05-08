@@ -345,16 +345,17 @@ void updateWithServerData(Game *pGame) {
         pGame->players[i].position.x = sData.players[i].x;
         pGame->players[i].position.y = sData.players[i].y;
 
-        // Update role
-        if (sData.players[i].role == HUNTER) {
+        // Update role and assign the correct texture
+        if (sData.players[i].role == ROLE_HUNTER) {
             pGame->players[i].type = HUNTER;
             pGame->players[i].texture = pGame->hunterTexture;
-        } else if (sData.players[i].role == SPRINTER) {
+        } else if (sData.players[i].role == ROLE_SPRINTER) {
             pGame->players[i].type = SPRINTER;
             pGame->players[i].texture = pGame->sprinterTexture;
         }
     }
 }
+
 
 
 void initializePlayers(Game *pGame) {
