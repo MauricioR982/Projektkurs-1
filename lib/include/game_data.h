@@ -10,13 +10,13 @@
 #define HUNTER 0
 #define SPRINTER 1
 #define HORIZONTAL_MARGIN 20 // Margin for character movement constraints
-#define NUM_OBSTACLES 23 // Number of obstacles
+#define NUM_OBSTACLES 23     // Number of obstacles
 
 // Enumerations for different game states
 typedef enum {
     GAME_WAITING, // Waiting for players to be ready
-    GAME_READY, // Player has signaled readiness
-    GAME_START,  //Start the game
+    GAME_READY,   // Player has signaled readiness
+    GAME_START,   // Start the game
     GAME_ONGOING, // Game is in progress
     GAME_OVER     // Game has ended
 } GameState;
@@ -37,15 +37,22 @@ typedef struct {
     int playerNumber;      // Which player is sending the command
 } ClientData;
 
-// Structure representing a player's position and size
+// Enumeration for player roles
+typedef enum {
+    ROLE_SPRINTER,
+    ROLE_HUNTER
+} PlayerRole;
+
+// Structure representing a player's position, size, and role
 typedef struct {
     float x, y, w, h;
+    PlayerRole role; // Role of the player (hunter or sprinter)
 } PlayerData;
 
-// Data structure sent from server to clients
+// Data structure sent from the server to the clients
 typedef struct {
     PlayerData players[MAX_PLAYERS]; // Player data for all players
-    int playerNr;                    // Number of the player to which the data is being sent
+    int playerNr;                    // Index of the player to which the data is being sent
     GameState state;                 // Current state of the game
 } ServerData;
 
@@ -60,12 +67,6 @@ typedef struct {
     int isActive;          // Indicates if the player is active
     int type;              // Type of the player (HUNTER or SPRINTER)
 } Player;
-
-// Enumeration for player roles
-typedef enum {
-    ROLE_SPRINTER,
-    ROLE_HUNTER
-} PlayerRole;
 
 // Structure for transmitting player movement information
 typedef struct {

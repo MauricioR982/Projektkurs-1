@@ -1,3 +1,8 @@
 {
-  "C_Cpp_Runner.msvcBatchPath": ""
+  "C_Cpp_Runner.msvcBatchPath": "",
+  "files.associations": {
+    "sdl_net.h": "c",
+    "sdl_ttf.h": "c",
+    "sdl_image.h": "c"
+  }
 }

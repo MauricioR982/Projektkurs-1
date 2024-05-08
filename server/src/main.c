@@ -51,6 +51,7 @@ void sendGameData(Game *pGame);
 void executeCommand(Game *pGame, ClientData cData);
 void renderPlayer(SDL_Renderer *renderer, Player *player);
 void initializePlayers(Game *pGame);
+void swapHunterAndSprinter(Player *hunter, Player *sprinter, SDL_Texture *hunterTexture, SDL_Texture *sprinterTexture);
 
 int main(int argc, char **argv) {
     Game g = {0};
@@ -252,6 +253,17 @@ void executeCommand(Game *pGame, ClientData cData){
     moveCharacter(&pGame->players[cData.playerNumber].position, deltaX, deltaY, pGame->players[cData.playerNumber].type, obstacles, NUM_OBSTACLES);
     updateFrame(&pGame->players[cData.playerNumber].currentFrame, pGame->players[cData.playerNumber].type, 2, 3);
 
+    // Check for collision between hunter and sprinters
+    if (pGame->players[cData.playerNumber].type == HUNTER) {
+        for (int i = 1; i < MAX_PLAYERS; i++) {
+            if (pGame->players[i].type == SPRINTER && checkCollision(pGame->players[0].position, pGame->players[i].position)) {
+                // Swap hunter with this sprinter
+                swapHunterAndSprinter(&pGame->players[0], &pGame->players[i], pGame->hunterTexture, pGame->sprinterTexture);
+                break;
+            }
+        }
+    }
+
 }
 
 void close(Game *pGame) {
@@ -365,4 +377,21 @@ void initializePlayers(Game *pGame) {
 
         sprinterIndex++;
     }
+}
+
+void swapHunterAndSprinter(Player *hunter, Player *sprinter, SDL_Texture *hunterTexture, SDL_Texture *sprinterTexture) {
+    // Swap positions
+    SDL_Rect tempPos = hunter->position;
+    hunter->position = sprinter->position;
+    sprinter->position = tempPos;
+
+    // Swap roles and textures
+    hunter->type = SPRINTER;
+    hunter->texture = sprinterTexture;
+    sprinter->type = HUNTER;
+    sprinter->texture = hunterTexture;
+
+    // Reset to frame 0
+    hunter->currentFrame = 0;
+    sprinter->currentFrame = 0;
 }
