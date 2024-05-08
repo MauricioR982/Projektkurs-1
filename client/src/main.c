@@ -11,7 +11,7 @@
 #include "sprinter.h"
 #include "text.h"
 
-typedef struct {
+/*typedef struct {
     SDL_Window *pWindow;
     SDL_Renderer *pRenderer;
     Player players[MAX_PLAYERS];
@@ -23,6 +23,29 @@ typedef struct {
     GameState state;
     TTF_Font *pFont;
     Text *pWaitingText, *pJoinText;
+} Game;*/
+
+typedef struct {
+    Text *pStartText;
+    Text *pTutorialText;
+    Text *pExitText;
+    int selectedItem;
+} Menu;
+
+typedef struct {
+    SDL_Window *pWindow;
+    SDL_Renderer *pRenderer;
+    Player players[MAX_PLAYERS];
+    int playerNr;
+    SDL_Texture *backgroundTexture, *hunterTexture, *sprinterTexture, *initialTextTexture, *tutorialTexture;
+    UDPsocket udpSocket;
+    UDPpacket *packet;
+    IPaddress serverAddress;
+    GameState state;
+    TTF_Font *pFont;
+    Text *pWaitingText, *pJoinText;
+    Menu menu;
+
 } Game;
 
 Obstacle obstacles[NUM_OBSTACLES];
@@ -43,6 +66,8 @@ void updateFrame(int *frame, PlayerRole role, int frame1, int frame2);
 bool checkCollision(SDL_Rect a, SDL_Rect b);
 void updateWithServerData(Game *pGAme);
 void initializePlayers(Game *pGame);
+int initiateMenu(Game *pGame);
+void renderMenu(Game *pGame);
 
 int main(int argc, char **argv) {
     Game g = {0};
@@ -134,8 +159,15 @@ int initiate(Game *pGame) {
     initObstacles(obstacles, NUM_OBSTACLES);
     initializePlayers(pGame);
 
+    // Initialize Menu
+    if (!initiateMenu(pGame)) {
+        printf("Error creating menu items.\n");
+        close(pGame);
+        return 0;
+    }
+
     // Set initial game state
-    pGame->state = GAME_START;
+    pGame->state = GAME_MENU;
     return 1;
 }
 
@@ -147,8 +179,64 @@ void run(Game *pGame) {
 
     while (running) {
 
-        switch (pGame->state)
-        {
+        switch (pGame->state) {
+            case GAME_MENU:
+                // Render the menu screen
+                renderMenu(pGame);
+                while (SDL_PollEvent(&e)) {
+                    if (e.type == SDL_QUIT) {
+                        running = false;
+                    } else if (e.type == SDL_KEYDOWN) {
+                        // Keyboard navigation
+                        switch (e.key.keysym.scancode) {
+                            case SDL_SCANCODE_UP:
+                                pGame->menu.selectedItem = (pGame->menu.selectedItem + 2) % 3; // Cycle backward
+                                break;
+                            case SDL_SCANCODE_DOWN:
+                                pGame->menu.selectedItem = (pGame->menu.selectedItem + 1) % 3; // Cycle forward
+                                break;
+                            case SDL_SCANCODE_RETURN:
+                                // Select the menu item
+                                if (pGame->menu.selectedItem == 0) {
+                                    pGame->state = GAME_START; // "Waiting for server"
+                                } else if (pGame->menu.selectedItem == 1) {
+                                    pGame->state = GAME_TUTORIAL; // Switch to tutorial screen
+                                } else if (pGame->menu.selectedItem == 2) {
+                                    running = false; // Exit game
+                                }
+                                break;
+                        }
+                    } else if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT) {
+                        // Get mouse click position
+                        int mouseX = e.button.x;
+                        int mouseY = e.button.y;
+
+                        // Check which menu item was clicked
+                        if (SDL_PointInRect(&(SDL_Point){mouseX, mouseY}, &pGame->menu.pStartText->rect)) {
+                            pGame->state = GAME_START; // "Waiting for server"
+                        } else if (SDL_PointInRect(&(SDL_Point){mouseX, mouseY}, &pGame->menu.pTutorialText->rect)) {
+                            pGame->state = GAME_TUTORIAL; // Switch to tutorial screen
+                        } else if (SDL_PointInRect(&(SDL_Point){mouseX, mouseY}, &pGame->menu.pExitText->rect)) {
+                            running = false; // Exit game
+                        }
+                    }
+                }
+                break;
+        case GAME_TUTORIAL:
+                // Render the tutorial screen
+                SDL_RenderClear(pGame->pRenderer);
+                SDL_RenderCopy(pGame->pRenderer, pGame->tutorialTexture, NULL, NULL);
+                SDL_RenderPresent(pGame->pRenderer);
+
+                // Handle input to exit the tutorial screen
+                while (SDL_PollEvent(&e)) {
+                    if (e.type == SDL_QUIT) {
+                        running = false;
+                    } else if (e.type == SDL_KEYDOWN && e.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
+                        pGame->state = GAME_MENU; // Return to the menu
+                    }
+                }
+                break;
         case GAME_ONGOING:
             while (SDLNet_UDP_Recv(pGame->udpSocket, pGame->packet))
             {
@@ -242,6 +330,15 @@ int loadGameResources(SDL_Renderer *renderer, Game *pGame) {
     }
     pGame->sprinterTexture = SDL_CreateTextureFromSurface(renderer, sprinterSurface);
     SDL_FreeSurface(sprinterSurface);
+
+     // Load tutorial image
+    SDL_Surface *tutorialSurface = IMG_Load("../lib/resources/TUTORIAL.png");
+    if (!tutorialSurface) {
+        fprintf(stderr, "Failed to load tutorial image: %s\n", IMG_GetError());
+        return 0;
+    }
+    pGame->tutorialTexture = SDL_CreateTextureFromSurface(renderer, tutorialSurface);
+    SDL_FreeSurface(tutorialSurface);
 
     return 1;
 }
@@ -379,3 +476,46 @@ void initializePlayers(Game *pGame) {
         sprinterIndex++;
     }
 }
+
+void renderMenu(Game *pGame) {
+    SDL_RenderClear(pGame->pRenderer);
+
+    // Ensure Text objects are created and then drawn
+    drawText(pGame->menu.pStartText);
+    drawText(pGame->menu.pTutorialText);
+    drawText(pGame->menu.pExitText);
+
+    // Highlight the selected item
+    SDL_SetRenderDrawColor(pGame->pRenderer, 255, 255, 0, 255);
+    SDL_Rect highlightRect = {0, 0, 0, 0};
+    switch (pGame->menu.selectedItem) {
+        case 0:
+            highlightRect = pGame->menu.pStartText->rect;
+            break;
+        case 1:
+            highlightRect = pGame->menu.pTutorialText->rect;
+            break;
+        case 2:
+            highlightRect = pGame->menu.pExitText->rect;
+            break;
+    }
+    SDL_RenderDrawRect(pGame->pRenderer, &highlightRect);
+
+    SDL_RenderPresent(pGame->pRenderer);
+}
+
+int initiateMenu(Game *pGame) {
+    // Create and store menu items in the menu struct
+    pGame->menu.pStartText = createText(pGame->pRenderer, 255, 255, 255, pGame->pFont, "Start Game", 640, 200);
+    pGame->menu.pTutorialText = createText(pGame->pRenderer, 255, 255, 255, pGame->pFont, "Tutorial", 640, 300);
+    pGame->menu.pExitText = createText(pGame->pRenderer, 255, 255, 255, pGame->pFont, "Exit", 640, 400);
+    pGame->menu.selectedItem = 0;
+
+    // Check if all menu items are created
+    if (!pGame->menu.pStartText || !pGame->menu.pTutorialText || !pGame->menu.pExitText) {
+        return 0;  // Error in creating one or more text objects
+    }
+    return 1;
+}
+
+

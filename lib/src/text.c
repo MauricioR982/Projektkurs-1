@@ -2,13 +2,6 @@
 #include <SDL2/SDL_ttf.h>
 #include "../../lib/include/text.h"
 
-struct text
-{
-    SDL_Rect rect;
-    SDL_Texture *pTexture;
-    SDL_Renderer *pRenderer; 
-};
-
 Text *createText(SDL_Renderer *pRenderer, int r, int g, int b, TTF_Font *pFont, char *pString, int x, int y){
     Text *pText = malloc(sizeof(struct text));
     pText->pRenderer = pRenderer;

@@ -14,6 +14,8 @@
 
 // Enumerations for different game states
 typedef enum {
+    GAME_MENU, //Game menu
+    GAME_TUTORIAL, //Game tutorial
     GAME_WAITING, // Waiting for players to be ready
     GAME_READY,   // Player has signaled readiness
     GAME_START,   // Start the game
