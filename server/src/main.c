@@ -186,7 +186,7 @@ void setUpGame(Game *pGame){
     pGame->state = GAME_ONGOING;
 }
 
-void sendGameData(Game *pGame){
+/*void sendGameData(Game *pGame){
     pGame->sData.state = pGame->state;
     for (int i = 0; i < MAX_PLAYERS; i++)
     {
@@ -202,7 +202,31 @@ void sendGameData(Game *pGame){
         pGame->packet->address = pGame->clients[i];
         SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet);
     }    
+}*/
+
+void sendGameData(Game *pGame) {
+    pGame->sData.state = pGame->state;
+    for (int i = 0; i < MAX_PLAYERS; i++) {
+        pGame->sData.players[i].x = pGame->players[i].position.x;
+        pGame->sData.players[i].y = pGame->players[i].position.y;
+
+        // Ensure that roles are set correctly
+        if (pGame->players[i].type == HUNTER) {
+            pGame->sData.players[i].role = ROLE_HUNTER;
+        } else {
+            pGame->sData.players[i].role = ROLE_SPRINTER;
+        }
+    }
+
+    for (int i = 0; i < MAX_PLAYERS; i++) {
+        pGame->sData.playerNr = i;
+        memcpy(pGame->packet->data, &(pGame->sData), sizeof(ServerData));
+        pGame->packet->len = sizeof(ServerData);
+        pGame->packet->address = pGame->clients[i];
+        SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet);
+    }
 }
+
 
 void add(IPaddress address, IPaddress client[] , int *pNrOfClents){
     //printf("Adding player\n");

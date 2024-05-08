@@ -333,25 +333,23 @@ bool checkCollision(SDL_Rect a, SDL_Rect b) {
 }
 
 void updateWithServerData(Game *pGame) {
-    // Extract server data
     ServerData sData;
     memcpy(&sData, pGame->packet->data, sizeof(ServerData));
     pGame->playerNr = sData.playerNr;
     pGame->state = sData.state;
 
-    // Update each player's data
     for (int i = 0; i < MAX_PLAYERS; i++) {
-        // Update position
         pGame->players[i].position.x = sData.players[i].x;
         pGame->players[i].position.y = sData.players[i].y;
 
-        // Update role and assign the correct texture
         if (sData.players[i].role == ROLE_HUNTER) {
             pGame->players[i].type = HUNTER;
             pGame->players[i].texture = pGame->hunterTexture;
+            printf("Player %d assigned HUNTER texture.\n", i);
         } else if (sData.players[i].role == ROLE_SPRINTER) {
             pGame->players[i].type = SPRINTER;
             pGame->players[i].texture = pGame->sprinterTexture;
+            printf("Player %d assigned SPRINTER texture.\n", i);
         }
     }
 }
