@@ -11,19 +11,6 @@
 #include "sprinter.h"
 #include "text.h"
 
-/*typedef struct {
-    SDL_Window *pWindow;
-    SDL_Renderer *pRenderer;
-    Player players[MAX_PLAYERS];
-    int playerNr;
-    SDL_Texture *backgroundTexture, *hunterTexture, *sprinterTexture, *initialTextTexture;
-    UDPsocket udpSocket;
-    UDPpacket *packet;
-    IPaddress serverAddress;
-    GameState state;
-    TTF_Font *pFont;
-    Text *pWaitingText, *pJoinText;
-} Game;*/
 
 typedef struct {
     Text *pStartText;
@@ -451,11 +438,11 @@ void updateWithServerData(Game *pGame) {
         if (sData.players[i].role == ROLE_HUNTER) {
             pGame->players[i].type = HUNTER;
             pGame->players[i].texture = pGame->hunterTexture;
-            printf("Player %d assigned HUNTER texture.\n", i);
+            //printf("Player %d assigned HUNTER texture.\n", i);
         } else if (sData.players[i].role == ROLE_SPRINTER) {
             pGame->players[i].type = SPRINTER;
             pGame->players[i].texture = pGame->sprinterTexture;
-            printf("Player %d assigned SPRINTER texture.\n", i);
+            //printf("Player %d assigned SPRINTER texture.\n", i);
         }
     }
 }
@@ -495,22 +482,6 @@ void renderMenu(Game *pGame) {
     drawText(pGame->menu.pStartText);
     drawText(pGame->menu.pTutorialText);
     drawText(pGame->menu.pExitText);
-
-    /*// Highlight the selected item
-    SDL_SetRenderDrawColor(pGame->pRenderer, 255, 255, 0, 255);
-    SDL_Rect highlightRect = {0, 0, 0, 0};
-    switch (pGame->menu.selectedItem) {
-        case 0:
-            highlightRect = pGame->menu.pStartText->rect;
-            break;
-        case 1:
-            highlightRect = pGame->menu.pTutorialText->rect;
-            break;
-        case 2:
-            highlightRect = pGame->menu.pExitText->rect;
-            break;
-    }
-    SDL_RenderDrawRect(pGame->pRenderer, &highlightRect);*/
 
     SDL_RenderPresent(pGame->pRenderer);
 }
