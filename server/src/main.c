@@ -292,6 +292,9 @@ void executeCommand(Game *pGame, ClientData cData) {
 
                 // Byt sprinter till en jägare
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> parent of 686907c (score code added)
+=======
 >>>>>>> parent of 686907c (score code added)
 =======
 >>>>>>> parent of 686907c (score code added)
@@ -301,7 +304,11 @@ void executeCommand(Game *pGame, ClientData cData) {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 // Change the previous hunter to a sprinter
+=======
+                // Ändra den tidigare jägaren till en sprinter
+>>>>>>> parent of 686907c (score code added)
 =======
                 // Ändra den tidigare jägaren till en sprinter
 >>>>>>> parent of 686907c (score code added)
@@ -314,10 +321,13 @@ void executeCommand(Game *pGame, ClientData cData) {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 // You can add extra logic here (e.g., notifications or score updates)
 
                 break; // Exit loop after one successful swap
 =======
+=======
+>>>>>>> parent of 686907c (score code added)
 =======
 >>>>>>> parent of 686907c (score code added)
                 // Avbryt loopen efter en framgångsrik byte
