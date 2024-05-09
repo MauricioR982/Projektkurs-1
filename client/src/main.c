@@ -32,7 +32,9 @@ typedef struct {
     TTF_Font *pFont;
     Text *pWaitingText, *pJoinText;
     Menu menu;
-
+    Uint32 startTime;    
+    int gameDuration; 
+    Text *pTimerText;
 } Game;
 
 Obstacle obstacles[NUM_OBSTACLES];
@@ -154,6 +156,18 @@ int initiate(Game *pGame) {
         return 0;
     }
 
+    pGame->startTime = SDL_GetTicks();  // Record start time
+    pGame->gameDuration = 60000;        // 1 minute in milliseconds
+
+    // Example using a timer string placeholder
+    pGame->pTimerText = createText(pGame->pRenderer, 255, 255, 255, pGame->pFont, "01:00", WINDOW_WIDTH / 2, 30);
+    if (!pGame->pTimerText) {
+        fprintf(stderr, "Error creating timer text: %s\n", SDL_GetError());
+        close(pGame);
+        return 0;
+    }
+
+
     // Set initial game state
     pGame->state = GAME_MENU;
     return 1;
@@ -238,10 +252,25 @@ void run(Game *pGame) {
                 else
                     handlePlayerInput(pGame, &e);
             }
+            // Timer logic
+            Uint32 currentTime = SDL_GetTicks();
+            int elapsedTime = currentTime - pGame->startTime;
+            int remainingTime = (pGame->gameDuration - elapsedTime) / 1000;
+            if (remainingTime < 0) remainingTime = 0; // No negative values
+
+            // Update timer display
+            char timerStr[6];  // "MM:SS\0"
+            snprintf(timerStr, sizeof(timerStr), "%02d:%02d", remainingTime / 60, remainingTime % 60);
+            updateText(pGame->pTimerText, pGame->pRenderer, timerStr);
+
             SDL_RenderClear(pGame->pRenderer);   
             SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
             drawObstacles(pGame->pRenderer, obstacles, NUM_OBSTACLES); //debug
             renderPlayers(pGame); // Draw all players
+
+            // Render the timer text in the upper-middle part of the screen
+            drawText(pGame->pTimerText);
+
             SDL_RenderPresent(pGame->pRenderer);
             break;
         

@@ -27,6 +27,9 @@ typedef struct {
     IPaddress clients[MAX_PLAYERS];
     int nrOfClients;
     ServerData sData;
+
+    Uint32 startTime;
+    int gameDuration;
 } Game;
 
 Obstacle obstacles[NUM_OBSTACLES];
@@ -134,6 +137,11 @@ int initiate(Game *pGame) {
     // Set initial game state
     pGame->state = GAME_START;
     pGame->nrOfClients =0;
+
+    // Initialize timer in the `initiate` function:
+    pGame->startTime = SDL_GetTicks();  // Record the start time
+    pGame->gameDuration = 60000;        // 1 minute in milliseconds
+
     return 1;
 }
 
@@ -188,12 +196,20 @@ void setUpGame(Game *pGame){
 }
 
 void sendGameData(Game *pGame) {
+    Uint32 currentTime = SDL_GetTicks();
+    int elapsedTime = currentTime - pGame->startTime;
+    int remainingTime = (pGame->gameDuration - elapsedTime) / 1000; // Convert to seconds
+    if (remainingTime < 0) remainingTime = 0; // Prevent negative values
+
+    // Add remaining time to the data packet
+    pGame->sData.remainingTime = remainingTime;
     pGame->sData.state = pGame->state;
+
+    // Copy player data to the packet
     for (int i = 0; i < MAX_PLAYERS; i++) {
         pGame->sData.players[i].x = pGame->players[i].position.x;
         pGame->sData.players[i].y = pGame->players[i].position.y;
 
-        // Ensure that roles are set correctly
         if (pGame->players[i].type == HUNTER) {
             pGame->sData.players[i].role = ROLE_HUNTER;
         } else {
@@ -201,6 +217,7 @@ void sendGameData(Game *pGame) {
         }
     }
 
+    // Send data to each client
     for (int i = 0; i < MAX_PLAYERS; i++) {
         pGame->sData.playerNr = i;
         memcpy(pGame->packet->data, &(pGame->sData), sizeof(ServerData));
@@ -209,7 +226,6 @@ void sendGameData(Game *pGame) {
         SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet);
     }
 }
-
 
 void add(IPaddress address, IPaddress client[] , int *pNrOfClents){
     //printf("Adding player\n");
@@ -419,17 +435,12 @@ void swapHunterAndSprinter(Player *hunter, Player *sprinter, SDL_Texture *hunter
 }
 
 void checkGameOverCondition(Game *pGame) {
-    // Replace with your game-over logic
-    bool allSprintersTagged = true;
-
-    for (int i = 0; i < MAX_PLAYERS; i++) {
-        if (pGame->players[i].type == SPRINTER) {
-            allSprintersTagged = false;
-            break;
-        }
-    }
-
-    if (allSprintersTagged) {
-        pGame->state = GAME_OVER;
+    Uint32 currentTime = SDL_GetTicks();
+    int elapsedTime = currentTime - pGame->startTime;
+    int remainingTime = (pGame->gameDuration - elapsedTime) / 1000;
+    
+    if (remainingTime <= 0) {
+        pGame->state = GAME_OVER;  // Change game state to GAME_OVER
+        // Implement additional game over logic as needed
     }
 }

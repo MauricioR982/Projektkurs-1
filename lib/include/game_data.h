@@ -56,6 +56,7 @@ typedef struct {
     PlayerData players[MAX_PLAYERS]; // Player data for all players
     int playerNr;                    // Index of the player to which the data is being sent
     GameState state;                 // Current state of the game
+    int remainingTime;  // Remaining time in seconds
 } ServerData;
 
 // Structure for each player in the game
