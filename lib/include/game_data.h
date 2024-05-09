@@ -51,11 +51,16 @@ typedef struct {
     float x, y, w, h;
     PlayerRole role; // Role of the player (hunter or sprinter)
 } PlayerData;
+typedef struct
+{
+    int x,y;
+}ParksData;
 
 // Data structure sent from the server to the clients
 typedef struct {
     PlayerData players[MAX_PLAYERS]; // Player data for all players
-    int playerNr;                    // Index of the player to which the data is being sent
+    int playerNr;
+    ParksData parks ;                  // Index of the player to which the data is being sent
     GameState state;                 // Current state of the game
     int remainingTime;  // Remaining time in seconds
 } ServerData;
