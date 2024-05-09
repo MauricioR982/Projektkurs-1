@@ -11,6 +11,8 @@
 #include "sprinter.h"
 #include "text.h"
 
+#define POINTS_PER_TAG 5
+
 typedef struct {
     SDL_Window *pWindow;
     SDL_Renderer *pRenderer;
@@ -279,24 +281,26 @@ void executeCommand(Game *pGame, ClientData cData) {
     // If the player is a hunter, check for collisions with sprinters
     if (pGame->players[cData.playerNumber].type == HUNTER) {
         for (int i = 0; i < MAX_PLAYERS; i++) {
-            // Ignore self and other hunters
+            // Ignorera sig själv och andra jägare
             if (i == cData.playerNumber || pGame->players[i].type == HUNTER) continue;
 
-            // If a collision occurs between the hunter and a sprinter
+            // Om en kollision sker mellan jägaren och en sprinter
             if (checkCollision(pGame->players[cData.playerNumber].position, pGame->players[i].position)) {
-                // Switch the sprinter to a hunter
+                // Öka poängen för jägaren
+                pGame->players[cData.playerNumber].score += POINTS_PER_TAG;
+
+                // Byt sprinter till en jägare
                 pGame->players[i].type = HUNTER;
                 pGame->players[i].texture = pGame->hunterTexture;
                 pGame->players[i].currentFrame = 0;
 
-                // Change the previous hunter to a sprinter
+                // Ändra den tidigare jägaren till en sprinter
                 pGame->players[cData.playerNumber].type = SPRINTER;
                 pGame->players[cData.playerNumber].texture = pGame->sprinterTexture;
                 pGame->players[cData.playerNumber].currentFrame = 0;
 
-                // You can add extra logic here (e.g., notifications or score updates)
-
-                break; // Exit loop after one successful swap
+                // Avbryt loopen efter en framgångsrik byte
+                break;
             }
         }
     }
