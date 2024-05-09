@@ -188,23 +188,24 @@ void setUpGame(Game *pGame){
     pGame->state = GAME_ONGOING;
 }
 
-/*void sendGameData(Game *pGame){
-    pGame->sData.state = pGame->state;
-    for (int i = 0; i < MAX_PLAYERS; i++)
-    {
+void sendGameData(Game *pGame) {
+    pGame->sData.state = pGame->state; // Uppdaterar spelets tillstånd
+
+    for (int i = 0; i < MAX_PLAYERS; i++) {
         pGame->sData.players[i].x = pGame->players[i].position.x;
         pGame->sData.players[i].y = pGame->players[i].position.y;
+        pGame->sData.players[i].role = pGame->players[i].role; // Uppdaterar roll
+        pGame->sData.players[i].score = pGame->players[i].score; // Uppdaterar poäng
     }
 
-    for (int i = 0; i < MAX_PLAYERS; i++)
-    {
-        pGame->sData.playerNr = i;
+    for (int i = 0; i < MAX_PLAYERS; i++) {
+        pGame->sData.playerNr = i; // Ange mottagarindex
         memcpy(pGame->packet->data, &(pGame->sData), sizeof(ServerData));
         pGame->packet->len = sizeof(ServerData);
-        pGame->packet->address = pGame->clients[i];
-        SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet);
-    }    
-}*/
+        pGame->packet->address = pGame->clients[i]; // Ange klientens adress
+        SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet); // Skicka datan
+    }
+}
 
 void sendGameData(Game *pGame) {
     pGame->sData.state = pGame->state;
@@ -289,17 +290,14 @@ void executeCommand(Game *pGame, ClientData cData) {
                 // Öka poängen för jägaren
                 pGame->players[cData.playerNumber].score += POINTS_PER_TAG;
 
-                // Byt sprinter till en jägare
                 pGame->players[i].type = HUNTER;
                 pGame->players[i].texture = pGame->hunterTexture;
                 pGame->players[i].currentFrame = 0;
 
-                // Ändra den tidigare jägaren till en sprinter
                 pGame->players[cData.playerNumber].type = SPRINTER;
                 pGame->players[cData.playerNumber].texture = pGame->sprinterTexture;
                 pGame->players[cData.playerNumber].currentFrame = 0;
 
-                // Avbryt loopen efter en framgångsrik byte
                 break;
             }
         }

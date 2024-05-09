@@ -446,7 +446,6 @@ void updateWithServerData(Game *pGame) {
     for (int i = 0; i < MAX_PLAYERS; i++) {
         pGame->players[i].position.x = sData.players[i].x;
         pGame->players[i].position.y = sData.players[i].y;
-
         if (sData.players[i].role == ROLE_HUNTER) {
             pGame->players[i].type = HUNTER;
             pGame->players[i].texture = pGame->hunterTexture;
@@ -456,6 +455,7 @@ void updateWithServerData(Game *pGame) {
             pGame->players[i].texture = pGame->sprinterTexture;
             //printf("Player %d assigned SPRINTER texture.\n", i);
         }
+        pGame->players[i].score = sData.players[i].score;
     }
 }
 
