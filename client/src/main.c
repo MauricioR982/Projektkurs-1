@@ -24,7 +24,7 @@ typedef struct {
     SDL_Renderer *pRenderer;
     Player players[MAX_PLAYERS];
     int playerNr;
-    SDL_Texture *backgroundTexture, *hunterTexture, *sprinterTexture, *initialTextTexture, *tutorialTexture, *menuBackgroundTexture;
+    SDL_Texture *backgroundTexture, *hunterTexture, *sprinterTexture, *initialTextTexture, *tutorialTexture, *menuBackgroundTexture, *gameOverHunterTexture, *gameOverSprinterTexture;
     UDPsocket udpSocket;
     UDPpacket *packet;
     IPaddress serverAddress;
@@ -55,6 +55,7 @@ void updateWithServerData(Game *pGAme);
 void initializePlayers(Game *pGame);
 int initiateMenu(Game *pGame);
 void renderMenu(Game *pGame);
+void renderGameOver(Game *pGame);
 
 int main(int argc, char **argv) {
     Game g = {0};
@@ -245,7 +246,7 @@ void run(Game *pGame) {
             break;
         
         case GAME_OVER:
-            /* code */
+            renderGameOver(pGame);
             break;
         case GAME_START:
             if(!joining){
@@ -335,6 +336,24 @@ int loadGameResources(SDL_Renderer *renderer, Game *pGame) {
     }
     pGame->tutorialTexture = SDL_CreateTextureFromSurface(renderer, tutorialSurface);
     SDL_FreeSurface(tutorialSurface);
+
+    
+    SDL_Surface *gameOverHunterSurface = IMG_Load("../lib/resources/GAMEOVER.jpg");
+    if (!gameOverHunterSurface) {
+        fprintf(stderr, "Failed to load gameover_hunter image: %s\n", IMG_GetError());
+        return 0;
+    }
+    pGame->gameOverHunterTexture = SDL_CreateTextureFromSurface(renderer, gameOverHunterSurface);
+    SDL_FreeSurface(gameOverHunterSurface);
+
+    SDL_Surface *gameOverSprinterSurface = IMG_Load("../lib/resources/VICTORY.jpg");
+    if (!gameOverSprinterSurface) {
+        fprintf(stderr, "Failed to load gameover_sprinter image: %s\n", IMG_GetError());
+        return 0;
+    }
+    pGame->gameOverSprinterTexture = SDL_CreateTextureFromSurface(renderer, gameOverSprinterSurface);
+    SDL_FreeSurface(gameOverSprinterSurface);
+
 
     return 1;
 }
@@ -500,4 +519,20 @@ int initiateMenu(Game *pGame) {
     return 1;
 }
 
+void renderGameOver(Game *pGame) {
+    SDL_RenderClear(pGame->pRenderer);
+    SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
 
+    // Loop through all players and render the game over textures
+    for (int i = 0; i < MAX_PLAYERS; i++) {
+        SDL_Rect destRect = {pGame->players[i].position.x, pGame->players[i].position.y, pGame->players[i].position.w, pGame->players[i].position.h};
+
+        if (pGame->players[i].type == HUNTER) {
+            SDL_RenderCopy(pGame->pRenderer, pGame->gameOverHunterTexture, NULL, &destRect);
+        } else if (pGame->players[i].type == SPRINTER) {
+            SDL_RenderCopy(pGame->pRenderer, pGame->gameOverSprinterTexture, NULL, &destRect);
+        }
+    }
+
+    SDL_RenderPresent(pGame->pRenderer);
+}

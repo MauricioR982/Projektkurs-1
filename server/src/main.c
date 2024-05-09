@@ -52,6 +52,7 @@ void executeCommand(Game *pGame, ClientData cData);
 void renderPlayer(SDL_Renderer *renderer, Player *player);
 void initializePlayers(Game *pGame);
 void swapHunterAndSprinter(Player *hunter, Player *sprinter, SDL_Texture *hunterTexture, SDL_Texture *sprinterTexture);
+void checkGameOverCondition(Game *pGame);
 
 int main(int argc, char **argv) {
     Game g = {0};
@@ -186,24 +187,6 @@ void setUpGame(Game *pGame){
     pGame->state = GAME_ONGOING;
 }
 
-/*void sendGameData(Game *pGame){
-    pGame->sData.state = pGame->state;
-    for (int i = 0; i < MAX_PLAYERS; i++)
-    {
-        pGame->sData.players[i].x = pGame->players[i].position.x;
-        pGame->sData.players[i].y = pGame->players[i].position.y;
-    }
-
-    for (int i = 0; i < MAX_PLAYERS; i++)
-    {
-        pGame->sData.playerNr = i;
-        memcpy(pGame->packet->data, &(pGame->sData), sizeof(ServerData));
-        pGame->packet->len = sizeof(ServerData);
-        pGame->packet->address = pGame->clients[i];
-        SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet);
-    }    
-}*/
-
 void sendGameData(Game *pGame) {
     pGame->sData.state = pGame->state;
     for (int i = 0; i < MAX_PLAYERS; i++) {
@@ -275,6 +258,8 @@ void executeCommand(Game *pGame, ClientData cData) {
     // Move the player according to input command
     moveCharacter(&pGame->players[cData.playerNumber].position, deltaX, deltaY, pGame->players[cData.playerNumber].type, obstacles, NUM_OBSTACLES);
     updateFrame(&pGame->players[cData.playerNumber].currentFrame, pGame->players[cData.playerNumber].type, 2, 3);
+
+    checkGameOverCondition(pGame);
 
     // If the player is a hunter, check for collisions with sprinters
     if (pGame->players[cData.playerNumber].type == HUNTER) {
@@ -431,4 +416,20 @@ void swapHunterAndSprinter(Player *hunter, Player *sprinter, SDL_Texture *hunter
     // Reset to frame 0
     hunter->currentFrame = 0;
     sprinter->currentFrame = 0;
+}
+
+void checkGameOverCondition(Game *pGame) {
+    // Replace with your game-over logic
+    bool allSprintersTagged = true;
+
+    for (int i = 0; i < MAX_PLAYERS; i++) {
+        if (pGame->players[i].type == SPRINTER) {
+            allSprintersTagged = false;
+            break;
+        }
+    }
+
+    if (allSprintersTagged) {
+        pGame->state = GAME_OVER;
+    }
 }
