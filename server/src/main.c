@@ -11,7 +11,7 @@
 #include "sprinter.h"
 #include "text.h"
 
-#define MAX_PERKS 10
+#define MAX_PERKS 5
 
 typedef struct {
     SDL_Window *pWindow;
@@ -61,6 +61,7 @@ void swapHunterAndSprinter(Player *hunter, Player *sprinter, SDL_Texture *hunter
 void initiatePerks(Game *pGame);
 void createRandomPerk(Game *pGame, int index);
 void renderPerks(Game *pGame);
+void applyPerk(Game *pGame, Player *player, Perk *perk);
 
 
 int main(int argc, char **argv) {
@@ -296,51 +297,66 @@ void add(IPaddress address, IPaddress client[] , int *pNrOfClents){
 
 void executeCommand(Game *pGame, ClientData cData) {
     int deltaX = 0, deltaY = 0;
+
+    // Modifiera spelarens rörelse baserat på kommandon och spelarens hastighet
     switch (cData.command) {
         case CMD_UP:
-            deltaY -= 8;
+            deltaY -= 8 * pGame->players[cData.playerNumber].speed;
             break;
         case CMD_DOWN:
-            deltaY += 8;
+            deltaY += 8 * pGame->players[cData.playerNumber].speed;
             break;
         case CMD_LEFT:
-            deltaX -= 8;
+            deltaX -= 8 * pGame->players[cData.playerNumber].speed;
             break;
         case CMD_RIGHT:
-            deltaX += 8;
+            deltaX += 8 * pGame->players[cData.playerNumber].speed;
             break;
     }
 
-    // Move the player according to input command
+    // Flytta spelaren enligt kommando och hastighet
     moveCharacter(&pGame->players[cData.playerNumber].position, deltaX, deltaY, pGame->players[cData.playerNumber].type, obstacles, NUM_OBSTACLES);
     updateFrame(&pGame->players[cData.playerNumber].currentFrame, pGame->players[cData.playerNumber].type, 2, 3);
 
-    // If the player is a hunter, check for collisions with sprinters
+    // Kontrollera kollision med perks
+    for (int i = 0; i < pGame->numPerks; i++) {
+        if (pGame->perks[i].active && checkCollision(pGame->players[cData.playerNumber].position, pGame->perks[i].position)) {
+            applyPerk(pGame, &pGame->players[cData.playerNumber], &pGame->perks[i]);
+            pGame->perks[i].active = false; // Gör perken inaktiv efter aktivering
+        }
+    }
+
+    // Om spelaren är en jägare, kontrollera kollisioner med sprinters
     if (pGame->players[cData.playerNumber].type == HUNTER) {
         for (int i = 0; i < MAX_PLAYERS; i++) {
-            // Ignore self and other hunters
-            if (i == cData.playerNumber || pGame->players[i].type == HUNTER) continue;
+            if (i != cData.playerNumber && pGame->players[i].type != HUNTER) {
+                if (checkCollision(pGame->players[cData.playerNumber].position, pGame->players[i].position)) {
+                    pGame->players[i].type = HUNTER;
+                    pGame->players[i].texture = pGame->hunterTexture;
+                    pGame->players[i].currentFrame = 0;
 
-            // If a collision occurs between the hunter and a sprinter
-            if (checkCollision(pGame->players[cData.playerNumber].position, pGame->players[i].position)) {
-                // Switch the sprinter to a hunter
-                pGame->players[i].type = HUNTER;
-                pGame->players[i].texture = pGame->hunterTexture;
-                pGame->players[i].currentFrame = 0;
+                    pGame->players[cData.playerNumber].type = SPRINTER;
+                    pGame->players[cData.playerNumber].texture = pGame->sprinterTexture;
+                    pGame->players[cData.playerNumber].currentFrame = 0;
 
-                // Change the previous hunter to a sprinter
-                pGame->players[cData.playerNumber].type = SPRINTER;
-                pGame->players[cData.playerNumber].texture = pGame->sprinterTexture;
-                pGame->players[cData.playerNumber].currentFrame = 0;
-
-                // You can add extra logic here (e.g., notifications or score updates)
-
-                break; // Exit loop after one successful swap
+                    break; // Avsluta loopen efter en lyckad byte
+                }
             }
         }
     }
 }
 
+void applyPerk(Game *pGame, Player *player, Perk *perk) {
+    switch (perk->type) {
+        case 0: // SPEED
+            player->speed = 3 * player->originalSpeed;
+            break;
+        case 1: // STUCK
+            player->speed = player->originalSpeed / 3;
+            break;
+    }
+    perk->startTime = SDL_GetTicks(); // Starta tid för perkens varaktighet
+}
 
 void close(Game *pGame) {
     if (pGame->packet) SDLNet_FreePacket(pGame->packet);
@@ -467,8 +483,13 @@ bool checkCollision(SDL_Rect a, SDL_Rect b) {
 }
 
 void initializePlayers(Game *pGame) {
-    int sprinterIndex = 0;
 
+    for (int i = 0; i < MAX_PLAYERS; i++) {
+        pGame->players[i].speed = 1.0; // Standardhastighet
+        pGame->players[i].originalSpeed = 1.0; // Spara den ursprungliga hastigheten
+    }
+
+    int sprinterIndex = 0;
     hunter = createHunterMan(600, 300);
     pGame->players[0].isActive = 1;
     pGame->players[0].texture = pGame->hunterTexture;

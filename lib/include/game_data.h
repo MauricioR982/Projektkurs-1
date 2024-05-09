@@ -3,8 +3,8 @@
 
 #include <SDL2/SDL.h>
 
-#define WINDOW_WIDTH 1280
-#define WINDOW_HEIGHT 720
+#define WINDOW_WIDTH 960
+#define WINDOW_HEIGHT 540
 #define MAX_PLAYERS 2
 
 #define HUNTER 0
@@ -68,6 +68,8 @@ typedef struct {
     int currentFrame;      // Current frame of animation
     int isActive;          // Indicates if the player is active
     int type;              // Type of the player (HUNTER or SPRINTER)
+    float speed;           // Hastighetsvariabel
+    float originalSpeed;   // Ursprunglig hastighet för återställning
 } Player;
 
 // Structure for transmitting player movement information
