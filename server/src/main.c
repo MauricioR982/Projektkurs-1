@@ -248,7 +248,7 @@ void add(IPaddress address, IPaddress client[] , int *pNrOfClents){
 
     if ((*pNrOfClents) >= MAX_PLAYERS)
     {
-        printf("Abort adding player\n");
+        //printf("Abort adding player\n");
     }
     
 
