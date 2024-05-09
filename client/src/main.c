@@ -10,6 +10,7 @@
 #include "obstacle.h"
 #include "sprinter.h"
 #include "text.h"
+#include "game_timer.h"
 
 
 typedef struct {
@@ -155,6 +156,9 @@ int initiate(Game *pGame) {
 
     // Set initial game state
     pGame->state = GAME_MENU;
+
+    init_timer(pGame->pRenderer, pGame->pFont);
+
     return 1;
 }
 
@@ -163,6 +167,7 @@ void run(Game *pGame) {
     SDL_Event e;
     ClientData cData;
     int joining = 0;
+    Uint32 lastTime = SDL_GetTicks(), currentTime;
 
     while (running) {
 
