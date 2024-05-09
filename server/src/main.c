@@ -10,14 +10,13 @@
 #include "obstacle.h"
 #include "sprinter.h"
 #include "text.h"
-#include "perk.h"
 
 typedef struct {
     SDL_Window *pWindow;
     SDL_Renderer *pRenderer;
     Player players[MAX_PLAYERS];
     SDL_Texture *backgroundTexture, *hunterTexture, *sprinterTexture, *initialTextTexture;
-    Parks *pPsrks;
+    
     IPaddress serverAddress;
     GameState state;
     TTF_Font *pFont;
@@ -134,13 +133,7 @@ int initiate(Game *pGame) {
 
     initObstacles(obstacles, NUM_OBSTACLES);
     initializePlayers(pGame);
-    pGame->pPsrks = creatPerk(pGame->pRenderer, PARKS_SERVER, &(obstacles->bounds));
-     if (!pGame->pPsrks)
-    {
-        printf("Error Creating Parks: %s\n", SDL_GetError());
-        close(pGame);
-        return 0;
-    }
+
     // Set initial game state
     pGame->state = GAME_START;
     pGame->nrOfClients =0;
@@ -173,7 +166,6 @@ void run(Game *pGame) {
             SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
             drawObstacles(pGame->pRenderer, obstacles, NUM_OBSTACLES);
             renderPlayers(pGame); // Draw all players
-            drawPerk(pGame->pPsrks);
             SDL_RenderPresent(pGame->pRenderer);
             break;
         
@@ -216,7 +208,6 @@ void run(Game *pGame) {
 
 void setUpGame(Game *pGame){
     pGame->state = GAME_ONGOING;
-    setPosition(pGame->pPsrks, &(obstacles->bounds));
 }
 
 void sendGameData(Game *pGame) {
@@ -241,16 +232,8 @@ void sendGameData(Game *pGame) {
         }
     }
 
-    //getParksSendData(pGame->pPsrks, &(pGame->sData.parks));
-    pGame->sData.parks.x = getPerkX(pGame->pPsrks);
-    pGame->sData.parks.y = getPerkY(pGame->pPsrks);
-    for (int i = 0; i < MAX_PLAYERS; i++)
-    {
-
-
     // Send data to each client
     for (int i = 0; i < MAX_PLAYERS; i++) {
-
         pGame->sData.playerNr = i;
         memcpy(pGame->packet->data, &(pGame->sData), sizeof(ServerData));
         pGame->packet->len = sizeof(ServerData);
@@ -313,21 +296,6 @@ void executeCommand(Game *pGame, ClientData cData) {
     moveCharacter(&pGame->players[cData.playerNumber].position, deltaX, deltaY, pGame->players[cData.playerNumber].type, obstacles, NUM_OBSTACLES);
     updateFrame(&pGame->players[cData.playerNumber].currentFrame, pGame->players[cData.playerNumber].type, 2, 3);
 
-
-    if (pGame->players[cData.playerNumber].type == SPRINTER)
-    {
-        SDL_Rect playerRect = pGame->players[cData.playerNumber].position;
-        SDL_Rect perkRect = getPerkRECT(pGame->pPsrks);
-        if(SDL_HasIntersection(&(playerRect), &(perkRect)))
-        {
-                printf("hahaha\n");
-                setPosition(pGame->pPsrks, &(obstacles->bounds));
-        }
-
-    }
-    
-    // Check for collision between hunter and sprinters
-
     checkGameOverCondition(pGame);
 
     // If the player is a hunter, check for collisions with sprinters
@@ -364,7 +332,6 @@ void close(Game *pGame) {
     if (pGame->hunterTexture) SDL_DestroyTexture(pGame->hunterTexture);
     if (pGame->sprinterTexture) SDL_DestroyTexture(pGame->sprinterTexture);
     if (pGame->backgroundTexture) SDL_DestroyTexture(pGame->backgroundTexture);
-    if (pGame->pPsrks) destroyPerk(pGame->pPsrks);
     if (pGame->pRenderer) SDL_DestroyRenderer(pGame->pRenderer);
     if (pGame->pWindow) SDL_DestroyWindow(pGame->pWindow);
     SDL_Quit();
