@@ -76,6 +76,16 @@ typedef struct {
     int x, y;     // New coordinates of the player
 } PlayerMovement;
 
+typedef struct {
+    int type; // 0 för SPEED, 1 för STUCK
+    SDL_Rect position; // Position på spelkartan
+    int duration; // Varaktighet för perken
+    bool active; // Om perk är aktiv
+    float startTime; // När perken aktiverades
+    int perkSpawnTimer;  // Timer för att kontrollera när nästa perk ska skapas
+    int perkSpawnInterval;  // Tid i millisekunder mellan perk spawns
+} Perk;
+
 SDL_Point sprinterSpawnPoints[] = {
     {100, 64},   // First sprinter position
     {100, 550},  // Second sprinter position

@@ -11,6 +11,8 @@
 #include "sprinter.h"
 #include "text.h"
 
+#define MAX_PERKS 10
+
 typedef struct {
     SDL_Window *pWindow;
     SDL_Renderer *pRenderer;
@@ -27,6 +29,10 @@ typedef struct {
     IPaddress clients[MAX_PLAYERS];
     int nrOfClients;
     ServerData sData;
+    SDL_Texture *speedPerkTexture;   // Texture för SPEED perk
+    SDL_Texture *stuckPerkTexture;   // Texture för STUCK perk
+    Perk perks[MAX_PERKS];
+    int numPerks;
 } Game;
 
 Obstacle obstacles[NUM_OBSTACLES];
@@ -52,6 +58,10 @@ void executeCommand(Game *pGame, ClientData cData);
 void renderPlayer(SDL_Renderer *renderer, Player *player);
 void initializePlayers(Game *pGame);
 void swapHunterAndSprinter(Player *hunter, Player *sprinter, SDL_Texture *hunterTexture, SDL_Texture *sprinterTexture);
+void initiatePerks(Game *pGame);
+void createRandomPerk(Game *pGame, int index);
+void renderPerks(Game *pGame);
+
 
 int main(int argc, char **argv) {
     Game g = {0};
@@ -129,6 +139,7 @@ int initiate(Game *pGame) {
 
     initObstacles(obstacles, NUM_OBSTACLES);
     initializePlayers(pGame);
+    initiatePerks(pGame);
 
     // Set initial game state
     pGame->state = GAME_START;
@@ -136,48 +147,76 @@ int initiate(Game *pGame) {
     return 1;
 }
 
+void initiatePerks(Game *pGame) {
+    for (int i = 0; i < MAX_PERKS; i++) {
+        pGame->perks[i].active = false;
+        pGame->perks[i].perkSpawnTimer = 0;
+        pGame->perks[i].perkSpawnInterval = 8000; // 8 sekunder
+    }
+    pGame->numPerks = 0;
+}
+
+void createRandomPerk(Game *pGame, int index) {
+    if (pGame->numPerks >= MAX_PERKS) return;
+
+    int type = rand() % 2; // Väljer mellan SPEED och STUCK
+    SDL_Rect position = {rand() % WINDOW_WIDTH, rand() % WINDOW_HEIGHT, 30, 30}; // Slumpmässig position
+
+    pGame->perks[index] = (Perk){type, position, 5000, true, SDL_GetTicks()}; // 5 sekunder varaktighet
+    pGame->numPerks++;
+}
+
 void run(Game *pGame) {
-    bool running = true, joining = false;
+    bool running = true;
     SDL_Event e;
     ClientData cData;
+    Uint32 lastUpdate = SDL_GetTicks();
 
     while (running) {
+        Uint32 currentUpdate = SDL_GetTicks();
+        Uint32 deltaTime = currentUpdate - lastUpdate;
+        lastUpdate = currentUpdate;
 
-        switch (pGame->state)
-        {
-        case GAME_ONGOING:
-            sendGameData(pGame);
-            while (SDLNet_UDP_Recv(pGame->udpSocket,pGame->packet) == 1)
-            {
-                memcpy(&cData, pGame->packet->data,sizeof(ClientData));
-                executeCommand(pGame,cData);
+        // Hantera skapandet av nya perks
+        for (int i = 0; i < MAX_PERKS; i++) {
+            if (!pGame->perks[i].active) {
+                pGame->perks[i].perkSpawnTimer += deltaTime;
+                if (pGame->perks[i].perkSpawnTimer >= pGame->perks[i].perkSpawnInterval) {
+                    createRandomPerk(pGame, i);
+                    pGame->perks[i].perkSpawnTimer = 0;
+                }
             }
-            if (SDL_PollEvent(&e)) if (e.type == SDL_QUIT) running = false;
-            SDL_RenderClear(pGame->pRenderer);          
-            SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
-            drawObstacles(pGame->pRenderer, obstacles, NUM_OBSTACLES);
-            renderPlayers(pGame); // Draw all players
-            SDL_RenderPresent(pGame->pRenderer);
-        
-            
-            break;
-        
-        case GAME_OVER:
-            /* code */
-            break;
-        case GAME_START:
-            SDL_RenderClear(pGame->pRenderer);
-            SDL_SetRenderDrawColor(pGame->pRenderer,50,50,50,200);
-            drawText(pGame->pWaitingText);
-            SDL_RenderPresent(pGame->pRenderer);
-            if(SDL_PollEvent(&e)) if (e.type == SDL_QUIT) running = false;
-            if (SDLNet_UDP_Recv(pGame->udpSocket,pGame->packet)==1)
-            {
+        }
 
-                add(pGame->packet->address, pGame->clients, &(pGame->nrOfClients));
-                if(pGame->nrOfClients == MAX_PLAYERS) setUpGame(pGame);
-            }
-            break;
+        switch (pGame->state) {
+            case GAME_ONGOING:
+                sendGameData(pGame);
+                while (SDLNet_UDP_Recv(pGame->udpSocket, pGame->packet) == 1) {
+                    memcpy(&cData, pGame->packet->data, sizeof(ClientData));
+                    executeCommand(pGame, cData);
+                }
+                if (SDL_PollEvent(&e) && e.type == SDL_QUIT) running = false;
+                SDL_RenderClear(pGame->pRenderer);
+                SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
+                drawObstacles(pGame->pRenderer, obstacles, NUM_OBSTACLES);
+                renderPlayers(pGame);
+                renderPerks(pGame);
+                SDL_RenderPresent(pGame->pRenderer);
+                break;
+            case GAME_OVER:
+                // Hanteringskod för spelöverståndet
+                break;
+            case GAME_START:
+                SDL_RenderClear(pGame->pRenderer);
+                SDL_SetRenderDrawColor(pGame->pRenderer, 50, 50, 50, 200);
+                drawText(pGame->pWaitingText);
+                SDL_RenderPresent(pGame->pRenderer);
+                if (SDL_PollEvent(&e) && e.type == SDL_QUIT) running = false;
+                if (SDLNet_UDP_Recv(pGame->udpSocket, pGame->packet) == 1) {
+                    add(pGame->packet->address, pGame->clients, &(pGame->nrOfClients));
+                    if (pGame->nrOfClients == MAX_PLAYERS) setUpGame(pGame);
+                }
+                break;
         }
     }
 }
@@ -316,6 +355,9 @@ void close(Game *pGame) {
 }
 
 int loadGameResources(SDL_Renderer *renderer, Game *pGame) {
+
+    SDL_Surface *surface;
+
     SDL_Surface *bgSurface = IMG_Load("../lib/resources/Map.png");
     if (!bgSurface) {
         fprintf(stderr, "Failed to load background image: %s\n", IMG_GetError());
@@ -340,7 +382,39 @@ int loadGameResources(SDL_Renderer *renderer, Game *pGame) {
     pGame->sprinterTexture = SDL_CreateTextureFromSurface(renderer, sprinterSurface);
     SDL_FreeSurface(sprinterSurface);
 
+    surface = IMG_Load("../lib/resources/SPEED.png");
+    if (!surface) {
+        fprintf(stderr, "Failed to load SPEED perk image: %s\n", IMG_GetError());
+        return 0;
+    }
+    pGame->speedPerkTexture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+
+    surface = IMG_Load("../lib/resources/STUCK.png");
+    if (!surface) {
+        fprintf(stderr, "Failed to load STUCK perk image: %s\n", IMG_GetError());
+        return 0;
+    }
+    pGame->stuckPerkTexture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+
+    // Se till att alla texturer skapades framgångsrikt
+    if (!pGame->speedPerkTexture || !pGame->stuckPerkTexture) {
+        SDL_DestroyTexture(pGame->speedPerkTexture);
+        SDL_DestroyTexture(pGame->stuckPerkTexture);
+        return 0;
+    }
+
     return 1;
+}
+
+void renderPerks(Game *pGame) {
+    for (int i = 0; i < pGame->numPerks; i++) {
+        if (pGame->perks[i].active) {
+            SDL_Texture* texture = (pGame->perks[i].type == 0) ? pGame->speedPerkTexture : pGame->stuckPerkTexture;
+            SDL_RenderCopyEx(pGame->pRenderer, texture, NULL, &pGame->perks[i].position, 0, NULL, SDL_FLIP_NONE);
+        }
+    }
 }
 
 void renderPlayer(SDL_Renderer *renderer, Player *player) {
