@@ -3,6 +3,7 @@
   "files.associations": {
     "sdl_net.h": "c",
     "sdl_ttf.h": "c",
-    "sdl_image.h": "c"
+    "sdl_image.h": "c",
+    "hunter.h": "c"
   }
 }
