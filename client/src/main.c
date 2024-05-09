@@ -171,6 +171,7 @@ void run(Game *pGame) {
 
     while (running) {
 
+        
         switch (pGame->state) {
             case GAME_MENU:
                 // Render the menu screen
