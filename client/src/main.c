@@ -171,7 +171,11 @@ void run(Game *pGame) {
 
     while (running) {
 
-        
+        currentTime = SDL_GetTicks();
+        float deltaTime = (currentTime - lastTime) / 1000.0f;
+        lastTime = currentTime;
+        update_timer(deltaTime);
+
         switch (pGame->state) {
             case GAME_MENU:
                 // Render the menu screen
@@ -247,6 +251,7 @@ void run(Game *pGame) {
             SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
             drawObstacles(pGame->pRenderer, obstacles, NUM_OBSTACLES); //debug
             renderPlayers(pGame); // Draw all players
+            render_timer(pGame->pRenderer, pGame->pFont);
             SDL_RenderPresent(pGame->pRenderer);
             break;
         
@@ -288,6 +293,7 @@ void run(Game *pGame) {
 }
 
 void close(Game *pGame) {
+    cleanup_timer();
     if (pGame->packet) SDLNet_FreePacket(pGame->packet);
     if (pGame->udpSocket) SDLNet_UDP_Close(pGame->udpSocket);
     SDLNet_Quit();
