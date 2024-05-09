@@ -56,6 +56,7 @@ void updateWithServerData(Game *pGAme);
 void initializePlayers(Game *pGame);
 int initiateMenu(Game *pGame);
 void renderMenu(Game *pGame);
+void renderPerks(SDL_Renderer *renderer, Game *pGame);
 
 int main(int argc, char **argv) {
     Game g = {0};
@@ -242,6 +243,7 @@ void run(Game *pGame) {
             SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
             drawObstacles(pGame->pRenderer, obstacles, NUM_OBSTACLES); //debug
             renderPlayers(pGame); // Draw all players
+            renderPerks(pGame->pRenderer, pGame); // Rendera perks här
             SDL_RenderPresent(pGame->pRenderer);
             break;
         
@@ -292,6 +294,31 @@ void close(Game *pGame) {
     if (pGame->pRenderer) SDL_DestroyRenderer(pGame->pRenderer);
     if (pGame->pWindow) SDL_DestroyWindow(pGame->pWindow);
     SDL_Quit();
+}
+
+void renderPerks(SDL_Renderer *renderer, Game *pGame) {
+    for (int i = 0; i < MAX_PERKS; i++) {
+        if (pGame->perks[i].active) {
+            SDL_Texture *texture = NULL;
+            switch (pGame->perks[i].type) {
+                case 0: // SPEED
+                    texture = pGame->speedPerkTexture;
+                    break;
+                case 1: // STUCK
+                    texture = pGame->stuckPerkTexture;
+                    break;
+            }
+            if (texture) {
+                SDL_Rect destRect = {
+                    pGame->perks[i].position.x,
+                    pGame->perks[i].position.y,
+                    pGame->perks[i].position.w, // Se till att dessa värden är korrekt inställda
+                    pGame->perks[i].position.h
+                };
+                SDL_RenderCopy(renderer, texture, NULL, &destRect);
+            }
+        }
+    }
 }
 
 int loadGameResources(SDL_Renderer *renderer, Game *pGame) {
