@@ -285,6 +285,11 @@ void executeCommand(Game *pGame, ClientData cData) {
         case CMD_RIGHT:
             deltaX += 8;
             break;
+        case CMD_RESET:
+            pGame->state = GAME_START;
+            pGame->nrOfClients = 0;
+            pGame->startTime = SDL_GetTicks(); // Reset the timer
+            break;
     }
 
     // Move the player according to input command

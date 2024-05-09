@@ -34,7 +34,7 @@ typedef struct {
     Menu menu;
     Uint32 startTime;    
     int gameDuration; 
-    Text *pTimerText;
+    Text *pTimerText, *pResetText;
 } Game;
 
 Obstacle obstacles[NUM_OBSTACLES];
@@ -156,6 +156,14 @@ int initiate(Game *pGame) {
         return 0;
     }
 
+    // Create the "Press Enter to play again!" text
+    pGame->pResetText = createText(pGame->pRenderer, 255, 255, 255, pGame->pFont, "Press Enter to play again!", 640, 650);
+    if (!pGame->pResetText) {
+        printf("Error creating reset text: %s\n", SDL_GetError());
+        close(pGame);
+        return 0;
+    }
+
     pGame->startTime = SDL_GetTicks();  // Record start time
     pGame->gameDuration = 60000;        // 1 minute in milliseconds
 
@@ -258,11 +266,6 @@ void run(Game *pGame) {
             int remainingTime = (pGame->gameDuration - elapsedTime) / 1000;
             if (remainingTime < 0) remainingTime = 0; // No negative values
 
-            /*// Update timer display
-            char timerStr[6];  // "MM:SS\0"
-            snprintf(timerStr, sizeof(timerStr), "%02d:%02d", remainingTime / 60, remainingTime % 60);
-            updateText(pGame->pTimerText, pGame->pRenderer, timerStr);*/
-
             SDL_RenderClear(pGame->pRenderer);   
             SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
             drawObstacles(pGame->pRenderer, obstacles, NUM_OBSTACLES); //debug
@@ -276,22 +279,34 @@ void run(Game *pGame) {
         
         case GAME_OVER:
             SDL_RenderClear(pGame->pRenderer);
-            // Display appropriate game over screen based on player's role
-            if (pGame->players[pGame->playerNr].type == HUNTER) {
-                SDL_RenderCopy(pGame->pRenderer, pGame->gameOverHunterTexture, NULL, NULL);
-            } else {
-                SDL_RenderCopy(pGame->pRenderer, pGame->gameOverSprinterTexture, NULL, NULL);
-            }
 
-            SDL_RenderPresent(pGame->pRenderer);
-            // Handle quit or restart events
-            if (SDL_PollEvent(&e)) {
-                if (e.type == SDL_QUIT) running = false;
-                else if (e.type == SDL_KEYDOWN) {
-                    // Add logic for restarting or exiting                    }
-                }
+        // Display the appropriate game-over screen based on the player's role
+        if (pGame->players[pGame->playerNr].type == HUNTER) {
+            SDL_RenderCopy(pGame->pRenderer, pGame->gameOverHunterTexture, NULL, NULL);
+        } else {
+            SDL_RenderCopy(pGame->pRenderer, pGame->gameOverSprinterTexture, NULL, NULL);
+        }
+
+        // Display "Press Enter to play again!" text
+        drawText(pGame->pResetText);
+
+        SDL_RenderPresent(pGame->pRenderer);
+
+        // Detect Enter key press
+        if (SDL_PollEvent(&e)) {
+            if (e.type == SDL_QUIT) {
+                running = false;
+            } else if (e.type == SDL_KEYDOWN && e.key.keysym.scancode == SDL_SCANCODE_RETURN) {
+                // Send the reset command to the server
+                ClientData cData;
+                cData.command = CMD_RESET;
+                cData.playerNumber = pGame->playerNr;
+                memcpy(pGame->packet->data, &cData, sizeof(ClientData));
+                pGame->packet->len = sizeof(ClientData);
+                SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet);
             }
-            break;
+        }
+        break;
         case GAME_START:
             if(!joining){
                 SDL_RenderClear(pGame->pRenderer);
@@ -327,6 +342,7 @@ void run(Game *pGame) {
 }
 
 void close(Game *pGame) {
+    if (pGame->pResetText) destroyText(pGame->pResetText);
     if (pGame->packet) SDLNet_FreePacket(pGame->packet);
     if (pGame->udpSocket) SDLNet_UDP_Close(pGame->udpSocket);
     SDLNet_Quit();

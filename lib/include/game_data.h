@@ -30,7 +30,8 @@ typedef enum {
     CMD_LEFT,
     CMD_RIGHT,
     CMD_UP,
-    CMD_DOWN
+    CMD_DOWN,
+    CMD_RESET
 } ClientCommand;
 
 // Structure for client commands
