@@ -400,7 +400,7 @@ int loadGameResources(SDL_Renderer *renderer, Game *pGame) {
     
     SDL_Surface *gameOverHunterSurface = IMG_Load("../lib/resources/GAMEOVER.png");
     if (!gameOverHunterSurface) {
-        fprintf(stderr, "Failed to load gameover_hunter image: %s\n", IMG_GetError());
+        fprintf(stderr, "Failed to load GAMEOVER image: %s\n", IMG_GetError());
         return 0;
     }
     pGame->gameOverHunterTexture = SDL_CreateTextureFromSurface(renderer, gameOverHunterSurface);
@@ -408,7 +408,7 @@ int loadGameResources(SDL_Renderer *renderer, Game *pGame) {
 
     SDL_Surface *gameOverSprinterSurface = IMG_Load("../lib/resources/VICTORY.png");
     if (!gameOverSprinterSurface) {
-        fprintf(stderr, "Failed to load gameover_sprinter image: %s\n", IMG_GetError());
+        fprintf(stderr, "Failed to load VICTORY image: %s\n", IMG_GetError());
         return 0;
     }
     pGame->gameOverSprinterTexture = SDL_CreateTextureFromSurface(renderer, gameOverSprinterSurface);
