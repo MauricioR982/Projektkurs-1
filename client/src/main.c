@@ -11,7 +11,6 @@
 #include "sprinter.h"
 #include "text.h"
 
-
 typedef struct {
     Text *pStartText;
     Text *pTutorialText;
@@ -174,7 +173,6 @@ int initiate(Game *pGame) {
         close(pGame);
         return 0;
     }
-
 
     // Set initial game state
     pGame->state = GAME_MENU;
@@ -583,4 +581,3 @@ int initiateMenu(Game *pGame) {
     }
     return 1;
 }
-

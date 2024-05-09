@@ -324,7 +324,6 @@ void executeCommand(Game *pGame, ClientData cData) {
     }
 }
 
-
 void close(Game *pGame) {
     if (pGame->packet) SDLNet_FreePacket(pGame->packet);
     if (pGame->udpSocket) SDLNet_UDP_Close(pGame->udpSocket);
@@ -465,4 +464,3 @@ void checkGameOverCondition(Game *pGame) {
         // Optionally, add further game-over logic here
     }
 }
-
