@@ -479,6 +479,11 @@ void updateWithServerData(Game *pGame) {
     pGame->playerNr = sData.playerNr;
     pGame->state = sData.state;
 
+    // Use the remaining time from the server
+    char timerStr[6];
+    snprintf(timerStr, sizeof(timerStr), "%02d:%02d", sData.remainingTime / 60, sData.remainingTime % 60);
+    updateText(pGame->pTimerText, pGame->pRenderer, timerStr);
+
     for (int i = 0; i < MAX_PLAYERS; i++) {
         pGame->players[i].position.x = sData.players[i].x;
         pGame->players[i].position.y = sData.players[i].y;
