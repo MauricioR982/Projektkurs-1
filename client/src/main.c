@@ -24,7 +24,7 @@ typedef struct {
     SDL_Renderer *pRenderer;
     Player players[MAX_PLAYERS];
     int playerNr;
-    SDL_Texture *backgroundTexture, *hunterTexture, *sprinterTexture, *initialTextTexture, *tutorialTexture, *menuBackgroundTexture;
+    SDL_Texture *backgroundTexture, *hunterTexture, *sprinterTexture, *initialTextTexture, *tutorialTexture, *menuBackgroundTexture, *speedPerkTexture, *stuckPerkTexture;
     UDPsocket udpSocket;
     UDPpacket *packet;
     IPaddress serverAddress;
@@ -32,7 +32,8 @@ typedef struct {
     TTF_Font *pFont;
     Text *pWaitingText, *pJoinText;
     Menu menu;
-
+    Perk perks[MAX_PERKS];
+    int numPerks;
 } Game;
 
 Obstacle obstacles[NUM_OBSTACLES];
@@ -336,6 +337,22 @@ int loadGameResources(SDL_Renderer *renderer, Game *pGame) {
     pGame->tutorialTexture = SDL_CreateTextureFromSurface(renderer, tutorialSurface);
     SDL_FreeSurface(tutorialSurface);
 
+    SDL_Surface *speedSurface = IMG_Load("../lib/resources/SPEED.png");
+    if (!speedSurface) {
+        fprintf(stderr, "Failed to load SPEED perk image: %s\n", IMG_GetError());
+        return 0;
+    }
+    pGame->speedPerkTexture = SDL_CreateTextureFromSurface(renderer, speedSurface);
+    SDL_FreeSurface(speedSurface);
+
+    SDL_Surface *stuckSurface = IMG_Load("../lib/resources/STUCK.png");
+    if (!stuckSurface) {
+        fprintf(stderr, "Failed to load STUCK perk image: %s\n", IMG_GetError());
+        return 0;
+    }
+    pGame->stuckPerkTexture = SDL_CreateTextureFromSurface(renderer, stuckSurface);
+    SDL_FreeSurface(stuckSurface);
+
     return 1;
 }
 
@@ -428,9 +445,12 @@ bool checkCollision(SDL_Rect a, SDL_Rect b) {
 void updateWithServerData(Game *pGame) {
     ServerData sData;
     memcpy(&sData, pGame->packet->data, sizeof(ServerData));
+
+    // Uppdatera spelarnummer och spelets tillstånd
     pGame->playerNr = sData.playerNr;
     pGame->state = sData.state;
 
+    // Uppdatera spelardata
     for (int i = 0; i < MAX_PLAYERS; i++) {
         pGame->players[i].position.x = sData.players[i].x;
         pGame->players[i].position.y = sData.players[i].y;
@@ -438,14 +458,17 @@ void updateWithServerData(Game *pGame) {
         if (sData.players[i].role == ROLE_HUNTER) {
             pGame->players[i].type = HUNTER;
             pGame->players[i].texture = pGame->hunterTexture;
-            //printf("Player %d assigned HUNTER texture.\n", i);
         } else if (sData.players[i].role == ROLE_SPRINTER) {
             pGame->players[i].type = SPRINTER;
             pGame->players[i].texture = pGame->sprinterTexture;
-            //printf("Player %d assigned SPRINTER texture.\n", i);
         }
     }
+
+    for (int i = 0; i < MAX_PERKS; i++) {
+        pGame->perks[i] = sData.perks[i]; // Anta att du kopierar hela Perk-objektet
+    }
 }
+
 
 
 void initializePlayers(Game *pGame) {

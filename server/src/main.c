@@ -11,7 +11,6 @@
 #include "sprinter.h"
 #include "text.h"
 
-#define MAX_PERKS 5
 
 typedef struct {
     SDL_Window *pWindow;

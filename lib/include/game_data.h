@@ -6,6 +6,7 @@
 #define WINDOW_WIDTH 960
 #define WINDOW_HEIGHT 540
 #define MAX_PLAYERS 2
+#define MAX_PERKS 6
 
 #define HUNTER 0
 #define SPRINTER 1
@@ -51,11 +52,22 @@ typedef struct {
     PlayerRole role; // Role of the player (hunter or sprinter)
 } PlayerData;
 
+typedef struct {
+    int type; // 0 för SPEED, 1 för STUCK
+    SDL_Rect position; // Position på spelkartan
+    int duration; // Varaktighet för perken
+    bool active; // Om perk är aktiv
+    float startTime; // När perken aktiverades
+    int perkSpawnTimer;  // Timer för att kontrollera när nästa perk ska skapas
+    int perkSpawnInterval;  // Tid i millisekunder mellan perk spawns
+} Perk;
+
 // Data structure sent from the server to the clients
 typedef struct {
     PlayerData players[MAX_PLAYERS]; // Player data for all players
     int playerNr;                    // Index of the player to which the data is being sent
     GameState state;                 // Current state of the game
+    Perk perks[MAX_PERKS];
 } ServerData;
 
 // Structure for each player in the game
@@ -77,16 +89,6 @@ typedef struct {
     int playerId; // Player ID
     int x, y;     // New coordinates of the player
 } PlayerMovement;
-
-typedef struct {
-    int type; // 0 för SPEED, 1 för STUCK
-    SDL_Rect position; // Position på spelkartan
-    int duration; // Varaktighet för perken
-    bool active; // Om perk är aktiv
-    float startTime; // När perken aktiverades
-    int perkSpawnTimer;  // Timer för att kontrollera när nästa perk ska skapas
-    int perkSpawnInterval;  // Tid i millisekunder mellan perk spawns
-} Perk;
 
 SDL_Point sprinterSpawnPoints[] = {
     {100, 64},   // First sprinter position
