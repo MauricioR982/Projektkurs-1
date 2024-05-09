@@ -28,6 +28,9 @@ typedef struct {
     IPaddress clients[MAX_PLAYERS];
     int nrOfClients;
     ServerData sData;
+
+    Uint32 startTime;
+    int gameDuration;
 } Game;
 
 Obstacle obstacles[NUM_OBSTACLES];
@@ -53,6 +56,7 @@ void executeCommand(Game *pGame, ClientData cData);
 void renderPlayer(SDL_Renderer *renderer, Player *player);
 void initializePlayers(Game *pGame);
 void swapHunterAndSprinter(Player *hunter, Player *sprinter, SDL_Texture *hunterTexture, SDL_Texture *sprinterTexture);
+void checkGameOverCondition(Game *pGame);
 
 int main(int argc, char **argv) {
     Game g = {0};
@@ -140,6 +144,11 @@ int initiate(Game *pGame) {
     // Set initial game state
     pGame->state = GAME_START;
     pGame->nrOfClients =0;
+
+    // Initialize timer in the `initiate` function:
+    pGame->startTime = SDL_GetTicks();  // Record the start time
+    pGame->gameDuration = 60000;        // 1 minute in milliseconds
+
     return 1;
 }
 
@@ -166,13 +175,28 @@ void run(Game *pGame) {
             renderPlayers(pGame); // Draw all players
             drawPerk(pGame->pPsrks);
             SDL_RenderPresent(pGame->pRenderer);
-        
-            
             break;
         
         case GAME_OVER:
-            /* code */
-            break;
+            // Continue sending data to clients about the game-over state
+        sendGameData(pGame);
+
+        SDL_RenderClear(pGame->pRenderer);
+        // Optionally render a simple "Game Over" message or screen here
+        // (or simply clear the screen)
+
+        SDL_RenderPresent(pGame->pRenderer);
+
+        // Keep checking for client events to maintain responsiveness
+        while (running) {
+            if (SDL_PollEvent(&e)) {
+                if (e.type == SDL_QUIT) {
+                    running = false;
+                }
+            }
+            SDL_Delay(100);  // Prevents high CPU usage in this loop
+        }
+        break;
         case GAME_START:
             SDL_RenderClear(pGame->pRenderer);
             SDL_SetRenderDrawColor(pGame->pRenderer,50,50,50,200);
@@ -195,25 +219,46 @@ void setUpGame(Game *pGame){
     setPosition(pGame->pPsrks, &(obstacles->bounds));
 }
 
-void sendGameData(Game *pGame){
-    pGame->sData.state = pGame->state;
-    for (int i = 0; i < MAX_PLAYERS; i++)
-    {
+void sendGameData(Game *pGame) {
+    Uint32 currentTime = SDL_GetTicks();
+    int elapsedTime = currentTime - pGame->startTime;
+    int remainingTime = (pGame->gameDuration - elapsedTime) / 1000;
+    if (remainingTime < 0) remainingTime = 0;  // Prevent negative values
+
+    // Add remaining time to the data packet
+    pGame->sData.remainingTime = remainingTime;
+    pGame->sData.state = pGame->state;  // Ensure current state is shared with clients
+
+    // Copy player data to the packet
+    for (int i = 0; i < MAX_PLAYERS; i++) {
         pGame->sData.players[i].x = pGame->players[i].position.x;
         pGame->sData.players[i].y = pGame->players[i].position.y;
+
+        if (pGame->players[i].type == HUNTER) {
+            pGame->sData.players[i].role = ROLE_HUNTER;
+        } else {
+            pGame->sData.players[i].role = ROLE_SPRINTER;
+        }
     }
+
     //getParksSendData(pGame->pPsrks, &(pGame->sData.parks));
     pGame->sData.parks.x = getPerkX(pGame->pPsrks);
     pGame->sData.parks.y = getPerkY(pGame->pPsrks);
     for (int i = 0; i < MAX_PLAYERS; i++)
     {
+
+
+    // Send data to each client
+    for (int i = 0; i < MAX_PLAYERS; i++) {
+
         pGame->sData.playerNr = i;
         memcpy(pGame->packet->data, &(pGame->sData), sizeof(ServerData));
         pGame->packet->len = sizeof(ServerData);
         pGame->packet->address = pGame->clients[i];
         SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet);
-    }    
+    }
 }
+
 
 void add(IPaddress address, IPaddress client[] , int *pNrOfClents){
     //printf("Adding player\n");
@@ -242,27 +287,32 @@ void add(IPaddress address, IPaddress client[] , int *pNrOfClents){
     
 }
 
-void executeCommand(Game *pGame, ClientData cData){
+void executeCommand(Game *pGame, ClientData cData) {
     int deltaX = 0, deltaY = 0;
-    switch (cData.command)
-    {
-    case CMD_UP:
-        deltaY -= 8;
-        break;
-    case CMD_DOWN:
-        deltaY += 8;
-        break;
-    case CMD_LEFT:
-        deltaX -= 8;
-        break;
-    case CMD_RIGHT:
-        deltaX += 8;
-        break;
-    
+    switch (cData.command) {
+        case CMD_UP:
+            deltaY -= 8;
+            break;
+        case CMD_DOWN:
+            deltaY += 8;
+            break;
+        case CMD_LEFT:
+            deltaX -= 8;
+            break;
+        case CMD_RIGHT:
+            deltaX += 8;
+            break;
+        case CMD_RESET:
+            pGame->state = GAME_START;
+            pGame->nrOfClients = 0;
+            pGame->startTime = SDL_GetTicks(); // Reset the timer
+            break;
     }
 
+    // Move the player according to input command
     moveCharacter(&pGame->players[cData.playerNumber].position, deltaX, deltaY, pGame->players[cData.playerNumber].type, obstacles, NUM_OBSTACLES);
     updateFrame(&pGame->players[cData.playerNumber].currentFrame, pGame->players[cData.playerNumber].type, 2, 3);
+
 
     if (pGame->players[cData.playerNumber].type == SPRINTER)
     {
@@ -277,17 +327,35 @@ void executeCommand(Game *pGame, ClientData cData){
     }
     
     // Check for collision between hunter and sprinters
+
+    checkGameOverCondition(pGame);
+
+    // If the player is a hunter, check for collisions with sprinters
     if (pGame->players[cData.playerNumber].type == HUNTER) {
-        for (int i = 1; i < MAX_PLAYERS; i++) {
-            if (pGame->players[i].type == SPRINTER && checkCollision(pGame->players[0].position, pGame->players[i].position)) {
-                // Swap hunter with this sprinter
-                swapHunterAndSprinter(&pGame->players[0], &pGame->players[i], pGame->hunterTexture, pGame->sprinterTexture);
-                break;
+        for (int i = 0; i < MAX_PLAYERS; i++) {
+            // Ignore self and other hunters
+            if (i == cData.playerNumber || pGame->players[i].type == HUNTER) continue;
+
+            // If a collision occurs between the hunter and a sprinter
+            if (checkCollision(pGame->players[cData.playerNumber].position, pGame->players[i].position)) {
+                // Switch the sprinter to a hunter
+                pGame->players[i].type = HUNTER;
+                pGame->players[i].texture = pGame->hunterTexture;
+                pGame->players[i].currentFrame = 0;
+
+                // Change the previous hunter to a sprinter
+                pGame->players[cData.playerNumber].type = SPRINTER;
+                pGame->players[cData.playerNumber].texture = pGame->sprinterTexture;
+                pGame->players[cData.playerNumber].currentFrame = 0;
+
+                // You can add extra logic here (e.g., notifications or score updates)
+
+                break; // Exit loop after one successful swap
             }
         }
     }
-
 }
+
 
 void close(Game *pGame) {
     if (pGame->packet) SDLNet_FreePacket(pGame->packet);
@@ -419,3 +487,15 @@ void swapHunterAndSprinter(Player *hunter, Player *sprinter, SDL_Texture *hunter
     hunter->currentFrame = 0;
     sprinter->currentFrame = 0;
 }
+
+void checkGameOverCondition(Game *pGame) {
+    Uint32 currentTime = SDL_GetTicks();
+    int elapsedTime = currentTime - pGame->startTime;
+    int remainingTime = (pGame->gameDuration - elapsedTime) / 1000;
+
+    if (remainingTime <= 0) {
+        pGame->state = GAME_OVER;  // Set game state to GAME_OVER
+        // Optionally, add further game-over logic here
+    }
+}
+
