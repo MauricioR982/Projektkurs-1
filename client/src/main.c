@@ -10,12 +10,14 @@
 #include "obstacle.h"
 #include "sprinter.h"
 #include "text.h"
+#include "perk.h"
 
 typedef struct {
     SDL_Window *pWindow;
     SDL_Renderer *pRenderer;
     Player players[MAX_PLAYERS];
     int playerNr;
+    Parks *pParks;
     SDL_Texture *backgroundTexture, *hunterTexture, *sprinterTexture, *initialTextTexture;
     UDPsocket udpSocket;
     UDPpacket *packet;
@@ -133,7 +135,13 @@ int initiate(Game *pGame) {
     
     initObstacles(obstacles, NUM_OBSTACLES);
     initializePlayers(pGame);
-
+    pGame->pParks = creatPerk(pGame->pRenderer, PARKS_CLIENT, &(obstacles->bounds));
+    if (!pGame->pParks)
+    {
+        printf("Error Creating Parks: %s\n", SDL_GetError());
+        close(pGame);
+        return 0;
+    }
     // Set initial game state
     pGame->state = GAME_START;
     return 1;
@@ -166,6 +174,7 @@ void run(Game *pGame) {
             SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
             drawObstacles(pGame->pRenderer, obstacles, NUM_OBSTACLES); //debug
             renderPlayers(pGame); // Draw all players
+            drawPerk(pGame->pParks);
             SDL_RenderPresent(pGame->pRenderer);
             break;
         
@@ -212,6 +221,7 @@ void close(Game *pGame) {
     SDLNet_Quit();
     if (pGame->hunterTexture) SDL_DestroyTexture(pGame->hunterTexture);
     if (pGame->sprinterTexture) SDL_DestroyTexture(pGame->sprinterTexture);
+    if (pGame->pParks) destroyPerk(pGame->pParks);
     if (pGame->backgroundTexture) SDL_DestroyTexture(pGame->backgroundTexture);
     if (pGame->pRenderer) SDL_DestroyRenderer(pGame->pRenderer);
     if (pGame->pWindow) SDL_DestroyWindow(pGame->pWindow);
@@ -338,7 +348,8 @@ void updateWithServerData(Game *pGame) {
     memcpy(&sData, pGame->packet->data, sizeof(ServerData));
     pGame->playerNr = sData.playerNr;
     pGame->state = sData.state;
-
+    setPerkX(pGame->pParks,sData.parks.x);
+    setPerkY(pGame->pParks,sData.parks.y);
     // Update each player's data
     for (int i = 0; i < MAX_PLAYERS; i++) {
         // Update position
