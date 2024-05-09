@@ -411,8 +411,10 @@ void initializePlayers(Game *pGame) {
         pGame->players[i].position = (SDL_Rect){getSprinterPositionX(sprinters[sprinterIndex]), getSprinterPositionY(sprinters[sprinterIndex]), 32, 32};
         pGame->players[i].type = SPRINTER;
         setupPlayerClips(&pGame->players[i]);
-
         sprinterIndex++;
+    }
+    for (int i = 0; i < MAX_PLAYERS; i++) {
+        pGame->players[i].score = 0;
     }
 }
 
