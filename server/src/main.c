@@ -167,13 +167,28 @@ void run(Game *pGame) {
             drawObstacles(pGame->pRenderer, obstacles, NUM_OBSTACLES);
             renderPlayers(pGame); // Draw all players
             SDL_RenderPresent(pGame->pRenderer);
-        
-            
             break;
         
         case GAME_OVER:
-            /* code */
-            break;
+            // Continue sending data to clients about the game-over state
+        sendGameData(pGame);
+
+        SDL_RenderClear(pGame->pRenderer);
+        // Optionally render a simple "Game Over" message or screen here
+        // (or simply clear the screen)
+
+        SDL_RenderPresent(pGame->pRenderer);
+
+        // Keep checking for client events to maintain responsiveness
+        while (running) {
+            if (SDL_PollEvent(&e)) {
+                if (e.type == SDL_QUIT) {
+                    running = false;
+                }
+            }
+            SDL_Delay(100);  // Prevents high CPU usage in this loop
+        }
+        break;
         case GAME_START:
             SDL_RenderClear(pGame->pRenderer);
             SDL_SetRenderDrawColor(pGame->pRenderer,50,50,50,200);
@@ -198,12 +213,12 @@ void setUpGame(Game *pGame){
 void sendGameData(Game *pGame) {
     Uint32 currentTime = SDL_GetTicks();
     int elapsedTime = currentTime - pGame->startTime;
-    int remainingTime = (pGame->gameDuration - elapsedTime) / 1000; // Convert to seconds
-    if (remainingTime < 0) remainingTime = 0; // Prevent negative values
+    int remainingTime = (pGame->gameDuration - elapsedTime) / 1000;
+    if (remainingTime < 0) remainingTime = 0;  // Prevent negative values
 
     // Add remaining time to the data packet
     pGame->sData.remainingTime = remainingTime;
-    pGame->sData.state = pGame->state;
+    pGame->sData.state = pGame->state;  // Ensure current state is shared with clients
 
     // Copy player data to the packet
     for (int i = 0; i < MAX_PLAYERS; i++) {
@@ -226,6 +241,7 @@ void sendGameData(Game *pGame) {
         SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet);
     }
 }
+
 
 void add(IPaddress address, IPaddress client[] , int *pNrOfClents){
     //printf("Adding player\n");
@@ -438,9 +454,10 @@ void checkGameOverCondition(Game *pGame) {
     Uint32 currentTime = SDL_GetTicks();
     int elapsedTime = currentTime - pGame->startTime;
     int remainingTime = (pGame->gameDuration - elapsedTime) / 1000;
-    
+
     if (remainingTime <= 0) {
-        pGame->state = GAME_OVER;  // Change game state to GAME_OVER
-        // Implement additional game over logic as needed
+        pGame->state = GAME_OVER;  // Set game state to GAME_OVER
+        // Optionally, add further game-over logic here
     }
 }
+
