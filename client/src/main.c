@@ -10,7 +10,6 @@
 #include "obstacle.h"
 #include "sprinter.h"
 #include "text.h"
-#include "game_timer.h"
 
 
 typedef struct {
@@ -156,9 +155,6 @@ int initiate(Game *pGame) {
 
     // Set initial game state
     pGame->state = GAME_MENU;
-
-    init_timer(pGame->pRenderer, pGame->pFont);
-
     return 1;
 }
 
@@ -167,14 +163,8 @@ void run(Game *pGame) {
     SDL_Event e;
     ClientData cData;
     int joining = 0;
-    Uint32 lastTime = SDL_GetTicks(), currentTime;
 
     while (running) {
-
-        currentTime = SDL_GetTicks();
-        float deltaTime = (currentTime - lastTime) / 1000.0f;
-        lastTime = currentTime;
-        update_timer(deltaTime);
 
         switch (pGame->state) {
             case GAME_MENU:
@@ -251,7 +241,6 @@ void run(Game *pGame) {
             SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
             drawObstacles(pGame->pRenderer, obstacles, NUM_OBSTACLES); //debug
             renderPlayers(pGame); // Draw all players
-            render_timer(pGame->pRenderer, pGame->pFont);
             SDL_RenderPresent(pGame->pRenderer);
             break;
         
@@ -293,7 +282,6 @@ void run(Game *pGame) {
 }
 
 void close(Game *pGame) {
-    cleanup_timer();
     if (pGame->packet) SDLNet_FreePacket(pGame->packet);
     if (pGame->udpSocket) SDLNet_UDP_Close(pGame->udpSocket);
     SDLNet_Quit();
@@ -446,6 +434,7 @@ void updateWithServerData(Game *pGame) {
     for (int i = 0; i < MAX_PLAYERS; i++) {
         pGame->players[i].position.x = sData.players[i].x;
         pGame->players[i].position.y = sData.players[i].y;
+
         if (sData.players[i].role == ROLE_HUNTER) {
             pGame->players[i].type = HUNTER;
             pGame->players[i].texture = pGame->hunterTexture;
@@ -455,7 +444,6 @@ void updateWithServerData(Game *pGame) {
             pGame->players[i].texture = pGame->sprinterTexture;
             //printf("Player %d assigned SPRINTER texture.\n", i);
         }
-        pGame->players[i].score = sData.players[i].score;
     }
 }
 

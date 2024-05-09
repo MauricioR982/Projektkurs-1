@@ -11,8 +11,6 @@
 #include "sprinter.h"
 #include "text.h"
 
-#define POINTS_PER_TAG 5
-
 typedef struct {
     SDL_Window *pWindow;
     SDL_Renderer *pRenderer;
@@ -188,24 +186,23 @@ void setUpGame(Game *pGame){
     pGame->state = GAME_ONGOING;
 }
 
-void sendGameData(Game *pGame) {
-    pGame->sData.state = pGame->state; // Uppdaterar spelets tillstånd
-
-    for (int i = 0; i < MAX_PLAYERS; i++) {
+/*void sendGameData(Game *pGame){
+    pGame->sData.state = pGame->state;
+    for (int i = 0; i < MAX_PLAYERS; i++)
+    {
         pGame->sData.players[i].x = pGame->players[i].position.x;
         pGame->sData.players[i].y = pGame->players[i].position.y;
-        pGame->sData.players[i].role = pGame->players[i].role; // Uppdaterar roll
-        pGame->sData.players[i].score = pGame->players[i].score; // Uppdaterar poäng
     }
 
-    for (int i = 0; i < MAX_PLAYERS; i++) {
-        pGame->sData.playerNr = i; // Ange mottagarindex
+    for (int i = 0; i < MAX_PLAYERS; i++)
+    {
+        pGame->sData.playerNr = i;
         memcpy(pGame->packet->data, &(pGame->sData), sizeof(ServerData));
         pGame->packet->len = sizeof(ServerData);
-        pGame->packet->address = pGame->clients[i]; // Ange klientens adress
-        SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet); // Skicka datan
-    }
-}
+        pGame->packet->address = pGame->clients[i];
+        SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet);
+    }    
+}*/
 
 void sendGameData(Game *pGame) {
     pGame->sData.state = pGame->state;
@@ -282,23 +279,24 @@ void executeCommand(Game *pGame, ClientData cData) {
     // If the player is a hunter, check for collisions with sprinters
     if (pGame->players[cData.playerNumber].type == HUNTER) {
         for (int i = 0; i < MAX_PLAYERS; i++) {
-            // Ignorera sig själv och andra jägare
+            // Ignore self and other hunters
             if (i == cData.playerNumber || pGame->players[i].type == HUNTER) continue;
 
-            // Om en kollision sker mellan jägaren och en sprinter
+            // If a collision occurs between the hunter and a sprinter
             if (checkCollision(pGame->players[cData.playerNumber].position, pGame->players[i].position)) {
-                // Öka poängen för jägaren
-                pGame->players[cData.playerNumber].score += POINTS_PER_TAG;
-
+                // Switch the sprinter to a hunter
                 pGame->players[i].type = HUNTER;
                 pGame->players[i].texture = pGame->hunterTexture;
                 pGame->players[i].currentFrame = 0;
 
+                // Change the previous hunter to a sprinter
                 pGame->players[cData.playerNumber].type = SPRINTER;
                 pGame->players[cData.playerNumber].texture = pGame->sprinterTexture;
                 pGame->players[cData.playerNumber].currentFrame = 0;
 
-                break;
+                // You can add extra logic here (e.g., notifications or score updates)
+
+                break; // Exit loop after one successful swap
             }
         }
     }
@@ -413,10 +411,8 @@ void initializePlayers(Game *pGame) {
         pGame->players[i].position = (SDL_Rect){getSprinterPositionX(sprinters[sprinterIndex]), getSprinterPositionY(sprinters[sprinterIndex]), 32, 32};
         pGame->players[i].type = SPRINTER;
         setupPlayerClips(&pGame->players[i]);
+
         sprinterIndex++;
-    }
-    for (int i = 0; i < MAX_PLAYERS; i++) {
-        pGame->players[i].score = 0;
     }
 }
 

@@ -49,7 +49,6 @@ typedef enum {
 typedef struct {
     float x, y, w, h;
     PlayerRole role; // Role of the player (hunter or sprinter)
-    int score;
 } PlayerData;
 
 // Data structure sent from the server to the clients
@@ -69,10 +68,6 @@ typedef struct {
     int currentFrame;      // Current frame of animation
     int isActive;          // Indicates if the player is active
     int type;              // Type of the player (HUNTER or SPRINTER)
-    int positionX, positionY;
-    int speed;
-    int score;
-    int role;
 } Player;
 
 // Structure for transmitting player movement information
