@@ -10,6 +10,7 @@
 #include "obstacle.h"
 #include "sprinter.h"
 #include "text.h"
+#include "game_timer.h"
 
 typedef struct {
     SDL_Window *pWindow;
@@ -132,7 +133,10 @@ int initiate(Game *pGame) {
 
     // Set initial game state
     pGame->state = GAME_START;
-    pGame->nrOfClients =0;
+    pGame->nrOfClients = 0;
+
+    init_timer(pGame->pRenderer, pGame->pFont);
+
     return 1;
 }
 
@@ -140,8 +144,14 @@ void run(Game *pGame) {
     bool running = true, joining = false;
     SDL_Event e;
     ClientData cData;
+    Uint32 lastTime = SDL_GetTicks(), currentTime, deltaTime;
 
-    while (running) {
+    while (running)
+    {
+        currentTime = SDL_GetTicks();
+        deltaTime = (currentTime - lastTime) / 1000.0f; 
+        lastTime = currentTime;
+        update_timer(deltaTime);
 
         switch (pGame->state)
         {
@@ -157,6 +167,7 @@ void run(Game *pGame) {
             SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
             drawObstacles(pGame->pRenderer, obstacles, NUM_OBSTACLES);
             renderPlayers(pGame); // Draw all players
+            render_timer(pGame->pRenderer, pGame->pFont); // Rendera speltidtagaren
             SDL_RenderPresent(pGame->pRenderer);
         
             
@@ -312,6 +323,7 @@ void close(Game *pGame) {
     if (pGame->backgroundTexture) SDL_DestroyTexture(pGame->backgroundTexture);
     if (pGame->pRenderer) SDL_DestroyRenderer(pGame->pRenderer);
     if (pGame->pWindow) SDL_DestroyWindow(pGame->pWindow);
+    cleanup_timer();
     SDL_Quit();
 }
 
