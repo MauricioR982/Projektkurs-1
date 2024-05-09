@@ -291,13 +291,20 @@ void executeCommand(Game *pGame, ClientData cData) {
                 pGame->players[cData.playerNumber].score += POINTS_PER_TAG;
 
                 // Byt sprinter till en jägare
+<<<<<<< HEAD
+>>>>>>> parent of 686907c (score code added)
+=======
 >>>>>>> parent of 686907c (score code added)
                 pGame->players[i].type = HUNTER;
                 pGame->players[i].texture = pGame->hunterTexture;
                 pGame->players[i].currentFrame = 0;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
                 // Change the previous hunter to a sprinter
+=======
+                // Ändra den tidigare jägaren till en sprinter
+>>>>>>> parent of 686907c (score code added)
 =======
                 // Ändra den tidigare jägaren till en sprinter
 >>>>>>> parent of 686907c (score code added)
@@ -306,10 +313,13 @@ void executeCommand(Game *pGame, ClientData cData) {
                 pGame->players[cData.playerNumber].currentFrame = 0;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
                 // You can add extra logic here (e.g., notifications or score updates)
 
                 break; // Exit loop after one successful swap
 =======
+=======
+>>>>>>> parent of 686907c (score code added)
                 // Avbryt loopen efter en framgångsrik byte
                 break;
 >>>>>>> parent of 686907c (score code added)
