@@ -284,19 +284,35 @@ void executeCommand(Game *pGame, ClientData cData) {
 
             // If a collision occurs between the hunter and a sprinter
             if (checkCollision(pGame->players[cData.playerNumber].position, pGame->players[i].position)) {
+<<<<<<< HEAD
                 // Switch the sprinter to a hunter
+=======
+                // Öka poängen för jägaren
+                pGame->players[cData.playerNumber].score += POINTS_PER_TAG;
+
+                // Byt sprinter till en jägare
+>>>>>>> parent of 686907c (score code added)
                 pGame->players[i].type = HUNTER;
                 pGame->players[i].texture = pGame->hunterTexture;
                 pGame->players[i].currentFrame = 0;
 
+<<<<<<< HEAD
                 // Change the previous hunter to a sprinter
+=======
+                // Ändra den tidigare jägaren till en sprinter
+>>>>>>> parent of 686907c (score code added)
                 pGame->players[cData.playerNumber].type = SPRINTER;
                 pGame->players[cData.playerNumber].texture = pGame->sprinterTexture;
                 pGame->players[cData.playerNumber].currentFrame = 0;
 
+<<<<<<< HEAD
                 // You can add extra logic here (e.g., notifications or score updates)
 
                 break; // Exit loop after one successful swap
+=======
+                // Avbryt loopen efter en framgångsrik byte
+                break;
+>>>>>>> parent of 686907c (score code added)
             }
         }
     }
