@@ -225,16 +225,17 @@ void setUpGame(Game *pGame){
 
 void sendGameData(Game *pGame) {
     pGame->sData.state = pGame->state;
-    for (int i = 0; i < MAX_PLAYERS; i++) {
+     for (int i = 0; i < MAX_PLAYERS; i++) {
         pGame->sData.players[i].x = pGame->players[i].position.x;
         pGame->sData.players[i].y = pGame->players[i].position.y;
+        pGame->sData.players[i].role = (pGame->players[i].type == HUNTER) ? ROLE_HUNTER : ROLE_SPRINTER;
+    }
 
-        // Ensure that roles are set correctly
-        if (pGame->players[i].type == HUNTER) {
-            pGame->sData.players[i].role = ROLE_HUNTER;
-        } else {
-            pGame->sData.players[i].role = ROLE_SPRINTER;
-        }
+     // Update perk data
+    for (int i = 0; i < MAX_PERKS; i++) {
+        pGame->sData.perks[i].type = pGame->perks[i].type;
+        pGame->sData.perks[i].position = pGame->perks[i].position;
+        pGame->sData.perks[i].active = pGame->perks[i].active;
     }
 
     for (int i = 0; i < MAX_PLAYERS; i++) {

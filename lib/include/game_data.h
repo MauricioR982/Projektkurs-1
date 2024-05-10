@@ -57,7 +57,7 @@ typedef struct {
     SDL_Rect position; // Position på spelkartan
     int duration; // Varaktighet för perken
     bool active; // Om perk är aktiv
-    float startTime; // När perken aktiverades
+    Uint32 startTime; // När perken aktiverades
     int perkSpawnTimer;  // Timer för att kontrollera när nästa perk ska skapas
     int perkSpawnInterval;  // Tid i millisekunder mellan perk spawns
 } Perk;
