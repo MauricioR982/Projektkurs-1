@@ -31,7 +31,8 @@ typedef struct {
     TTF_Font *pFont;
     Text *pWaitingText, *pJoinText;
     Menu menu;
-    SDL_Texture *speedPerkTexture, *stuckPerkTexture;
+    SDL_Texture *speedPerkTexture;
+    SDL_Texture *stuckPerkTexture;
     Perk perks[MAX_PERKS];
     int numPerks;
 } Game;
@@ -299,10 +300,11 @@ void close(Game *pGame) {
 }
 
 void renderPerks(Game *pGame) {
-    for (int i = 0; i < pGame->numPerks; i++) {
+    for (int i = 0; i < MAX_PERKS; i++) {
         if (pGame->perks[i].active) {
             SDL_Texture* texture = (pGame->perks[i].type == 0) ? pGame->speedPerkTexture : pGame->stuckPerkTexture;
-            SDL_RenderCopyEx(pGame->pRenderer, texture, NULL, &pGame->perks[i].position, 0, NULL, SDL_FLIP_NONE);
+            SDL_Rect destRect = {pGame->perks[i].position.x, pGame->perks[i].position.y, 30, 30}; // Ensure size is set
+            SDL_RenderCopyEx(pGame->pRenderer, texture, NULL, &destRect, 0, NULL, SDL_FLIP_NONE);
         }
     }
 }
@@ -476,7 +478,6 @@ void updateWithServerData(Game *pGame) {
     pGame->state = sData.state;
     pGame->playerNr = sData.playerNr;
 
-    // Uppdatera spelarinformation
     for (int i = 0; i < MAX_PLAYERS; i++) {
         pGame->players[i].position.x = sData.players[i].x;
         pGame->players[i].position.y = sData.players[i].y;
@@ -484,17 +485,10 @@ void updateWithServerData(Game *pGame) {
         pGame->players[i].texture = sData.players[i].role == ROLE_HUNTER ? pGame->hunterTexture : pGame->sprinterTexture;
     }
 
-    // Uppdatera perk-informationen
     for (int i = 0; i < MAX_PERKS; i++) {
-        if (pGame->perks[i].active != sData.perks[i].active ||
-            pGame->perks[i].type != sData.perks[i].type ||
-            pGame->perks[i].position.x != sData.perks[i].position.x ||
-            pGame->perks[i].position.y != sData.perks[i].position.y) {
-
-            pGame->perks[i].active = sData.perks[i].active;
-            pGame->perks[i].type = sData.perks[i].type;
-            pGame->perks[i].position = sData.perks[i].position;
-        }
+        pGame->perks[i].active = sData.perks[i].active;
+        pGame->perks[i].type = sData.perks[i].type;
+        pGame->perks[i].position = sData.perks[i].position;
     }
 }
 
