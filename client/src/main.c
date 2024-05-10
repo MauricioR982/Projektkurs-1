@@ -23,7 +23,7 @@ typedef struct {
     SDL_Renderer *pRenderer;
     Player players[MAX_PLAYERS];
     int playerNr;
-    SDL_Texture *backgroundTexture, *hunterTexture, *sprinterTexture, *initialTextTexture, *tutorialTexture, *menuBackgroundTexture, *speedPerkTexture, *stuckPerkTexture;
+    SDL_Texture *backgroundTexture, *hunterTexture, *sprinterTexture, *initialTextTexture, *tutorialTexture, *menuBackgroundTexture;
     UDPsocket udpSocket;
     UDPpacket *packet;
     IPaddress serverAddress;
@@ -31,6 +31,7 @@ typedef struct {
     TTF_Font *pFont;
     Text *pWaitingText, *pJoinText;
     Menu menu;
+    SDL_Texture *speedPerkTexture, *stuckPerkTexture;
     Perk perks[MAX_PERKS];
     int numPerks;
 } Game;

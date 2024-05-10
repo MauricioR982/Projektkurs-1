@@ -223,24 +223,6 @@ void setUpGame(Game *pGame){
     pGame->state = GAME_ONGOING;
 }
 
-/*void sendGameData(Game *pGame){
-    pGame->sData.state = pGame->state;
-    for (int i = 0; i < MAX_PLAYERS; i++)
-    {
-        pGame->sData.players[i].x = pGame->players[i].position.x;
-        pGame->sData.players[i].y = pGame->players[i].position.y;
-    }
-
-    for (int i = 0; i < MAX_PLAYERS; i++)
-    {
-        pGame->sData.playerNr = i;
-        memcpy(pGame->packet->data, &(pGame->sData), sizeof(ServerData));
-        pGame->packet->len = sizeof(ServerData);
-        pGame->packet->address = pGame->clients[i];
-        SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet);
-    }    
-}*/
-
 void sendGameData(Game *pGame) {
     pGame->sData.state = pGame->state;
     for (int i = 0; i < MAX_PLAYERS; i++) {
