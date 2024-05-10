@@ -53,6 +53,13 @@ typedef struct {
 } PlayerData;
 
 typedef struct {
+    UDPpacket *packet;
+    bool acknowledged;
+    Uint32 timestamp;
+    int clientIndex;  // Lägg till en identifierare för klienten
+} ReliablePacket;
+
+typedef struct {
     int type; // 0 för SPEED, 1 för STUCK
     SDL_Rect position; // Position på spelkartan
     int duration; // Varaktighet för perken
