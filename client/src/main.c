@@ -50,7 +50,7 @@ void setupPlayerClips(Player *player);
 void renderPlayers(Game *pGame);
 void handlePlayerInput(Game *pGame, SDL_Event *pEvent);
 void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, int type, Obstacle obstacles[], int numObstacles);
-void updateFrame(int *frame, PlayerRole role, int frame1, int frame2);
+void updateFrame(int *frame, int frame1, int frame2);
 bool checkCollision(SDL_Rect a, SDL_Rect b);
 void updateWithServerData(Game *pGAme);
 void initializePlayers(Game *pGame);
@@ -420,8 +420,9 @@ void renderPlayer(SDL_Renderer *renderer, Player *player) {
     if (!player->isActive) return;
     SDL_Rect srcRect = player->spriteClips[player->currentFrame];
     SDL_Rect destRect = {player->position.x, player->position.y, player->position.w, player->position.h};
-    SDL_RenderCopyEx(renderer, player->texture, &srcRect, &destRect, 0, NULL, SDL_FLIP_NONE);
+    SDL_RenderCopyEx(renderer, player->texture, &srcRect, &destRect, 0, NULL, player->flip); // Use flip field
 }
+
 
 void setupPlayerClips(Player *player) {
     for (int i = 0; i < 8; i++) {
@@ -438,41 +439,58 @@ void renderPlayers(Game *pGame) {
 
 void handlePlayerInput(Game *pGame, SDL_Event *pEvent) {
     int deltaX = 0, deltaY = 0;
-    if (pEvent->type == SDL_KEYDOWN)
-    {
+    int frame1 = 0, frame2 = 1; // Default frames
+    SDL_RendererFlip flip = SDL_FLIP_NONE;
+
+    if (pEvent->type == SDL_KEYDOWN) {
         ClientData cData;
         cData.playerNumber = pGame->playerNr;
-        switch (pEvent->key.keysym.scancode)
-        {
-        case SDL_SCANCODE_W:
-        case SDL_SCANCODE_UP:
-            deltaY -= 8;
-            cData.command = CMD_UP; 
-            break;
-        case SDL_SCANCODE_S:
-        case SDL_SCANCODE_DOWN:
-            deltaY += 8;
-            cData.command = CMD_DOWN; 
-            break;
-        case SDL_SCANCODE_A:
-        case SDL_SCANCODE_LEFT:
-            deltaX -= 8;
-            cData.command = CMD_LEFT; 
-            break;
-        case SDL_SCANCODE_D:
-        case SDL_SCANCODE_RIGHT:
-            deltaX += 8;
-            cData.command = CMD_RIGHT; 
-            break;
+
+        switch (pEvent->key.keysym.scancode) {
+            case SDL_SCANCODE_W:
+            case SDL_SCANCODE_UP:
+                deltaY -= 8;
+                cData.command = CMD_UP;
+                frame1 = 4; // Facing up
+                frame2 = 5;
+                break;
+            case SDL_SCANCODE_S:
+            case SDL_SCANCODE_DOWN:
+                deltaY += 8;
+                cData.command = CMD_DOWN;
+                frame1 = 0; // Facing down
+                frame2 = 1;
+                break;
+            case SDL_SCANCODE_A:
+            case SDL_SCANCODE_LEFT:
+                deltaX -= 8;
+                cData.command = CMD_LEFT;
+                frame1 = 2; // Right-facing sprites
+                frame2 = 3;
+                flip = SDL_FLIP_HORIZONTAL; // Apply flip
+                break;
+            case SDL_SCANCODE_D:
+            case SDL_SCANCODE_RIGHT:
+                deltaX += 8;
+                cData.command = CMD_RIGHT;
+                frame1 = 2; // Right-facing sprites
+                frame2 = 3;
+                flip = SDL_FLIP_NONE;
+                break;
         }
+
         moveCharacter(&pGame->players[pGame->playerNr].position, deltaX, deltaY, pGame->players[pGame->playerNr].type, obstacles, NUM_OBSTACLES);
-        updateFrame(&pGame->players[pGame->playerNr].currentFrame, pGame->players[pGame->playerNr].type, 2, 3);
+        updateFrame(&pGame->players[pGame->playerNr].currentFrame, frame1, frame2);
+        pGame->players[pGame->playerNr].flip = flip; // Update the player's flip state
+
         memcpy(pGame->packet->data, &cData, sizeof(ClientData));
         pGame->packet->len = sizeof(ClientData);
         SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet);
     }
 }
-// Function to move character with collision checking
+
+
+
 void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, int type, Obstacle obstacles[], int numObstacles) {
     SDL_Rect newPos = {charPos->x + deltaX, charPos->y + deltaY, charPos->w, charPos->h};
 
@@ -489,9 +507,10 @@ void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, int type, Obstacle
     *charPos = newPos;
 }
 
-void updateFrame(int *frame, PlayerRole role, int frame1, int frame2) {
+void updateFrame(int *frame, int frame1, int frame2) {
     *frame = (*frame == frame1) ? frame2 : frame1;
 }
+
 
 bool checkCollision(SDL_Rect a, SDL_Rect b) {
     // Check if there's no overlap
@@ -516,18 +535,19 @@ void updateWithServerData(Game *pGame) {
     for (int i = 0; i < MAX_PLAYERS; i++) {
         pGame->players[i].position.x = sData.players[i].x;
         pGame->players[i].position.y = sData.players[i].y;
+        pGame->players[i].currentFrame = sData.players[i].currentFrame; // Update frame data
+        pGame->players[i].flip = sData.players[i].flip; // Update flip state
 
         if (sData.players[i].role == ROLE_HUNTER) {
             pGame->players[i].type = HUNTER;
             pGame->players[i].texture = pGame->hunterTexture;
-            //printf("Player %d assigned HUNTER texture.\n", i);
         } else if (sData.players[i].role == ROLE_SPRINTER) {
             pGame->players[i].type = SPRINTER;
             pGame->players[i].texture = pGame->sprinterTexture;
-            //printf("Player %d assigned SPRINTER texture.\n", i);
         }
     }
 }
+
 
 
 void initializePlayers(Game *pGame) {

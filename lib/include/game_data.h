@@ -50,6 +50,8 @@ typedef enum {
 typedef struct {
     float x, y, w, h;
     PlayerRole role; // Role of the player (hunter or sprinter)
+    int currentFrame;  // Current animation frame
+    SDL_RendererFlip flip; // Flip state for rendering
 } PlayerData;
 
 // Data structure sent from the server to the clients

@@ -45,7 +45,7 @@ void renderPlayer(SDL_Renderer *renderer, Player *player);
 void setupPlayerClips(Player *player);
 void renderPlayers(Game *pGame);
 void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, int type, Obstacle obstacles[], int numObstacles);
-void updateFrame(int *frame, PlayerRole role, int frame1, int frame2);
+void updateFrame(int *frame, int frame1, int frame2);
 bool checkCollision(SDL_Rect a, SDL_Rect b);
 void updateWithServerData(Game *pGAme);
 void add(IPaddress address, IPaddress client[] , int *pNrOfClents);
@@ -224,6 +224,8 @@ void sendGameData(Game *pGame) {
     for (int i = 0; i < MAX_PLAYERS; i++) {
         pGame->sData.players[i].x = pGame->players[i].position.x;
         pGame->sData.players[i].y = pGame->players[i].position.y;
+        pGame->sData.players[i].currentFrame = pGame->players[i].currentFrame;
+        pGame->sData.players[i].flip = pGame->players[i].flip;
 
         if (pGame->players[i].type == HUNTER) {
             pGame->sData.players[i].role = ROLE_HUNTER;
@@ -256,7 +258,7 @@ void add(IPaddress address, IPaddress client[] , int *pNrOfClents){
     {
         if (client[i].host == address.host && client[i].port == address.port)
         {
-            printf("Abort adding player\n");
+            //printf("Abort adding player\n");
             return;
         }
     }
@@ -272,29 +274,42 @@ void add(IPaddress address, IPaddress client[] , int *pNrOfClents){
 
 void executeCommand(Game *pGame, ClientData cData) {
     int deltaX = 0, deltaY = 0;
+    int frame1 = 0, frame2 = 1; // Default frame values
+    SDL_RendererFlip flip = SDL_FLIP_NONE;
     switch (cData.command) {
-        case CMD_UP:
+         case CMD_UP:
             deltaY -= 8;
+            frame1 = 4; // Facing up
+            frame2 = 5;
             break;
         case CMD_DOWN:
             deltaY += 8;
+            frame1 = 0; // Facing down
+            frame2 = 1;
             break;
         case CMD_LEFT:
             deltaX -= 8;
+            frame1 = 2; // Right-facing sprites
+            frame2 = 3;
+            flip = SDL_FLIP_HORIZONTAL; // Apply horizontal flip
             break;
         case CMD_RIGHT:
             deltaX += 8;
+            frame1 = 2; // Right-facing sprites
+            frame2 = 3;
+            flip = SDL_FLIP_NONE; // No flip
             break;
         case CMD_RESET:
             pGame->state = GAME_START;
             pGame->nrOfClients = 0;
             pGame->startTime = SDL_GetTicks(); // Reset the timer
-            break;
+            return;
     }
 
     // Move the player according to input command
     moveCharacter(&pGame->players[cData.playerNumber].position, deltaX, deltaY, pGame->players[cData.playerNumber].type, obstacles, NUM_OBSTACLES);
-    updateFrame(&pGame->players[cData.playerNumber].currentFrame, pGame->players[cData.playerNumber].type, 2, 3);
+    updateFrame(&pGame->players[cData.playerNumber].currentFrame, frame1, frame2);
+    pGame->players[cData.playerNumber].flip = flip; // Set the flip state
 
     checkGameOverCondition(pGame);
 
@@ -400,9 +415,10 @@ void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, int type, Obstacle
     *charPos = newPos;
 }
 
-void updateFrame(int *frame, PlayerRole role, int frame1, int frame2) {
+void updateFrame(int *frame, int frame1, int frame2) {
     *frame = (*frame == frame1) ? frame2 : frame1;
 }
+
 
 bool checkCollision(SDL_Rect a, SDL_Rect b) {
     // Check if there's no overlap
