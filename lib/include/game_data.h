@@ -14,6 +14,8 @@
 
 // Enumerations for different game states
 typedef enum {
+    GAME_MENU, //Game menu
+    GAME_TUTORIAL, //Game tutorial
     GAME_WAITING, // Waiting for players to be ready
     GAME_READY,   // Player has signaled readiness
     GAME_START,   // Start the game
@@ -28,7 +30,8 @@ typedef enum {
     CMD_LEFT,
     CMD_RIGHT,
     CMD_UP,
-    CMD_DOWN
+    CMD_DOWN,
+    CMD_RESET
 } ClientCommand;
 
 // Structure for client commands
@@ -54,6 +57,7 @@ typedef struct {
     PlayerData players[MAX_PLAYERS]; // Player data for all players
     int playerNr;                    // Index of the player to which the data is being sent
     GameState state;                 // Current state of the game
+    int remainingTime;  // Remaining time in seconds
 } ServerData;
 
 // Structure for each player in the game
