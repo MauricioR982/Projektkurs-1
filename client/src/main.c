@@ -473,31 +473,27 @@ void updateWithServerData(Game *pGame) {
     ServerData sData;
     memcpy(&sData, pGame->packet->data, sizeof(ServerData));
 
-    // Log received data for debugging (remove or comment out for production)
-    printf("Updating player data and perks from server...\n");
+    pGame->state = sData.state;
+    pGame->playerNr = sData.playerNr;
 
-    // Update game state and player number
-    if (pGame->state != sData.state) {
-        pGame->state = sData.state;
-        printf("Game state updated to: %d\n", pGame->state);
-    }
-
-    // Update player data
+    // Uppdatera spelarinformation
     for (int i = 0; i < MAX_PLAYERS; i++) {
         pGame->players[i].position.x = sData.players[i].x;
         pGame->players[i].position.y = sData.players[i].y;
         pGame->players[i].type = sData.players[i].role == ROLE_HUNTER ? HUNTER : SPRINTER;
         pGame->players[i].texture = sData.players[i].role == ROLE_HUNTER ? pGame->hunterTexture : pGame->sprinterTexture;
-        printf("Player %d: position (%d, %d), type %d\n", i, sData.players[i].x, sData.players[i].y, sData.players[i].role);
     }
 
-    // Update perks from server data
+    // Uppdatera perk-informationen
     for (int i = 0; i < MAX_PERKS; i++) {
-        if (pGame->perks[i].active != sData.perks[i].active || pGame->perks[i].type != sData.perks[i].type || pGame->perks[i].position.x != sData.perks[i].position.x || pGame->perks[i].position.y != sData.perks[i].position.y) {
+        if (pGame->perks[i].active != sData.perks[i].active ||
+            pGame->perks[i].type != sData.perks[i].type ||
+            pGame->perks[i].position.x != sData.perks[i].position.x ||
+            pGame->perks[i].position.y != sData.perks[i].position.y) {
+
             pGame->perks[i].active = sData.perks[i].active;
-            pGame->perks[i].position = sData.perks[i].position;
             pGame->perks[i].type = sData.perks[i].type;
-            printf("Perk %d: active %d, type %d, position (%d, %d)\n", i, sData.perks[i].active, sData.perks[i].type, sData.perks[i].position.x, sData.perks[i].position.y);
+            pGame->perks[i].position = sData.perks[i].position;
         }
     }
 }
