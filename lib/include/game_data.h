@@ -60,8 +60,8 @@ typedef struct {
     Uint32 startTime; // När perken aktiverades
     int perkSpawnTimer;  // Timer för att kontrollera när nästa perk ska skapas
     int perkSpawnInterval;  // Tid i millisekunder mellan perk spawns
-    int dx;             // Horisontell rörelsehastighet
-    int dy;             // Vertikal rörelsehastighet
+    int dx;  // Horisontell rörelsehastighet
+    int dy;  // Vertikal rörelsehastighet
 } Perk;
 
 // Data structure sent from the server to the clients
