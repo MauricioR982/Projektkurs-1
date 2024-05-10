@@ -299,10 +299,11 @@ void close(Game *pGame) {
 }
 
 void renderPerks(Game *pGame) {
-    for (int i = 0; i < pGame->numPerks; i++) {
+    for (int i = 0; i < MAX_PERKS; i++) {
         if (pGame->perks[i].active) {
-            SDL_Texture* texture = (pGame->perks[i].type == 0) ? pGame->speedPerkTexture : pGame->stuckPerkTexture;
-            SDL_RenderCopyEx(pGame->pRenderer, texture, NULL, &pGame->perks[i].position, 0, NULL, SDL_FLIP_NONE);
+            SDL_Texture *texture = pGame->perks[i].type == 0 ? pGame->speedPerkTexture : pGame->stuckPerkTexture;
+            SDL_Rect destRect = {pGame->perks[i].position.x, pGame->perks[i].position.y, 30, 30}; // Anta att perk är 30x30
+            SDL_RenderCopy(pGame->pRenderer, texture, NULL, &destRect);
         }
     }
 }
@@ -473,30 +474,18 @@ void updateWithServerData(Game *pGame) {
     ServerData sData;
     memcpy(&sData, pGame->packet->data, sizeof(ServerData));
 
-    // Uppdatera spelarnummer och spelets tillstånd
-    pGame->playerNr = sData.playerNr;
     pGame->state = sData.state;
 
-    // Uppdatera spelardata
+    // Uppdatera spelare
     for (int i = 0; i < MAX_PLAYERS; i++) {
-        pGame->players[i].position.x = sData.players[i].x;
-        pGame->players[i].position.y = sData.players[i].y;
-
-        if (sData.players[i].role == ROLE_HUNTER) {
-            pGame->players[i].type = HUNTER;
-            pGame->players[i].texture = pGame->hunterTexture;
-        } else if (sData.players[i].role == ROLE_SPRINTER) {
-            pGame->players[i].type = SPRINTER;
-            pGame->players[i].texture = pGame->sprinterTexture;
-        }
+        pGame->players[i].position = (SDL_Rect){sData.players[i].x, sData.players[i].y, 32, 32}; // Exempelstorlek
+        pGame->players[i].type = sData.players[i].role == ROLE_HUNTER ? HUNTER : SPRINTER;
+        pGame->players[i].texture = sData.players[i].role == ROLE_HUNTER ? pGame->hunterTexture : pGame->sprinterTexture;
     }
 
-    for (int i = 0; i < MAX_PERKS; i++) {
-        pGame->perks[i] = sData.perks[i]; // Anta att du kopierar hela Perk-objektet
-    }
+    // Uppdatera perks
+    memcpy(pGame->perks, sData.perks, sizeof(Perk) * MAX_PERKS);
 }
-
-
 
 void initializePlayers(Game *pGame) {
     int sprinterIndex = 0;
@@ -549,5 +538,3 @@ int initiateMenu(Game *pGame) {
     }
     return 1;
 }
-
-
