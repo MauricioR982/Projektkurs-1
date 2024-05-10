@@ -188,7 +188,7 @@ void run(Game *pGame) {
                 }
             }
         }
-        updatePerks(pGame, deltaTime);  // Detta är det nya anropet
+        //updatePerks(pGame, deltaTime);  // Detta är det nya anropet
         switch (pGame->state) {
             case GAME_ONGOING:
                 sendGameData(pGame);
