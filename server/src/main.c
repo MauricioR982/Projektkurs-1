@@ -61,6 +61,7 @@ void initiatePerks(Game *pGame);
 void createRandomPerk(Game *pGame, int index);
 void renderPerks(Game *pGame);
 void applyPerk(Game *pGame, Player *player, Perk *perk);
+void updatePerks(Game *pGame, Uint32 deltaTime);
 
 int main(int argc, char **argv) {
     Game g = {0};
@@ -146,6 +147,26 @@ int initiate(Game *pGame) {
     return 1;
 }
 
+void updatePerks(Game *pGame, Uint32 deltaTime) {
+    for (int i = 0; i < pGame->numPerks; i++) {
+        if (pGame->perks[i].active) {
+            // Uppdatera position baserat på hastighet
+            pGame->perks[i].position.x += pGame->perks[i].dx;
+            pGame->perks[i].position.y += pGame->perks[i].dy;
+
+            // Kontrollera kollision med fönstrets kanter och studsa
+            if (pGame->perks[i].position.x < 0 || pGame->perks[i].position.x > WINDOW_WIDTH - pGame->perks[i].position.w) {
+                pGame->perks[i].dx *= -1;
+                pGame->perks[i].position.x += pGame->perks[i].dx;
+            }
+            if (pGame->perks[i].position.y < 0 || pGame->perks[i].position.y > WINDOW_HEIGHT - pGame->perks[i].position.h) {
+                pGame->perks[i].dy *= -1;
+                pGame->perks[i].position.y += pGame->perks[i].dy;
+            }
+        }
+    }
+}
+
 void initiatePerks(Game *pGame) {
     for (int i = 0; i < MAX_PERKS; i++) {
         pGame->perks[i].active = false;
@@ -159,7 +180,9 @@ void createRandomPerk(Game *pGame, int index) {
     if (pGame->numPerks >= MAX_PERKS) return;
 
     int type = rand() % 2; // Väljer mellan SPEED och STUCK
-    SDL_Rect position = {rand() % WINDOW_WIDTH, rand() % WINDOW_HEIGHT, 30, 30}; // Slumpmässig position
+    SDL_Rect position = {rand() % (WINDOW_WIDTH - 30), rand() % (WINDOW_HEIGHT - 30), 30, 30};
+    int dx = (rand() % 3 - 1) * 2;  // Hastighet i x-led, -2, 0 eller 2
+    int dy = (rand() % 3 - 1) * 2;  // Hastighet i y-led, -2, 0 eller 2
 
     pGame->perks[index] = (Perk){type, position, 5000, true, SDL_GetTicks()}; // 5 sekunder varaktighet
     pGame->numPerks++;
@@ -185,7 +208,7 @@ void run(Game *pGame) {
                 }
             }
         }
-
+        //updatePerks(pGame, deltaTime);
         switch (pGame->state) {
             case GAME_ONGOING:
                 sendGameData(pGame);
