@@ -62,7 +62,6 @@ void createRandomPerk(Game *pGame, int index);
 void renderPerks(Game *pGame);
 void applyPerk(Game *pGame, Player *player, Perk *perk);
 
-
 int main(int argc, char **argv) {
     Game g = {0};
     if (!initiate(&g)) return 1;
@@ -176,7 +175,6 @@ void run(Game *pGame) {
         Uint32 currentUpdate = SDL_GetTicks();
         Uint32 deltaTime = currentUpdate - lastUpdate;
         lastUpdate = currentUpdate;
-
         // Hantera skapandet av nya perks
         for (int i = 0; i < MAX_PERKS; i++) {
             if (!pGame->perks[i].active) {
@@ -355,6 +353,7 @@ void applyPerk(Game *pGame, Player *player, Perk *perk) {
             break;
     }
     perk->startTime = SDL_GetTicks(); // Starta tid för perkens varaktighet
+    perk->active = true;
 }
 
 void close(Game *pGame) {
