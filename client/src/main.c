@@ -56,7 +56,9 @@ void updateWithServerData(Game *pGAme);
 void initializePlayers(Game *pGame);
 int initiateMenu(Game *pGame);
 void renderMenu(Game *pGame);
-void renderPerks(SDL_Renderer *renderer, Game *pGame);
+void renderPerks(Game *pGame);
+void initiatePerks(Game *pGame);
+void createRandomPerk(Game *pGame, int index);
 
 int main(int argc, char **argv) {
     Game g = {0};
@@ -243,7 +245,7 @@ void run(Game *pGame) {
             SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
             drawObstacles(pGame->pRenderer, obstacles, NUM_OBSTACLES); //debug
             renderPlayers(pGame); // Draw all players
-            renderPerks(pGame->pRenderer, pGame); // Rendera perks här
+            renderPerks(pGame); // Rendera perks här
             SDL_RenderPresent(pGame->pRenderer);
             break;
         
@@ -296,32 +298,18 @@ void close(Game *pGame) {
     SDL_Quit();
 }
 
-void renderPerks(SDL_Renderer *renderer, Game *pGame) {
-    for (int i = 0; i < MAX_PERKS; i++) {
+void renderPerks(Game *pGame) {
+    for (int i = 0; i < pGame->numPerks; i++) {
         if (pGame->perks[i].active) {
-            SDL_Texture *texture = NULL;
-            switch (pGame->perks[i].type) {
-                case 0: // SPEED
-                    texture = pGame->speedPerkTexture;
-                    break;
-                case 1: // STUCK
-                    texture = pGame->stuckPerkTexture;
-                    break;
-            }
-            if (texture) {
-                SDL_Rect destRect = {
-                    pGame->perks[i].position.x,
-                    pGame->perks[i].position.y,
-                    pGame->perks[i].position.w, // Se till att dessa värden är korrekt inställda
-                    pGame->perks[i].position.h
-                };
-                SDL_RenderCopy(renderer, texture, NULL, &destRect);
-            }
+            SDL_Texture* texture = (pGame->perks[i].type == 0) ? pGame->speedPerkTexture : pGame->stuckPerkTexture;
+            SDL_RenderCopyEx(pGame->pRenderer, texture, NULL, &pGame->perks[i].position, 0, NULL, SDL_FLIP_NONE);
         }
     }
 }
 
 int loadGameResources(SDL_Renderer *renderer, Game *pGame) {
+    SDL_Surface *surface;
+
     // Load the MENU.png background image
     SDL_Surface *menuSurface = IMG_Load("../lib/resources/MENU.png");
     if (!menuSurface) {
@@ -369,16 +357,28 @@ int loadGameResources(SDL_Renderer *renderer, Game *pGame) {
         fprintf(stderr, "Failed to load SPEED perk image: %s\n", IMG_GetError());
         return 0;
     }
-    pGame->speedPerkTexture = SDL_CreateTextureFromSurface(renderer, speedSurface);
-    SDL_FreeSurface(speedSurface);
+    surface = IMG_Load("../lib/resources/SPEED.png");
+    if (!surface) {
+        fprintf(stderr, "Failed to load SPEED perk image: %s\n", IMG_GetError());
+        return 0;
+    }
+    pGame->speedPerkTexture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
 
-    SDL_Surface *stuckSurface = IMG_Load("../lib/resources/STUCK.png");
-    if (!stuckSurface) {
+    surface = IMG_Load("../lib/resources/STUCK.png");
+    if (!surface) {
         fprintf(stderr, "Failed to load STUCK perk image: %s\n", IMG_GetError());
         return 0;
     }
-    pGame->stuckPerkTexture = SDL_CreateTextureFromSurface(renderer, stuckSurface);
-    SDL_FreeSurface(stuckSurface);
+    pGame->stuckPerkTexture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+
+    // Se till att alla texturer skapades framgångsrikt
+    if (!pGame->speedPerkTexture || !pGame->stuckPerkTexture) {
+        SDL_DestroyTexture(pGame->speedPerkTexture);
+        SDL_DestroyTexture(pGame->stuckPerkTexture);
+        return 0;
+    }
 
     return 1;
 }
