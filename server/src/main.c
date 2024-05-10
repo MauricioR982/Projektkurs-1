@@ -188,7 +188,6 @@ void run(Game *pGame) {
                 }
             }
         }
-        //updatePerks(pGame, deltaTime);  // Detta är det nya anropet
         switch (pGame->state) {
             case GAME_ONGOING:
                 sendGameData(pGame);
@@ -406,28 +405,6 @@ int loadGameResources(SDL_Renderer *renderer, Game *pGame) {
     }
 
     return 1;
-}
-
-void updatePerks(Game *pGame, Uint32 deltaTime) {
-    for (int i = 0; i < pGame->numPerks; i++) {
-        if (pGame->perks[i].active) {
-            // Uppdatera position baserat på hastighet
-            pGame->perks[i].position.x += pGame->perks[i].dx;
-            pGame->perks[i].position.y += pGame->perks[i].dy;
-
-            // Studsa mot horisontella gränser
-            if (pGame->perks[i].position.x < 0 || pGame->perks[i].position.x > WINDOW_WIDTH - pGame->perks[i].position.w) {
-                pGame->perks[i].dx *= -1;  // Byt riktning på x-axeln
-                pGame->perks[i].position.x += pGame->perks[i].dx;  // Korrigera position
-            }
-
-            // Studsa mot vertikala gränser
-            if (pGame->perks[i].position.y < 0 || pGame->perks[i].position.y > WINDOW_HEIGHT - pGame->perks[i].position.h) {
-                pGame->perks[i].dy *= -1;  // Byt riktning på y-axeln
-                pGame->perks[i].position.y += pGame->perks[i].dy;  // Korrigera position
-            }
-        }
-    }
 }
 
 void renderPerks(Game *pGame) {
