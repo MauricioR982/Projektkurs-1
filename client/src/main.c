@@ -11,7 +11,6 @@
 #include "sprinter.h"
 #include "text.h"
 
-
 typedef struct {
     Text *pStartText;
     Text *pTutorialText;
@@ -299,11 +298,10 @@ void close(Game *pGame) {
 }
 
 void renderPerks(Game *pGame) {
-    for (int i = 0; i < MAX_PERKS; i++) {
+    for (int i = 0; i < pGame->numPerks; i++) {
         if (pGame->perks[i].active) {
-            SDL_Texture *texture = pGame->perks[i].type == 0 ? pGame->speedPerkTexture : pGame->stuckPerkTexture;
-            SDL_Rect destRect = {pGame->perks[i].position.x, pGame->perks[i].position.y, 30, 30}; // Anta att perk är 30x30
-            SDL_RenderCopy(pGame->pRenderer, texture, NULL, &destRect);
+            SDL_Texture* texture = (pGame->perks[i].type == 0) ? pGame->speedPerkTexture : pGame->stuckPerkTexture;
+            SDL_RenderCopyEx(pGame->pRenderer, texture, NULL, &pGame->perks[i].position, 0, NULL, SDL_FLIP_NONE);
         }
     }
 }
@@ -471,20 +469,26 @@ bool checkCollision(SDL_Rect a, SDL_Rect b) {
 }
 
 void updateWithServerData(Game *pGame) {
-    ServerData sData;
+     ServerData sData;
     memcpy(&sData, pGame->packet->data, sizeof(ServerData));
 
+    // Uppdatera spelarnummer och spelets tillstånd
     pGame->state = sData.state;
 
-    // Uppdatera spelare
+    // Uppdatera spelardata och perks
     for (int i = 0; i < MAX_PLAYERS; i++) {
-        pGame->players[i].position = (SDL_Rect){sData.players[i].x, sData.players[i].y, 32, 32}; // Exempelstorlek
+        pGame->players[i].position.x = sData.players[i].x;
+        pGame->players[i].position.y = sData.players[i].y;
         pGame->players[i].type = sData.players[i].role == ROLE_HUNTER ? HUNTER : SPRINTER;
         pGame->players[i].texture = sData.players[i].role == ROLE_HUNTER ? pGame->hunterTexture : pGame->sprinterTexture;
     }
 
-    // Uppdatera perks
-    memcpy(pGame->perks, sData.perks, sizeof(Perk) * MAX_PERKS);
+    // Uppdatera perks från serverdata
+    for (int i = 0; i < MAX_PERKS; i++) {
+        pGame->perks[i].type = sData.perks[i].type;
+        pGame->perks[i].position = sData.perks[i].position;
+        pGame->perks[i].active = sData.perks[i].active;
+    }
 }
 
 void initializePlayers(Game *pGame) {
