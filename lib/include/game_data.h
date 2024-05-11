@@ -38,6 +38,8 @@ typedef enum {
 typedef struct {
     ClientCommand command; // Command type
     int playerNumber;      // Which player is sending the command
+    int seqNum;             // Sekvensnummer för spårning av paket
+    bool ack;               // Flagga för att indikera om detta är en bekräftelse
 } ClientData;
 
 // Enumeration for player roles
@@ -51,13 +53,6 @@ typedef struct {
     float x, y, w, h;
     PlayerRole role; // Role of the player (hunter or sprinter)
 } PlayerData;
-
-typedef struct {
-    UDPpacket *packet;
-    bool acknowledged;
-    Uint32 timestamp;
-    int clientIndex;  // Lägg till en identifierare för klienten
-} ReliablePacket;
 
 typedef struct {
     int type; // 0 för SPEED, 1 för STUCK
@@ -77,6 +72,8 @@ typedef struct {
     int playerNr;                    // Index of the player to which the data is being sent
     GameState state;                 // Current state of the game
     Perk perks[MAX_PERKS];
+    int seqNum; // Sekvensnummer
+    bool ack;   // Flagga för bekräftelse
 } ServerData;
 
 // Structure for each player in the game

@@ -182,8 +182,7 @@ void run(Game *pGame) {
     bool running = true;
     SDL_Event e;
     ClientData cData;
-    Uint32 lastUpdate = SDL_GetTicks();
-
+    Uint32 lastUpdate = SDL_GetTicks();    
     while (running) {
         Uint32 currentUpdate = SDL_GetTicks();
         Uint32 deltaTime = currentUpdate - lastUpdate;
