@@ -62,6 +62,7 @@ void createRandomPerk(Game *pGame, int index);
 void renderPerks(Game *pGame);
 void applyPerk(Game *pGame, Player *player, Perk *perk);
 void updatePerks(Game *pGame, Uint32 deltaTime);
+void updatePerkMovement(Game *pGame, int deltaMs);
 
 int main(int argc, char **argv) {
     Game g = {0};
@@ -211,6 +212,7 @@ void run(Game *pGame) {
                 renderPlayers(pGame);
                 renderPerks(pGame);
                 SDL_RenderPresent(pGame->pRenderer);
+                updatePerkMovement(pGame, 80);  // 'deltaMs' är tiden sedan senaste frame/uppdatering
                 break;
             case GAME_OVER:
                 // Hanteringskod för spelöverståndet
@@ -235,7 +237,11 @@ void setUpGame(Game *pGame){
 }
 
 void sendGameData(Game *pGame) {
+
+    static int seqNum = 0;
     pGame->sData.state = pGame->state;
+    pGame->sData.seqNum = seqNum++;  // Tilldela sekvensnummer och inkrementera för nästa användning
+
      for (int i = 0; i < MAX_PLAYERS; i++) {
         pGame->sData.players[i].x = pGame->players[i].position.x;
         pGame->sData.players[i].y = pGame->players[i].position.y;
@@ -414,6 +420,35 @@ int loadGameResources(SDL_Renderer *renderer, Game *pGame) {
     }
 
     return 1;
+}
+
+void updatePerkMovement(Game *pGame, int deltaMs) {
+    float speedFactor = 0.012;  // Minska denna faktor för långsammare rörelse
+    for (int i = 0; i < pGame->numPerks; i++)
+    {
+        if (pGame->perks[i].active)
+        {
+            pGame->perks[i].position.x += (int)(pGame->perks[i].dx * speedFactor * (deltaMs / 1000.0));
+            pGame->perks[i].position.y += (int)(pGame->perks[i].dy * speedFactor * (deltaMs / 1000.0));
+            if (pGame->perks[i].position.x < 0 || pGame->perks[i].position.x + pGame->perks[i].position.w > WINDOW_WIDTH)
+            {
+                pGame->perks[i].dx = -pGame->perks[i].dx;
+                pGame->perks[i].position.x += (int)(pGame->perks[i].dx * speedFactor * (deltaMs / 1000.0));
+            }
+            if (pGame->perks[i].position.y < 0 || pGame->perks[i].position.y + pGame->perks[i].position.h > WINDOW_HEIGHT)
+            {
+                pGame->perks[i].dy = -pGame->perks[i].dy;
+                pGame->perks[i].position.y += (int)(pGame->perks[i].dy * speedFactor * (deltaMs / 1000.0));
+            }
+            pGame->perks[i].perkSpawnTimer += deltaMs;
+            if (pGame->perks[i].perkSpawnTimer >= 5000)
+            {
+                pGame->perks[i].position.x = rand() % (WINDOW_WIDTH - pGame->perks[i].position.w);
+                pGame->perks[i].position.y = rand() % (WINDOW_HEIGHT - pGame->perks[i].position.h);
+                pGame->perks[i].perkSpawnTimer = 0;
+            }
+        }
+    }
 }
 
 void renderPerks(Game *pGame) {
