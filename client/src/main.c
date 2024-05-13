@@ -303,8 +303,8 @@ void renderPerks(Game *pGame) {
     for (int i = 0; i < MAX_PERKS; i++) {
         if (pGame->perks[i].active) {
             SDL_Texture* texture = (pGame->perks[i].type == 0) ? pGame->speedPerkTexture : pGame->stuckPerkTexture;
-            SDL_Rect destRect = {pGame->perks[i].position.x, pGame->perks[i].position.y, 30, 30}; // Ensure size is set
-            SDL_RenderCopyEx(pGame->pRenderer, texture, NULL, &destRect, 0, NULL, SDL_FLIP_NONE);
+            //SDL_Rect destRect = {pGame->perks[i].position.x, pGame->perks[i].position.y, 30, 30}; // Ensure size is set
+            SDL_RenderCopyEx(pGame->pRenderer, texture, NULL, &pGame->perks[i].position, 0, NULL, SDL_FLIP_NONE);
         }
     }
 }
