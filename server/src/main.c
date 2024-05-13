@@ -212,7 +212,7 @@ void run(Game *pGame) {
                 renderPlayers(pGame);
                 renderPerks(pGame);
                 SDL_RenderPresent(pGame->pRenderer);
-                //updatePerkMovement(pGame, 80);  // 'deltaMs' är tiden sedan senaste frame/uppdatering
+                updatePerkMovement(pGame, 80);  // 'deltaMs' är tiden sedan senaste frame/uppdatering
                 break;
             case GAME_OVER:
                 // Hanteringskod för spelöverståndet
@@ -239,7 +239,6 @@ void setUpGame(Game *pGame){
 void sendGameData(Game *pGame) {
 
     static int seqNum = 0;
-    updatePerkMovement(pGame, 80);  // 'deltaMs' är tiden sedan senaste frame/uppdatering
     pGame->sData.state = pGame->state;
     pGame->sData.seqNum = seqNum++;  // Tilldela sekvensnummer och inkrementera för nästa användning
 
