@@ -44,10 +44,10 @@ void run(Game *pGame);
 void close(Game *pGame);
 int loadGameResources(SDL_Renderer *renderer, Game *pGame);
 void renderPlayer(SDL_Renderer *renderer, Player *player);
-void setupPlayerClips(Player *player);
+void setupPlayerClips(SDL_Rect spriteClips[]);
 void renderPlayers(Game *pGame);
 void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, int type, Obstacle obstacles[], int numObstacles);
-void updateFrame(int *frame, PlayerRole role, int frame1, int frame2);
+void updateFrame(int *frame, PlayerRole role);
 bool checkCollision(SDL_Rect a, SDL_Rect b);
 void updateWithServerData(Game *pGAme);
 void add(IPaddress address, IPaddress client[] , int *pNrOfClents);
@@ -264,7 +264,6 @@ void sendGameData(Game *pGame) {
     }
 }
 
-
 void add(IPaddress address, IPaddress client[] , int *pNrOfClents){
     //printf("Adding player\n");
 
@@ -299,21 +298,27 @@ void executeCommand(Game *pGame, ClientData cData) {
     switch (cData.command) {
         case CMD_UP:
             deltaY -= 8 * pGame->players[cData.playerNumber].speed;
+            pGame->players[cData.playerNumber].currentFrame = 2; // Startar med upp animation
             break;
         case CMD_DOWN:
             deltaY += 8 * pGame->players[cData.playerNumber].speed;
+            pGame->players[cData.playerNumber].currentFrame = 0; // Startar med ner animation
             break;
         case CMD_LEFT:
             deltaX -= 8 * pGame->players[cData.playerNumber].speed;
+            pGame->players[cData.playerNumber].flip = SDL_FLIP_HORIZONTAL; // Vänd åt vänster
+            pGame->players[cData.playerNumber].currentFrame = 4; // Startar med vänster animation
             break;
         case CMD_RIGHT:
             deltaX += 8 * pGame->players[cData.playerNumber].speed;
+            pGame->players[cData.playerNumber].flip = SDL_FLIP_NONE; // Vänd åt höger
+            pGame->players[cData.playerNumber].currentFrame = 6; // Startar med höger animation
             break;
     }
 
     // Flytta spelaren enligt kommando och hastighet
     moveCharacter(&pGame->players[cData.playerNumber].position, deltaX, deltaY, pGame->players[cData.playerNumber].type, obstacles, NUM_OBSTACLES);
-    updateFrame(&pGame->players[cData.playerNumber].currentFrame, pGame->players[cData.playerNumber].type, 2, 3);
+    updateFrame(&pGame->players[cData.playerNumber].currentFrame, pGame->players[cData.playerNumber].type);
 
     // Kontrollera kollision med perks
     for (int i = 0; i < pGame->numPerks; i++) {
@@ -464,14 +469,22 @@ void renderPlayer(SDL_Renderer *renderer, Player *player) {
     if (!player->isActive) return;
     SDL_Rect srcRect = player->spriteClips[player->currentFrame];
     SDL_Rect destRect = {player->position.x, player->position.y, player->position.w, player->position.h};
-    SDL_RenderCopyEx(renderer, player->texture, &srcRect, &destRect, 0, NULL, SDL_FLIP_NONE);
+    SDL_RenderCopyEx(renderer, player->texture, &srcRect, &destRect, 0, NULL, player->flip);
 }
 
-void setupPlayerClips(Player *player) {
-    for (int i = 0; i < 8; i++) {
-        player->spriteClips[i] = (SDL_Rect){i * 16, 0, 16, 16};
-        //printf("Clip %d: x=%d, y=%d, w=%d, h=%d\n", i, player->spriteClips[i].x, player->spriteClips[i].y, player->spriteClips[i].w, player->spriteClips[i].h);
-    }
+void setupPlayerClips(SDL_Rect spriteClips[]) {
+    // Down
+    spriteClips[0] = (SDL_Rect){0, 0, 16, 16};
+    spriteClips[1] = (SDL_Rect){16, 0, 16, 16};
+    // Up
+    spriteClips[2] = (SDL_Rect){32, 0, 16, 16};
+    spriteClips[3] = (SDL_Rect){48, 0, 16, 16};
+    // Left
+    spriteClips[4] = (SDL_Rect){64, 0, 16, 16};
+    spriteClips[5] = (SDL_Rect){80, 0, 16, 16};
+    // Right
+    spriteClips[6] = (SDL_Rect){96, 0, 16, 16};
+    spriteClips[7] = (SDL_Rect){112, 0, 16, 16};
 }
 
 void renderPlayers(Game *pGame) {
@@ -496,8 +509,16 @@ void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, int type, Obstacle
     *charPos = newPos;
 }
 
-void updateFrame(int *frame, PlayerRole role, int frame1, int frame2) {
-    *frame = (*frame == frame1) ? frame2 : frame1;
+void updateFrame(int *frame, PlayerRole role) {
+    if (*frame == 0 || *frame == 1) { // Down animation
+        *frame = (*frame == 0) ? 1 : 0;
+    } else if (*frame == 2 || *frame == 3) { // Up animation
+        *frame = (*frame == 2) ? 3 : 2;
+    } else if (*frame == 4 || *frame == 5) { // Left animation
+        *frame = (*frame == 4) ? 5 : 4;
+    } else if (*frame == 6 || *frame == 7) { // Right animation
+        *frame = (*frame == 6) ? 7 : 6;
+    }
 }
 
 bool checkCollision(SDL_Rect a, SDL_Rect b) {
@@ -510,7 +531,6 @@ bool checkCollision(SDL_Rect a, SDL_Rect b) {
 }
 
 void initializePlayers(Game *pGame) {
-
     for (int i = 0; i < MAX_PLAYERS; i++) {
         pGame->players[i].speed = 1.0; // Standardhastighet
         pGame->players[i].originalSpeed = 1.0; // Spara den ursprungliga hastigheten
@@ -522,7 +542,7 @@ void initializePlayers(Game *pGame) {
     pGame->players[0].texture = pGame->hunterTexture;
     pGame->players[0].position = (SDL_Rect){getHunterPositionX(hunter), getHunterPositionY(hunter), 32, 32};
     pGame->players[0].type = HUNTER;
-    setupPlayerClips(&pGame->players[0]);
+    setupPlayerClips(pGame->players[0].spriteClips);  // Använd setupPlayerClips
 
     for (int i = 1; i < MAX_PLAYERS; i++) {
         SDL_Point spawn = sprinterSpawnPoints[sprinterIndex];
@@ -532,7 +552,7 @@ void initializePlayers(Game *pGame) {
         pGame->players[i].texture = pGame->sprinterTexture;
         pGame->players[i].position = (SDL_Rect){getSprinterPositionX(sprinters[sprinterIndex]), getSprinterPositionY(sprinters[sprinterIndex]), 32, 32};
         pGame->players[i].type = SPRINTER;
-        setupPlayerClips(&pGame->players[i]);
+        setupPlayerClips(pGame->players[i].spriteClips);  // Använd setupPlayerClips
 
         sprinterIndex++;
     }

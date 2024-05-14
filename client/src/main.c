@@ -47,11 +47,11 @@ void run(Game *pGame);
 void close(Game *pGame);
 int loadGameResources(SDL_Renderer *renderer, Game *pGame);
 void renderPlayer(SDL_Renderer *renderer, Player *player);
-void setupPlayerClips(Player *player);
+void setupPlayerClips(SDL_Rect spriteClips[]);
 void renderPlayers(Game *pGame);
 void handlePlayerInput(Game *pGame, SDL_Event *pEvent);
 void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, int type, Obstacle obstacles[], int numObstacles);
-void updateFrame(int *frame, PlayerRole role, int frame1, int frame2);
+void updateFrame(int *frame, PlayerRole role);
 bool checkCollision(SDL_Rect a, SDL_Rect b);
 void updateWithServerData(Game *pGAme);
 void initializePlayers(Game *pGame);
@@ -388,15 +388,24 @@ void renderPlayer(SDL_Renderer *renderer, Player *player) {
     if (!player->isActive) return;
     SDL_Rect srcRect = player->spriteClips[player->currentFrame];
     SDL_Rect destRect = {player->position.x, player->position.y, player->position.w, player->position.h};
-    SDL_RenderCopyEx(renderer, player->texture, &srcRect, &destRect, 0, NULL, SDL_FLIP_NONE);
+    SDL_RenderCopyEx(renderer, player->texture, &srcRect, &destRect, 0, NULL, player->flip);
 }
 
-void setupPlayerClips(Player *player) {
-    for (int i = 0; i < 8; i++) {
-        player->spriteClips[i] = (SDL_Rect){i * 16, 0, 16, 16};
-        //printf("Clip %d: x=%d, y=%d, w=%d, h=%d\n", i, player->spriteClips[i].x, player->spriteClips[i].y, player->spriteClips[i].w, player->spriteClips[i].h);
-    }
+void setupPlayerClips(SDL_Rect spriteClips[]) {
+    // Down
+    spriteClips[0] = (SDL_Rect){0, 0, 16, 16};
+    spriteClips[1] = (SDL_Rect){16, 0, 16, 16};
+    // Up
+    spriteClips[2] = (SDL_Rect){32, 0, 16, 16};
+    spriteClips[3] = (SDL_Rect){48, 0, 16, 16};
+    // Left
+    spriteClips[4] = (SDL_Rect){64, 0, 16, 16};
+    spriteClips[5] = (SDL_Rect){80, 0, 16, 16};
+    // Right
+    spriteClips[6] = (SDL_Rect){96, 0, 16, 16};
+    spriteClips[7] = (SDL_Rect){112, 0, 16, 16};
 }
+
 
 void renderPlayers(Game *pGame) {
     for (int i = 0; i < 2; i++) {
@@ -415,31 +424,38 @@ void handlePlayerInput(Game *pGame, SDL_Event *pEvent) {
         case SDL_SCANCODE_W:
         case SDL_SCANCODE_UP:
             deltaY -= 8;
-            cData.command = CMD_UP; 
+            cData.command = CMD_UP;
+            pGame->players[pGame->playerNr].currentFrame = 2; // Startar med upp animation
             break;
         case SDL_SCANCODE_S:
         case SDL_SCANCODE_DOWN:
             deltaY += 8;
-            cData.command = CMD_DOWN; 
+            cData.command = CMD_DOWN;
+            pGame->players[pGame->playerNr].currentFrame = 0; // Startar med ner animation
             break;
         case SDL_SCANCODE_A:
         case SDL_SCANCODE_LEFT:
             deltaX -= 8;
-            cData.command = CMD_LEFT; 
+            pGame->players[pGame->playerNr].flip = SDL_FLIP_HORIZONTAL; // Vänd åt vänster
+            cData.command = CMD_LEFT;
+            pGame->players[pGame->playerNr].currentFrame = 4; // Startar med vänster animation
             break;
         case SDL_SCANCODE_D:
         case SDL_SCANCODE_RIGHT:
             deltaX += 8;
-            cData.command = CMD_RIGHT; 
+            pGame->players[pGame->playerNr].flip = SDL_FLIP_NONE; // Vänd åt höger
+            cData.command = CMD_RIGHT;
+            pGame->players[pGame->playerNr].currentFrame = 6; // Startar med höger animation
             break;
         }
         moveCharacter(&pGame->players[pGame->playerNr].position, deltaX, deltaY, pGame->players[pGame->playerNr].type, obstacles, NUM_OBSTACLES);
-        updateFrame(&pGame->players[pGame->playerNr].currentFrame, pGame->players[pGame->playerNr].type, 2, 3);
+        updateFrame(&pGame->players[pGame->playerNr].currentFrame, pGame->players[pGame->playerNr].type);
         memcpy(pGame->packet->data, &cData, sizeof(ClientData));
         pGame->packet->len = sizeof(ClientData);
         SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet);
     }
 }
+
 // Function to move character with collision checking
 void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, int type, Obstacle obstacles[], int numObstacles) {
     SDL_Rect newPos = {charPos->x + deltaX, charPos->y + deltaY, charPos->w, charPos->h};
@@ -457,9 +473,18 @@ void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, int type, Obstacle
     *charPos = newPos;
 }
 
-void updateFrame(int *frame, PlayerRole role, int frame1, int frame2) {
-    *frame = (*frame == frame1) ? frame2 : frame1;
+void updateFrame(int *frame, PlayerRole role) {
+    if (*frame == 0 || *frame == 1) { // Down animation
+        *frame = (*frame == 0) ? 1 : 0;
+    } else if (*frame == 2 || *frame == 3) { // Up animation
+        *frame = (*frame == 2) ? 3 : 2;
+    } else if (*frame == 4 || *frame == 5) { // Left animation
+        *frame = (*frame == 4) ? 5 : 4;
+    } else if (*frame == 6 || *frame == 7) { // Right animation
+        *frame = (*frame == 6) ? 7 : 6;
+    }
 }
+
 
 bool checkCollision(SDL_Rect a, SDL_Rect b) {
     // Check if there's no overlap
@@ -499,7 +524,7 @@ void initializePlayers(Game *pGame) {
     pGame->players[0].texture = pGame->hunterTexture;
     pGame->players[0].position = (SDL_Rect){getHunterPositionX(hunter), getHunterPositionY(hunter), 32, 32};
     pGame->players[0].type = HUNTER;
-    setupPlayerClips(&pGame->players[0]);
+    setupPlayerClips(pGame->players[0].spriteClips);
 
     for (int i = 1; i < MAX_PLAYERS; i++) {
         SDL_Point spawn = sprinterSpawnPoints[sprinterIndex];
@@ -509,7 +534,7 @@ void initializePlayers(Game *pGame) {
         pGame->players[i].texture = pGame->sprinterTexture;
         pGame->players[i].position = (SDL_Rect){getSprinterPositionX(sprinters[sprinterIndex]), getSprinterPositionY(sprinters[sprinterIndex]), 32, 32};
         pGame->players[i].type = SPRINTER;
-        setupPlayerClips(&pGame->players[i]);
+        setupPlayerClips(pGame->players[i].spriteClips);  // Använd setupPlayerClips
 
         sprinterIndex++;
     }
