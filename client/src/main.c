@@ -34,6 +34,10 @@ typedef struct {
     Uint32 startTime;    
     int gameDuration; 
     Text *pTimerText, *pResetText;
+    SDL_Texture *speedPerkTexture;
+    SDL_Texture *stuckPerkTexture;
+    Perk perks[MAX_PERKS];
+    int numPerks;
 } Game;
 
 Obstacle obstacles[NUM_OBSTACLES];
@@ -56,6 +60,9 @@ void updateWithServerData(Game *pGAme);
 void initializePlayers(Game *pGame);
 int initiateMenu(Game *pGame);
 void renderMenu(Game *pGame);
+void renderPerks(Game *pGame);
+void initiatePerks(Game *pGame);
+void createRandomPerk(Game *pGame, int index);
 
 
 int main(int argc, char **argv) {
@@ -272,6 +279,7 @@ void run(Game *pGame) {
             // Render the timer text in the upper-middle part of the screen
             drawText(pGame->pTimerText);
 
+            renderPerks(pGame); // Rendera perks här
             SDL_RenderPresent(pGame->pRenderer);
             break;
         
@@ -352,7 +360,18 @@ void close(Game *pGame) {
     SDL_Quit();
 }
 
+void renderPerks(Game *pGame) {
+    for (int i = 0; i < MAX_PERKS; i++) {
+        if (pGame->perks[i].active) {
+            SDL_Texture* texture = (pGame->perks[i].type == 0) ? pGame->speedPerkTexture : pGame->stuckPerkTexture;
+            SDL_RenderCopyEx(pGame->pRenderer, texture, NULL, &pGame->perks[i].position, 0, NULL, SDL_FLIP_NONE);
+        }
+    }
+}
+
 int loadGameResources(SDL_Renderer *renderer, Game *pGame) {
+    SDL_Surface *surface;
+
     // Load the MENU.png background image
     SDL_Surface *menuSurface = IMG_Load("../lib/resources/MENU.png");
     if (!menuSurface) {
@@ -412,6 +431,33 @@ int loadGameResources(SDL_Renderer *renderer, Game *pGame) {
     pGame->gameOverSprinterTexture = SDL_CreateTextureFromSurface(renderer, gameOverSprinterSurface);
     SDL_FreeSurface(gameOverSprinterSurface);
 
+    SDL_Surface *speedSurface = IMG_Load("../lib/resources/SPEED.png");
+    if (!speedSurface) {
+        fprintf(stderr, "Failed to load SPEED perk image: %s\n", IMG_GetError());
+        return 0;
+    }
+    surface = IMG_Load("../lib/resources/SPEED.png");
+    if (!surface) {
+        fprintf(stderr, "Failed to load SPEED perk image: %s\n", IMG_GetError());
+        return 0;
+    }
+    pGame->speedPerkTexture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+
+    surface = IMG_Load("../lib/resources/STUCK.png");
+    if (!surface) {
+        fprintf(stderr, "Failed to load STUCK perk image: %s\n", IMG_GetError());
+        return 0;
+    }
+    pGame->stuckPerkTexture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+
+    // Se till att alla texturer skapades framgångsrikt
+    if (!pGame->speedPerkTexture || !pGame->stuckPerkTexture) {
+        SDL_DestroyTexture(pGame->speedPerkTexture);
+        SDL_DestroyTexture(pGame->stuckPerkTexture);
+        return 0;
+    }
 
     return 1;
 }
@@ -430,6 +476,7 @@ void setupPlayerClips(Player *player) {
         //printf("Clip %d: x=%d, y=%d, w=%d, h=%d\n", i, player->spriteClips[i].x, player->spriteClips[i].y, player->spriteClips[i].w, player->spriteClips[i].h);
     }
 }
+
 
 void renderPlayers(Game *pGame) {
     for (int i = 0; i < 2; i++) {
@@ -489,8 +536,6 @@ void handlePlayerInput(Game *pGame, SDL_Event *pEvent) {
     }
 }
 
-
-
 void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, int type, Obstacle obstacles[], int numObstacles) {
     SDL_Rect newPos = {charPos->x + deltaX, charPos->y + deltaY, charPos->w, charPos->h};
 
@@ -524,8 +569,9 @@ bool checkCollision(SDL_Rect a, SDL_Rect b) {
 void updateWithServerData(Game *pGame) {
     ServerData sData;
     memcpy(&sData, pGame->packet->data, sizeof(ServerData));
-    pGame->playerNr = sData.playerNr;
+
     pGame->state = sData.state;
+    pGame->playerNr = sData.playerNr;
 
     // Use the remaining time from the server
     char timerStr[6];
@@ -546,9 +592,12 @@ void updateWithServerData(Game *pGame) {
             pGame->players[i].texture = pGame->sprinterTexture;
         }
     }
+    for (int i = 0; i < MAX_PERKS; i++) {
+        pGame->perks[i].active = sData.perks[i].active;
+        pGame->perks[i].type = sData.perks[i].type;
+        pGame->perks[i].position = sData.perks[i].position;
+    }
 }
-
-
 
 void initializePlayers(Game *pGame) {
     int sprinterIndex = 0;
@@ -558,7 +607,7 @@ void initializePlayers(Game *pGame) {
     pGame->players[0].texture = pGame->hunterTexture;
     pGame->players[0].position = (SDL_Rect){getHunterPositionX(hunter), getHunterPositionY(hunter), 32, 32};
     pGame->players[0].type = HUNTER;
-    setupPlayerClips(&pGame->players[0]);
+    setupPlayerClips(pGame->players[0].spriteClips);
 
     for (int i = 1; i < MAX_PLAYERS; i++) {
         SDL_Point spawn = sprinterSpawnPoints[sprinterIndex];
@@ -568,7 +617,7 @@ void initializePlayers(Game *pGame) {
         pGame->players[i].texture = pGame->sprinterTexture;
         pGame->players[i].position = (SDL_Rect){getSprinterPositionX(sprinters[sprinterIndex]), getSprinterPositionY(sprinters[sprinterIndex]), 32, 32};
         pGame->players[i].type = SPRINTER;
-        setupPlayerClips(&pGame->players[i]);
+        setupPlayerClips(pGame->players[i].spriteClips);  // Använd setupPlayerClips
 
         sprinterIndex++;
     }
