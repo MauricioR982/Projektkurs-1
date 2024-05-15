@@ -56,7 +56,7 @@ void handlePlayerInput(Game *pGame, SDL_Event *pEvent);
 void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, int type, Obstacle obstacles[], int numObstacles);
 void updateFrame(int *frame, int frame1, int frame2);
 bool checkCollision(SDL_Rect a, SDL_Rect b);
-void updateWithServerData(Game *pGAme);
+void updateWithServerData(Game *pGame);
 void initializePlayers(Game *pGame);
 int initiateMenu(Game *pGame);
 void renderMenu(Game *pGame);
@@ -275,11 +275,10 @@ void run(Game *pGame) {
             SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
             drawObstacles(pGame->pRenderer, obstacles, NUM_OBSTACLES); //debug
             renderPlayers(pGame); // Draw all players
-
+            renderPerks(pGame);
             // Render the timer text in the upper-middle part of the screen
             drawText(pGame->pTimerText);
 
-            renderPerks(pGame); // Rendera perks här
             SDL_RenderPresent(pGame->pRenderer);
             break;
         
@@ -607,7 +606,7 @@ void initializePlayers(Game *pGame) {
     pGame->players[0].texture = pGame->hunterTexture;
     pGame->players[0].position = (SDL_Rect){getHunterPositionX(hunter), getHunterPositionY(hunter), 32, 32};
     pGame->players[0].type = HUNTER;
-    setupPlayerClips(pGame->players[0].spriteClips);
+    setupPlayerClips(&pGame->players[0]);
 
     for (int i = 1; i < MAX_PLAYERS; i++) {
         SDL_Point spawn = sprinterSpawnPoints[sprinterIndex];
@@ -617,7 +616,7 @@ void initializePlayers(Game *pGame) {
         pGame->players[i].texture = pGame->sprinterTexture;
         pGame->players[i].position = (SDL_Rect){getSprinterPositionX(sprinters[sprinterIndex]), getSprinterPositionY(sprinters[sprinterIndex]), 32, 32};
         pGame->players[i].type = SPRINTER;
-        setupPlayerClips(pGame->players[i].spriteClips);  // Använd setupPlayerClips
+        setupPlayerClips(&pGame->players[i]);  // Använd setupPlayerClips
 
         sprinterIndex++;
     }
