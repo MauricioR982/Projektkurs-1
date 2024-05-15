@@ -61,6 +61,11 @@ void renderPlayer(SDL_Renderer *renderer, Player *player);
 void initializePlayers(Game *pGame);
 void swapHunterAndSprinter(Player *hunter, Player *sprinter, SDL_Texture *hunterTexture, SDL_Texture *sprinterTexture);
 void checkGameOverCondition(Game *pGame);
+void createRandomPerk(Game *pGame, int index);
+void initiatePerks(Game *pGame);
+void applyPerk(Game *pGame, Player *player, Perk *perk);
+void updatePerkMovement(Game *pGame, int deltaMs);
+void renderPerks(Game *pGame);
 
 int main(int argc, char **argv) {
     Game g = {0};
