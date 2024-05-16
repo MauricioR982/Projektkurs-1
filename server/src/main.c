@@ -75,16 +75,6 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-void updatePerks(Game *pGame, Uint32 deltaTime) {
-    for (int i = 0; i < MAX_PERKS; i++) {
-        if (pGame->perks[i].active) {
-            if (SDL_GetTicks() - pGame->perks[i].startTime > pGame->perks[i].duration) {
-                pGame->perks[i].active = false;
-            }
-        }
-    }
-}
-
 int initiate(Game *pGame) {
     
     // Initialize SDL, SDL_ttf, and SDL_net
