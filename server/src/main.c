@@ -78,7 +78,6 @@ int main(int argc, char **argv) {
 
 int initiate(Game *pGame) {
     
-    // Initialize SDL, SDL_ttf, and SDL_net
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         fprintf(stderr, "SDL could not initialize: %s\n", SDL_GetError());
         return 0;
@@ -96,7 +95,6 @@ int initiate(Game *pGame) {
         return 0;
     }
  
-    // Create Window and Renderer
     pGame->pWindow = SDL_CreateWindow("Game Server", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
     pGame->pRenderer = SDL_CreateRenderer(pGame->pWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (!pGame->pWindow || !pGame->pRenderer) {
@@ -112,7 +110,7 @@ int initiate(Game *pGame) {
         close(pGame);
         return 0;
     }
-    // Load game resources, including fonts
+
     if (!loadGameResources(pGame->pRenderer, pGame)) {
         SDL_DestroyRenderer(pGame->pRenderer);
         SDL_DestroyWindow(pGame->pWindow);
@@ -146,13 +144,11 @@ int initiate(Game *pGame) {
     initializePlayers(pGame);
     initiatePerks(pGame);
 
-    // Set initial game state
     pGame->state = GAME_START;
     pGame->nrOfClients =0;
 
-    // Initialize timer in the `initiate` function:
-    pGame->startTime = SDL_GetTicks();  // Record the start time
-    pGame->gameDuration = 60000;        // 1 minute in milliseconds
+    pGame->startTime = SDL_GetTicks();
+    pGame->gameDuration = 60000;
 
     return 1;
 }
@@ -161,7 +157,7 @@ void initiatePerks(Game *pGame) {
     for (int i = 0; i < MAX_PERKS; i++) {
         pGame->perks[i].active = false;
         pGame->perks[i].perkSpawnTimer = 0;
-        pGame->perks[i].perkSpawnInterval = 8000; // 8 sekunder
+        pGame->perks[i].perkSpawnInterval = 8000;
     }
     pGame->numPerks = 0;
 }
@@ -169,12 +165,12 @@ void initiatePerks(Game *pGame) {
 void createRandomPerk(Game *pGame, int index) {
     if (pGame->numPerks >= MAX_PERKS) return;
 
-    int type = rand() % 2; // Väljer mellan SPEED och STUCK
+    int type = rand() % 2; // SPEED & STUCK
     SDL_Rect position = {rand() % (WINDOW_WIDTH - 30), rand() % (WINDOW_HEIGHT - 30), 30, 30};
     int dx = (rand() % 3 - 1) * 2;  // Hastighet i x-led, -2, 0 eller 2
     int dy = (rand() % 3 - 1) * 2;  // Hastighet i y-led, -2, 0 eller 2
 
-    pGame->perks[index] = (Perk){type, position, 5000, true, SDL_GetTicks()}; // 5 sekunder varaktighet
+    pGame->perks[index] = (Perk){type, position, 5000, true, SDL_GetTicks()};
     pGame->numPerks++;
 }
 
@@ -189,7 +185,6 @@ void run(Game *pGame) {
         Uint32 deltaTime = currentUpdate - lastUpdate;
         lastUpdate = currentUpdate;
 
-        // Hantera skapandet av nya perks
         for (int i = 0; i < MAX_PERKS; i++) {
             if (!pGame->perks[i].active) {
                 pGame->perks[i].perkSpawnTimer += deltaTime;
@@ -200,7 +195,6 @@ void run(Game *pGame) {
             }
         }
 
-        // Hantera SDL-events
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) running = false;
         }
@@ -213,11 +207,10 @@ void run(Game *pGame) {
                     executeCommand(pGame, cData);
                 }
 
-                // Kontrollera om perks har gått ut
                 for (int i = 0; i < MAX_PLAYERS; i++) {
-                    if (pGame->players[i].activePerkType != -1) { // Om spelaren har en aktiv perk
+                    if (pGame->players[i].activePerkType != -1) {
                         Uint32 perkDuration = SDL_GetTicks() - pGame->players[i].perkStartTime;
-                        if (perkDuration >= 5000) { // 5 sekunders varaktighet
+                        if (perkDuration >= 5000) {
                             resetPerk(&pGame->players[i]);
                         }
                     }
@@ -226,23 +219,16 @@ void run(Game *pGame) {
                 SDL_RenderClear(pGame->pRenderer);
                 SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
                 drawObstacles(pGame->pRenderer, obstacles, NUM_OBSTACLES);
-                updatePerkMovement(pGame, 80);  // 'deltaMs' är tiden sedan senaste frame/uppdatering
+                updatePerkMovement(pGame, 80);
                 renderPlayers(pGame);
                 renderPerks(pGame);
                 SDL_RenderPresent(pGame->pRenderer);
                 break;
 
             case GAME_OVER:
-                // Continue sending data to clients about the game-over state
                 sendGameData(pGame);
-
                 SDL_RenderClear(pGame->pRenderer);
-                // Optionally render a simple "Game Over" message or screen here
-                // (or simply clear the screen)
-
                 SDL_RenderPresent(pGame->pRenderer);
-
-                // Keep checking for client events to maintain responsiveness
                 while (running) {
                     if (SDL_PollEvent(&e)) {
                         if (e.type == SDL_QUIT) {
@@ -268,8 +254,8 @@ void run(Game *pGame) {
 }
 
 void resetPerk(Player *player) {
-    player->speed = player->originalSpeed; // Återställ spelarens hastighet
-    player->activePerkType = -1; // Ingen aktiv perk
+    player->speed = player->originalSpeed;
+    player->activePerkType = -1;
 }
 
 void setUpGame(Game *pGame){
@@ -282,11 +268,9 @@ void sendGameData(Game *pGame) {
     int remainingTime = (pGame->gameDuration - elapsedTime) / 1000;
     if (remainingTime < 0) remainingTime = 0;  // Prevent negative values
 
-    // Add remaining time to the data packet
     pGame->sData.remainingTime = remainingTime;
-    pGame->sData.state = pGame->state;  // Ensure current state is shared with clients
+    pGame->sData.state = pGame->state;
 
-    // Copy player data to the packet
     for (int i = 0; i < MAX_PLAYERS; i++) {
         pGame->sData.players[i].x = pGame->players[i].position.x;
         pGame->sData.players[i].y = pGame->players[i].position.y;
@@ -299,14 +283,12 @@ void sendGameData(Game *pGame) {
             pGame->sData.players[i].role = ROLE_SPRINTER;
         }
 
-     // Update perk data
     for (int i = 0; i < MAX_PERKS; i++) {
         pGame->sData.perks[i].type = pGame->perks[i].type;
         pGame->sData.perks[i].position = pGame->perks[i].position;
         pGame->sData.perks[i].active = pGame->perks[i].active;
     }
 
-    // Send data to each client
     for (int i = 0; i < MAX_PLAYERS; i++) {
         pGame->sData.playerNr = i;
         memcpy(pGame->packet->data, &(pGame->sData), sizeof(ServerData));
@@ -318,8 +300,6 @@ void sendGameData(Game *pGame) {
 }
 
 void add(IPaddress address, IPaddress client[] , int *pnrOfClients){
-    //printf("Adding player\n");
-
     if ((*pnrOfClients) >= MAX_PLAYERS)
     {
         //printf("Abort adding player\n");
@@ -378,22 +358,19 @@ void executeCommand(Game *pGame, ClientData cData) {
             return;
     }
 
-    // Flytta spelaren enligt kommando och hastighet
     moveCharacter(&pGame->players[cData.playerNumber].position, deltaX, deltaY, pGame->players[cData.playerNumber].speed, obstacles, NUM_OBSTACLES);
     updateFrame(&pGame->players[cData.playerNumber].currentFrame, frame1, frame2);
-    pGame->players[cData.playerNumber].flip = flip; // Set the flip state
+    pGame->players[cData.playerNumber].flip = flip;
 
     checkGameOverCondition(pGame);
 
-    // Kontrollera kollision med perks
     for (int i = 0; i < pGame->numPerks; i++) {
         if (pGame->perks[i].active && checkCollision(pGame->players[cData.playerNumber].position, pGame->perks[i].position)) {
             applyPerk(pGame, &pGame->players[cData.playerNumber], &pGame->perks[i]);
-            pGame->perks[i].active = false; // Gör perken inaktiv efter aktivering
+            pGame->perks[i].active = false;
         }
     }
 
-    // Om spelaren är en jägare, kontrollera kollisioner med sprinters
     if (pGame->players[cData.playerNumber].type == HUNTER) {
         for (int i = 0; i < MAX_PLAYERS; i++) {
             if (i != cData.playerNumber && pGame->players[i].type != HUNTER) {
@@ -422,10 +399,10 @@ void applyPerk(Game *pGame, Player *player, Perk *perk) {
             player->speed = player->originalSpeed / 3;
             break;
     }
-    perk->startTime = SDL_GetTicks(); // Starta tid för perkens varaktighet
+    perk->startTime = SDL_GetTicks();
     perk->active = true;
-    player->perkStartTime = SDL_GetTicks(); // Lägg till detta fält i Player-strukturen
-    player->activePerkType = perk->type; // Spara typen av aktiv perk
+    player->perkStartTime = SDL_GetTicks();
+    player->activePerkType = perk->type;
 }
 
 void close(Game *pGame) {
@@ -484,7 +461,6 @@ int loadGameResources(SDL_Renderer *renderer, Game *pGame) {
     pGame->stuckPerkTexture = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
 
-    // Se till att alla texturer skapades framgångsrikt
     if (!pGame->speedPerkTexture || !pGame->stuckPerkTexture) {
         SDL_DestroyTexture(pGame->speedPerkTexture);
         SDL_DestroyTexture(pGame->stuckPerkTexture);
@@ -559,7 +535,7 @@ void renderPlayers(Game *pGame) {
         renderPlayer(pGame->pRenderer, &pGame->players[i]);
     }
 }
-// Function to move character with collision checking
+
 void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, float speed, Obstacle obstacles[], int numObstacles) {
     SDL_Rect newPos = {charPos->x + deltaX * speed, charPos->y + deltaY * speed, charPos->w, charPos->h};
 
@@ -568,11 +544,8 @@ void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, float speed, Obsta
             return;  // Collision detected, do not update position
         }
     }
-
-    // Apply movement constraints (e.g., boundaries of the playing field)
     newPos.x = SDL_clamp(newPos.x, HORIZONTAL_MARGIN, WINDOW_WIDTH - newPos.w - HORIZONTAL_MARGIN);
     newPos.y = SDL_clamp(newPos.y, 0, WINDOW_HEIGHT - newPos.h);
-
     *charPos = newPos;
 }
 
@@ -592,10 +565,9 @@ bool checkCollision(SDL_Rect a, SDL_Rect b) {
 
 void initializePlayers(Game *pGame) {
     for (int i = 0; i < MAX_PLAYERS; i++) {
-        pGame->players[i].speed = 1.0; // Standardhastighet
-        pGame->players[i].originalSpeed = 1.0; // Spara den ursprungliga hastigheten
+        pGame->players[i].speed = 1.0;
+        pGame->players[i].originalSpeed = 1.0;
     }
-
     int sprinterIndex = 0;
     hunter = createHunterMan(600, 300);
     pGame->players[0].isActive = 1;
