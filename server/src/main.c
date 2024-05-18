@@ -49,7 +49,7 @@ int loadGameResources(SDL_Renderer *renderer, Game *pGame);
 void renderPlayer(SDL_Renderer *renderer, Player *player);
 void setupPlayerClips(SDL_Rect spriteClips[]);
 void renderPlayers(Game *pGame);
-void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, int type, Obstacle obstacles[], int numObstacles);
+void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, float speed, Obstacle obstacles[], int numObstacles);
 void updateFrame(int *frame, int frame1, int frame2);
 bool checkCollision(SDL_Rect a, SDL_Rect b);
 void updateWithServerData(Game *pGAme);
@@ -363,7 +363,7 @@ void executeCommand(Game *pGame, ClientData cData) {
     }
 
     // Flytta spelaren enligt kommando och hastighet
-    moveCharacter(&pGame->players[cData.playerNumber].position, deltaX, deltaY, pGame->players[cData.playerNumber].type, obstacles, NUM_OBSTACLES);
+    moveCharacter(&pGame->players[cData.playerNumber].position, deltaX, deltaY, pGame->players[cData.playerNumber].speed, obstacles, NUM_OBSTACLES);
     updateFrame(&pGame->players[cData.playerNumber].currentFrame, frame1, frame2);
     pGame->players[cData.playerNumber].flip = flip; // Set the flip state
 
@@ -542,8 +542,8 @@ void renderPlayers(Game *pGame) {
     }
 }
 // Function to move character with collision checking
-void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, int type, Obstacle obstacles[], int numObstacles) {
-    SDL_Rect newPos = {charPos->x + deltaX, charPos->y + deltaY, charPos->w, charPos->h};
+void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, float speed, Obstacle obstacles[], int numObstacles) {
+    SDL_Rect newPos = {charPos->x + deltaX * speed, charPos->y + deltaY * speed, charPos->w, charPos->h};
 
     for (int i = 0; i < numObstacles; i++) {
         if (checkCollision(newPos, obstacles[i].bounds)) {
