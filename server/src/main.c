@@ -214,7 +214,7 @@ void run(Game *pGame) {
                 SDL_RenderClear(pGame->pRenderer);
                 SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
                 drawObstacles(pGame->pRenderer, obstacles, NUM_OBSTACLES);
-                updatePerkMovement(pGame, 80);  // 'deltaMs' är tiden sedan senaste frame/uppdatering
+                //updatePerkMovement(pGame, 80);  // 'deltaMs' är tiden sedan senaste frame/uppdatering
                 renderPlayers(pGame);
                 renderPerks(pGame);
                 SDL_RenderPresent(pGame->pRenderer);
