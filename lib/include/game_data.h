@@ -92,6 +92,8 @@ typedef struct {
     int type;              // Type of the player (HUNTER or SPRINTER)
     float speed;           // Hastighetsvariabel
     float originalSpeed;   // Ursprunglig hastighet för återställning
+    Uint32 perkStartTime;  // Tidsstämpel för när perken började appliceras
+    int activePerkType;    // Typ av aktiv perk
 } Player;
 
 // Structure for transmitting player movement information

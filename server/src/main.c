@@ -66,6 +66,7 @@ void initiatePerks(Game *pGame);
 void applyPerk(Game *pGame, Player *player, Perk *perk);
 void updatePerkMovement(Game *pGame, int deltaMs);
 void renderPerks(Game *pGame);
+void resetPerk(Player *player);
 
 int main(int argc, char **argv) {
     Game g = {0};
@@ -211,6 +212,17 @@ void run(Game *pGame) {
                     memcpy(&cData, pGame->packet->data, sizeof(ClientData));
                     executeCommand(pGame, cData);
                 }
+
+                // Kontrollera om perks har gått ut
+                for (int i = 0; i < MAX_PLAYERS; i++) {
+                    if (pGame->players[i].activePerkType != -1) { // Om spelaren har en aktiv perk
+                        Uint32 perkDuration = SDL_GetTicks() - pGame->players[i].perkStartTime;
+                        if (perkDuration >= 5000) { // 5 sekunders varaktighet
+                            resetPerk(&pGame->players[i]);
+                        }
+                    }
+                }
+
                 SDL_RenderClear(pGame->pRenderer);
                 SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
                 drawObstacles(pGame->pRenderer, obstacles, NUM_OBSTACLES);
@@ -255,6 +267,10 @@ void run(Game *pGame) {
     }
 }
 
+void resetPerk(Player *player) {
+    player->speed = player->originalSpeed; // Återställ spelarens hastighet
+    player->activePerkType = -1; // Ingen aktiv perk
+}
 
 void setUpGame(Game *pGame){
     pGame->state = GAME_ONGOING;
@@ -408,6 +424,8 @@ void applyPerk(Game *pGame, Player *player, Perk *perk) {
     }
     perk->startTime = SDL_GetTicks(); // Starta tid för perkens varaktighet
     perk->active = true;
+    player->perkStartTime = SDL_GetTicks(); // Lägg till detta fält i Player-strukturen
+    player->activePerkType = perk->type; // Spara typen av aktiv perk
 }
 
 void close(Game *pGame) {
