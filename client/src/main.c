@@ -275,7 +275,7 @@ void run(Game *pGame) {
             SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
             drawObstacles(pGame->pRenderer, obstacles, NUM_OBSTACLES); //debug
             renderPlayers(pGame); // Draw all players
-            //renderPerks(pGame);
+            renderPerks(pGame);
             // Render the timer text in the upper-middle part of the screen
             drawText(pGame->pTimerText);
 
