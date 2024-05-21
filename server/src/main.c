@@ -11,7 +11,6 @@
 #include "sprinter.h"
 #include "text.h"
 
-
 typedef struct {
     SDL_Window *pWindow;
     SDL_Renderer *pRenderer;
@@ -304,8 +303,6 @@ void add(IPaddress address, IPaddress client[] , int *pnrOfClients){
     {
         //printf("Abort adding player\n");
     }
-    
-
     for (size_t i = 0; i < (*pnrOfClients); i++)
     {
         if (client[i].host == address.host && client[i].port == address.port)
@@ -314,14 +311,12 @@ void add(IPaddress address, IPaddress client[] , int *pnrOfClients){
             return;
         }
     }
-    
     client[(*pnrOfClients)] = address;
     printf("\n\n%d\n\n",address.host);
     printf("\n\n%d\n\n",address.port);
     (*pnrOfClients)++;
     printf("\n\nnrOfClients: %d\n\n",(*pnrOfClients));
     printf("Player added successfully\n");
-    
 }
 
 void executeCommand(Game *pGame, ClientData cData) {
@@ -466,7 +461,6 @@ int loadGameResources(SDL_Renderer *renderer, Game *pGame) {
         SDL_DestroyTexture(pGame->stuckPerkTexture);
         return 0;
     }
-
     return 1;
 }
 
@@ -538,7 +532,6 @@ void renderPlayers(Game *pGame) {
 
 void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, float speed, Obstacle obstacles[], int numObstacles) {
     SDL_Rect newPos = {charPos->x + deltaX * speed, charPos->y + deltaY * speed, charPos->w, charPos->h};
-
     for (int i = 0; i < numObstacles; i++) {
         if (checkCollision(newPos, obstacles[i].bounds)) {
             return;  // Collision detected, do not update position
@@ -552,7 +545,6 @@ void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, float speed, Obsta
 void updateFrame(int *frame, int frame1, int frame2) {
     *frame = (*frame == frame1) ? frame2 : frame1;
 }
-
 
 bool checkCollision(SDL_Rect a, SDL_Rect b) {
     // Check if there's no overlap
@@ -575,17 +567,14 @@ void initializePlayers(Game *pGame) {
     pGame->players[0].position = (SDL_Rect){getHunterPositionX(hunter), getHunterPositionY(hunter), 32, 32};
     pGame->players[0].type = HUNTER;
     setupPlayerClips(pGame->players[0].spriteClips);  // Använd setupPlayerClips
-
     for (int i = 1; i < MAX_PLAYERS; i++) {
         SDL_Point spawn = sprinterSpawnPoints[sprinterIndex];
         sprinters[sprinterIndex] = createSprinterMan(spawn.x, spawn.y);
-
         pGame->players[i].isActive = 1;
         pGame->players[i].texture = pGame->sprinterTexture;
         pGame->players[i].position = (SDL_Rect){getSprinterPositionX(sprinters[sprinterIndex]), getSprinterPositionY(sprinters[sprinterIndex]), 32, 32};
         pGame->players[i].type = SPRINTER;
         setupPlayerClips(pGame->players[i].spriteClips);  // Använd setupPlayerClips
-
         sprinterIndex++;
     }
 }
@@ -611,7 +600,6 @@ void checkGameOverCondition(Game *pGame) {
     Uint32 currentTime = SDL_GetTicks();
     int elapsedTime = currentTime - pGame->startTime;
     int remainingTime = (pGame->gameDuration - elapsedTime) / 1000;
-
     if (remainingTime <= 0) {
         pGame->state = GAME_OVER;  // Set game state to GAME_OVER
         // Optionally, add further game-over logic here
