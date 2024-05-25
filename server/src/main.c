@@ -110,7 +110,7 @@ int initiate(Game *pGame) {
         return 0;
     }
 
-    if (!(pGame->udpSocket = SDLNet_UDP_Open(2000)))
+    if (!(pGame->udpSocket = SDLNet_UDP_Open(2000))) // Bind to port 2000
     {
         printf("SDLNet_UDP_Open: %s\n", SDLNet_GetError());
 		close(pGame);

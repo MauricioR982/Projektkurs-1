@@ -56,6 +56,7 @@ void updateWithServerData(Game *pGAme);
 void initializePlayers(Game *pGame);
 int initiateMenu(Game *pGame);
 void renderMenu(Game *pGame);
+void handleTextInput(SDL_Event *e, char *inputText, int maxLength);
 
 
 int main(int argc, char **argv) {
@@ -111,14 +112,9 @@ int initiate(Game *pGame) {
         return 0;
     }
 
-    if (!(pGame->udpSocket = SDLNet_UDP_Open(0)))
+    if (!(pGame->udpSocket = SDLNet_UDP_Open(0))) // Open a socket on any available port
     {
         printf("SDLNet_UDP_Open: %s\n", SDLNet_GetError());
-		return 0;
-    }
-    if (SDLNet_ResolveHost(&(pGame->serverAddress), "127.0.0.1", 2000))
-    {
-        printf("SDLNet_ResolveHost(127.0.0.1 2000): %s\n", SDLNet_GetError());
 		return 0;
     }
     if (!(pGame->packet = SDLNet_AllocPacket(512)))
@@ -126,8 +122,6 @@ int initiate(Game *pGame) {
         printf("SDLNet_AllocPacket: %s\n", SDLNet_GetError());
 		return 0;
     }
-    pGame->packet->address.host = pGame->serverAddress.host;
-    pGame->packet->address.port = pGame->serverAddress.port;
     
 
     pGame->pJoinText = createText(pGame->pRenderer, 255, 255, 255, pGame->pFont, "Press space to join server", 750,WINDOW_HEIGHT-75);
@@ -184,11 +178,13 @@ void run(Game *pGame) {
     SDL_Event e;
     ClientData cData;
     int joining = 0;
+    char ipAddress[16] = ""; // Buffer to store the IP address
+    bool validConnection = false; // Flag to check if connection is valid
 
     while (running) {
-
         switch (pGame->state) {
             case GAME_MENU:
+                //printf("Entering GAME_MENU state\n");
                 // Render the menu screen
                 renderMenu(pGame);
                 while (SDL_PollEvent(&e)) {
@@ -206,7 +202,8 @@ void run(Game *pGame) {
                             case SDL_SCANCODE_RETURN:
                                 // Select the menu item
                                 if (pGame->menu.selectedItem == 0) {
-                                    pGame->state = GAME_START; // "Waiting for server"
+                                    pGame->state = GAME_ENTER_IP; // Transition to IP entry state
+                                    SDL_StartTextInput();
                                 } else if (pGame->menu.selectedItem == 1) {
                                     pGame->state = GAME_TUTORIAL; // Switch to tutorial screen
                                 } else if (pGame->menu.selectedItem == 2) {
@@ -221,7 +218,8 @@ void run(Game *pGame) {
 
                         // Check which menu item was clicked
                         if (SDL_PointInRect(&(SDL_Point){mouseX, mouseY}, &pGame->menu.pStartText->rect)) {
-                            pGame->state = GAME_START; // "Waiting for server"
+                            pGame->state = GAME_ENTER_IP; // Transition to IP entry state
+                            SDL_StartTextInput();
                         } else if (SDL_PointInRect(&(SDL_Point){mouseX, mouseY}, &pGame->menu.pTutorialText->rect)) {
                             pGame->state = GAME_TUTORIAL; // Switch to tutorial screen
                         } else if (SDL_PointInRect(&(SDL_Point){mouseX, mouseY}, &pGame->menu.pExitText->rect)) {
@@ -230,10 +228,64 @@ void run(Game *pGame) {
                     }
                 }
                 break;
-        case GAME_TUTORIAL:
+
+            case GAME_ENTER_IP:
+                //printf("Entering GAME_ENTER_IP state\n");
+                SDL_RenderClear(pGame->pRenderer);
+
+                // Render the same background as the menu
+                if (pGame->menuBackgroundTexture) {
+                    SDL_RenderCopy(pGame->pRenderer, pGame->menuBackgroundTexture, NULL, NULL);
+                }
+
+                Text *pIpPromptText = createText(pGame->pRenderer, 255, 255, 255, pGame->pFont, "Enter Server IP:", 640, 200);
+                if (!pIpPromptText) {
+                    printf("Error: Failed to create IP prompt text\n");
+                }
+
+                // Ensure the IP input text is visible immediately
+                Text *pIpInputText = createText(pGame->pRenderer, 255, 255, 255, pGame->pFont, *ipAddress ? ipAddress : " ", 640, 300);
+                if (!pIpInputText) {
+                    printf("Error: Failed to create IP input text\n");
+                }
+
+                if (pIpPromptText && pIpInputText) {
+                    drawText(pIpPromptText);
+                    drawText(pIpInputText);
+                    destroyText(pIpPromptText);
+                    destroyText(pIpInputText);
+                }
+                SDL_RenderPresent(pGame->pRenderer);
+
+                while (SDL_PollEvent(&e)) {
+                    if (e.type == SDL_QUIT) {
+                        running = false;
+                    } else {
+                        handleTextInput(&e, ipAddress, 15);
+                        if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_RETURN) {
+                            SDL_StopTextInput();
+                            printf("Entered IP Address: %s\n", ipAddress);
+                            if (SDLNet_ResolveHost(&(pGame->serverAddress), ipAddress, 2000) == -1) {
+                                printf("SDLNet_ResolveHost(%s 2000): %s\n", ipAddress, SDLNet_GetError());
+                                validConnection = false;
+                            } else {
+                                validConnection = true;
+                                pGame->packet->address.host = pGame->serverAddress.host;
+                                pGame->packet->address.port = pGame->serverAddress.port;
+                                pGame->state = GAME_START;
+                            }
+                        }
+                    }
+                }
+                break;
+
+            case GAME_TUTORIAL:
+                //printf("Entering GAME_TUTORIAL state\n");
                 // Render the tutorial screen
                 SDL_RenderClear(pGame->pRenderer);
-                SDL_RenderCopy(pGame->pRenderer, pGame->tutorialTexture, NULL, NULL);
+                if (pGame->tutorialTexture) {
+                    SDL_RenderCopy(pGame->pRenderer, pGame->tutorialTexture, NULL, NULL);
+                }
                 SDL_RenderPresent(pGame->pRenderer);
 
                 // Handle input to exit the tutorial screen
@@ -245,99 +297,121 @@ void run(Game *pGame) {
                     }
                 }
                 break;
-        case GAME_ONGOING:
-            while (SDLNet_UDP_Recv(pGame->udpSocket, pGame->packet))
-            {
-                updateWithServerData(pGame);
-            }
-            
-            if (SDL_PollEvent(&e))
-            {
-                if (e.type == SDL_QUIT)
-                    running = false;
-                else
-                    handlePlayerInput(pGame, &e);
-            }
-            // Timer logic
-            Uint32 currentTime = SDL_GetTicks();
-            int elapsedTime = currentTime - pGame->startTime;
-            int remainingTime = (pGame->gameDuration - elapsedTime) / 1000;
-            if (remainingTime < 0) remainingTime = 0; // No negative values
 
-            SDL_RenderClear(pGame->pRenderer);   
-            SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
-            drawObstacles(pGame->pRenderer, obstacles, NUM_OBSTACLES); //debug
-            renderPlayers(pGame); // Draw all players
-
-            // Render the timer text in the upper-middle part of the screen
-            drawText(pGame->pTimerText);
-
-            SDL_RenderPresent(pGame->pRenderer);
-            break;
-        
-        case GAME_OVER:
-            SDL_RenderClear(pGame->pRenderer);
-
-        // Display the appropriate game-over screen based on the player's role
-        if (pGame->players[pGame->playerNr].type == HUNTER) {
-            SDL_RenderCopy(pGame->pRenderer, pGame->gameOverHunterTexture, NULL, NULL);
-        } else {
-            SDL_RenderCopy(pGame->pRenderer, pGame->gameOverSprinterTexture, NULL, NULL);
-        }
-
-        // Display "Press Enter to play again!" text
-        drawText(pGame->pResetText);
-
-        SDL_RenderPresent(pGame->pRenderer);
-
-        // Detect Enter key press
-        if (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT) {
-                running = false;
-            } else if (e.type == SDL_KEYDOWN && e.key.keysym.scancode == SDL_SCANCODE_RETURN) {
-                // Send the reset command to the server
-                ClientData cData;
-                cData.command = CMD_RESET;
-                cData.playerNumber = pGame->playerNr;
-                memcpy(pGame->packet->data, &cData, sizeof(ClientData));
-                pGame->packet->len = sizeof(ClientData);
-                SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet);
-            }
-        }
-        break;
-        case GAME_START:
-            if(!joining){
-                SDL_RenderClear(pGame->pRenderer);
-                SDL_SetRenderDrawColor(pGame->pRenderer,50,50,50,200);
-                drawText(pGame->pJoinText);
-            }else
-            {
-                SDL_RenderClear(pGame->pRenderer);
-                SDL_SetRenderDrawColor(pGame->pRenderer,50,50,50,200);
-                drawText(pGame->pWaitingText);
-            }
-            SDL_RenderPresent(pGame->pRenderer);
-            if(SDL_PollEvent(&e)){
-                if (e.type == SDL_QUIT) running = false;
-                else if (!joining && e.type == SDL_KEYDOWN && e.key.keysym.scancode == SDL_SCANCODE_SPACE)
-                {
-                    joining = 1;
-                    cData.command = CMD_READY;
-                    cData.playerNumber = -1;
-                    memcpy(pGame->packet->data, &cData, sizeof(ClientData));
-                    pGame->packet->len = sizeof(ClientData);
+            case GAME_ONGOING:
+                //printf("Entering GAME_ONGOING state\n");
+                while (SDLNet_UDP_Recv(pGame->udpSocket, pGame->packet)) {
+                    updateWithServerData(pGame);
                 }
-            }
-            if (joining) SDLNet_UDP_Send(pGame->udpSocket,-1,pGame->packet);
-            if (SDLNet_UDP_Recv(pGame->udpSocket,pGame->packet))
-            {
-                updateWithServerData(pGame);
-                if(pGame->state == GAME_ONGOING) joining =false;
-            }
-            break;
+
+                if (SDL_PollEvent(&e)) {
+                    if (e.type == SDL_QUIT) {
+                        running = false;
+                    } else {
+                        handlePlayerInput(pGame, &e);
+                    }
+                }
+
+                // Timer logic
+                Uint32 currentTime = SDL_GetTicks();
+                int elapsedTime = currentTime - pGame->startTime;
+                int remainingTime = (pGame->gameDuration - elapsedTime) / 1000;
+                if (remainingTime < 0) remainingTime = 0; // No negative values
+
+                SDL_RenderClear(pGame->pRenderer);
+                if (pGame->backgroundTexture) {
+                    SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
+                }
+                drawObstacles(pGame->pRenderer, obstacles, NUM_OBSTACLES); //debug
+                renderPlayers(pGame); // Draw all players
+
+                // Render the timer text in the upper-middle part of the screen
+                if (pGame->pTimerText) {
+                    drawText(pGame->pTimerText);
+                }
+
+                SDL_RenderPresent(pGame->pRenderer);
+                break;
+
+            case GAME_OVER:
+                //printf("Entering GAME_OVER state\n");
+                SDL_RenderClear(pGame->pRenderer);
+
+                // Display the appropriate game-over screen based on the player's role
+                if (pGame->players[pGame->playerNr].type == HUNTER) {
+                    if (pGame->gameOverHunterTexture) {
+                        SDL_RenderCopy(pGame->pRenderer, pGame->gameOverHunterTexture, NULL, NULL);
+                    }
+                } else {
+                    if (pGame->gameOverSprinterTexture) {
+                        SDL_RenderCopy(pGame->pRenderer, pGame->gameOverSprinterTexture, NULL, NULL);
+                    }
+                }
+
+                // Display "Press Enter to play again!" text
+                if (pGame->pResetText) {
+                    drawText(pGame->pResetText);
+                }
+
+                SDL_RenderPresent(pGame->pRenderer);
+
+                // Detect Enter key press
+                if (SDL_PollEvent(&e)) {
+                    if (e.type == SDL_QUIT) {
+                        running = false;
+                    } else if (e.type == SDL_KEYDOWN && e.key.keysym.scancode == SDL_SCANCODE_RETURN) {
+                        // Send the reset command to the server
+                        ClientData cData;
+                        cData.command = CMD_RESET;
+                        cData.playerNumber = pGame->playerNr;
+                        memcpy(pGame->packet->data, &cData, sizeof(ClientData));
+                        pGame->packet->len = sizeof(ClientData);
+                        SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet);
+                    }
+                }
+                break;
+
+            case GAME_START:
+                //printf("Entering GAME_START state\n");
+                if (!joining) {
+                    SDL_RenderClear(pGame->pRenderer);
+                    SDL_SetRenderDrawColor(pGame->pRenderer, 50, 50, 50, 200);
+                    if (pGame->pJoinText) {
+                        drawText(pGame->pJoinText);
+                    }
+                } else {
+                    SDL_RenderClear(pGame->pRenderer);
+                    SDL_SetRenderDrawColor(pGame->pRenderer, 50, 50, 50, 200);
+                    if (pGame->pWaitingText) {
+                        drawText(pGame->pWaitingText);
+                    }
+                }
+                SDL_RenderPresent(pGame->pRenderer);
+
+                if (SDL_PollEvent(&e)) {
+                    if (e.type == SDL_QUIT) running = false;
+                    else if (!joining && e.type == SDL_KEYDOWN && e.key.keysym.scancode == SDL_SCANCODE_SPACE) {
+                        joining = 1;
+                        cData.command = CMD_READY;
+                        cData.playerNumber = -1;
+                        memcpy(pGame->packet->data, &cData, sizeof(ClientData));
+                        pGame->packet->len = sizeof(ClientData);
+                    }
+                }
+                if (joining) SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet);
+                if (SDLNet_UDP_Recv(pGame->udpSocket, pGame->packet)) {
+                    updateWithServerData(pGame);
+                    if (pGame->state == GAME_ONGOING) joining = false;
+                }
+                break;
         }
     }
 }
+
+
+
+
+
 
 void close(Game *pGame) {
     if (pGame->pResetText) destroyText(pGame->pResetText);
@@ -600,4 +674,16 @@ int initiateMenu(Game *pGame) {
         return 0;  // Error in creating one or more text objects
     }
     return 1;
+}
+
+void handleTextInput(SDL_Event *e, char *inputText, int maxLength) {
+    if (e->type == SDL_TEXTINPUT) {
+        if (strlen(inputText) + strlen(e->text.text) < maxLength) {
+            strcat(inputText, e->text.text);
+        }
+    } else if (e->type == SDL_KEYDOWN) {
+        if (e->key.keysym.sym == SDLK_BACKSPACE && strlen(inputText) > 0) {
+            inputText[strlen(inputText) - 1] = '\0';
+        }
+    }
 }

@@ -20,7 +20,8 @@ typedef enum {
     GAME_READY,   // Player has signaled readiness
     GAME_START,   // Start the game
     GAME_ONGOING, // Game is in progress
-    GAME_OVER     // Game has ended
+    GAME_OVER,     // Game has ended
+    GAME_ENTER_IP // New state for entering IP address
 } GameState;
 
 // Commands that can be sent from the client to the server
