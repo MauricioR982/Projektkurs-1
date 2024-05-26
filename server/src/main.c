@@ -145,8 +145,8 @@ int initiate(Game *pGame) {
     pGame->state = GAME_START;
     pGame->nrOfClients =0;
 
-    pGame->startTime = SDL_GetTicks();
-    pGame->gameDuration = 60000;
+    pGame->startTime = SDL_GetTicks();  // Record start time
+    pGame->gameDuration = 90000;        // 1.5 minutes in milliseconds
 
     return 1;
 }
@@ -154,10 +154,10 @@ int initiate(Game *pGame) {
 void initiatePerks(Game *pGame) {
     pGame->numPerks = MAX_PERKS;
     // Assign fixed locations for perks
-    createFixedPerk(pGame, 0, 0, 200, 150); // Speed perk
-    createFixedPerk(pGame, 1, 0, 400, 300); // Speed perk
-    createFixedPerk(pGame, 2, 1, 600, 450); // Stuck perk
-    createFixedPerk(pGame, 3, 1, 800, 600); // Stuck perk
+    createFixedPerk(pGame, 0, 0, 200, 300); // Speed perk (left)
+    createFixedPerk(pGame, 1, 0, 1080, 300); // Speed perk (right)
+    createFixedPerk(pGame, 2, 1, 640, 50); // Stuck perk (top)
+    createFixedPerk(pGame, 3, 1, 640, 500); // Stuck perk (bottom)
 }
 
 void createFixedPerk(Game *pGame, int index, int type, int x, int y) {
