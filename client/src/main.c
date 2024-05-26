@@ -62,7 +62,7 @@ void renderMenu(Game *pGame);
 void handleTextInput(SDL_Event *e, char *inputText, int maxLength);
 void renderPerks(Game *pGame);
 void initiatePerks(Game *pGame);
-void createRandomPerk(Game *pGame, int index);
+void createFixedPerk(Game *pGame, int index, int type, int x, int y);
 
 int main(int argc, char **argv) {
     Game g = {0};
@@ -702,14 +702,15 @@ void handleTextInput(SDL_Event *e, char *inputText, int maxLength) {
 
 void initiatePerks(Game *pGame) {
     pGame->numPerks = MAX_PERKS;
-    for (int i = 0; i < pGame->numPerks; i++) {
-        createRandomPerk(pGame, i);
-    }
+    // Assign fixed locations for perks
+    createFixedPerk(pGame, 0, 0, 200, 150); // Speed perk
+    createFixedPerk(pGame, 1, 0, 400, 300); // Speed perk
+    createFixedPerk(pGame, 2, 1, 600, 450); // Stuck perk
+    createFixedPerk(pGame, 3, 1, 800, 600); // Stuck perk
 }
 
-void createRandomPerk(Game *pGame, int index) {
+void createFixedPerk(Game *pGame, int index, int type, int x, int y) {
     pGame->perks[index].active = true;
-    pGame->perks[index].type = rand() % 2; // Randomly choose between Speed (0) and Stuck (1) perk
-    pGame->perks[index].position = (SDL_Rect){rand() % (WINDOW_WIDTH - 32), rand() % (WINDOW_HEIGHT - 32), 32, 32};
+    pGame->perks[index].type = type; // Speed (0) or Stuck (1)
+    pGame->perks[index].position = (SDL_Rect){x, y, 32, 32};
 }
-

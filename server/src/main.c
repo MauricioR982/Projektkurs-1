@@ -60,10 +60,9 @@ void renderPlayer(SDL_Renderer *renderer, Player *player);
 void initializePlayers(Game *pGame);
 void swapHunterAndSprinter(Player *hunter, Player *sprinter, SDL_Texture *hunterTexture, SDL_Texture *sprinterTexture);
 void checkGameOverCondition(Game *pGame);
-void createRandomPerk(Game *pGame, int index);
+void createFixedPerk(Game *pGame, int index, int type, int x, int y);
 void initiatePerks(Game *pGame);
 void applyPerk(Game *pGame, Player *player, Perk *perk);
-void updatePerkMovement(Game *pGame, int deltaMs);
 void renderPerks(Game *pGame);
 void resetPerk(Player *player);
 
@@ -153,24 +152,18 @@ int initiate(Game *pGame) {
 }
 
 void initiatePerks(Game *pGame) {
-    for (int i = 0; i < MAX_PERKS; i++) {
-        pGame->perks[i].active = false;
-        pGame->perks[i].perkSpawnTimer = 0;
-        pGame->perks[i].perkSpawnInterval = 8000;
-    }
-    pGame->numPerks = 0;
+    pGame->numPerks = MAX_PERKS;
+    // Assign fixed locations for perks
+    createFixedPerk(pGame, 0, 0, 200, 150); // Speed perk
+    createFixedPerk(pGame, 1, 0, 400, 300); // Speed perk
+    createFixedPerk(pGame, 2, 1, 600, 450); // Stuck perk
+    createFixedPerk(pGame, 3, 1, 800, 600); // Stuck perk
 }
 
-void createRandomPerk(Game *pGame, int index) {
-    if (pGame->numPerks >= MAX_PERKS) return;
-
-    int type = rand() % 2; // SPEED & STUCK
-    SDL_Rect position = {rand() % (WINDOW_WIDTH - 30), rand() % (WINDOW_HEIGHT - 30), 30, 30};
-    int dx = (rand() % 3 - 1) * 2;  // Hastighet i x-led, -2, 0 eller 2
-    int dy = (rand() % 3 - 1) * 2;  // Hastighet i y-led, -2, 0 eller 2
-
-    pGame->perks[index] = (Perk){type, position, 5000, true, SDL_GetTicks()};
-    pGame->numPerks++;
+void createFixedPerk(Game *pGame, int index, int type, int x, int y) {
+    pGame->perks[index].active = true;
+    pGame->perks[index].type = type; // Speed (0) or Stuck (1)
+    pGame->perks[index].position = (SDL_Rect){x, y, 32, 32};
 }
 
 void run(Game *pGame) {
@@ -183,16 +176,6 @@ void run(Game *pGame) {
         Uint32 currentUpdate = SDL_GetTicks();
         Uint32 deltaTime = currentUpdate - lastUpdate;
         lastUpdate = currentUpdate;
-
-        for (int i = 0; i < MAX_PERKS; i++) {
-            if (!pGame->perks[i].active) {
-                pGame->perks[i].perkSpawnTimer += deltaTime;
-                if (pGame->perks[i].perkSpawnTimer >= pGame->perks[i].perkSpawnInterval) {
-                    createRandomPerk(pGame, i);
-                    pGame->perks[i].perkSpawnTimer = 0;
-                }
-            }
-        }
 
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) running = false;
@@ -218,7 +201,6 @@ void run(Game *pGame) {
                 SDL_RenderClear(pGame->pRenderer);
                 SDL_RenderCopy(pGame->pRenderer, pGame->backgroundTexture, NULL, NULL);
                 drawObstacles(pGame->pRenderer, obstacles, NUM_OBSTACLES);
-                updatePerkMovement(pGame, 80);
                 renderPlayers(pGame);
                 renderPerks(pGame);
                 SDL_RenderPresent(pGame->pRenderer);
@@ -281,6 +263,7 @@ void sendGameData(Game *pGame) {
         } else {
             pGame->sData.players[i].role = ROLE_SPRINTER;
         }
+    }
 
     for (int i = 0; i < MAX_PERKS; i++) {
         pGame->sData.perks[i].type = pGame->perks[i].type;
@@ -295,7 +278,6 @@ void sendGameData(Game *pGame) {
         pGame->packet->address = pGame->clients[i];
         SDLNet_UDP_Send(pGame->udpSocket, -1, pGame->packet);
     }
-}
 }
 
 void add(IPaddress address, IPaddress client[] , int *pnrOfClients){
@@ -388,10 +370,14 @@ void executeCommand(Game *pGame, ClientData cData) {
 void applyPerk(Game *pGame, Player *player, Perk *perk) {
     switch (perk->type) {
         case 0: // SPEED
-            player->speed = 3 * player->originalSpeed;
+            player->speed = 1.5 * player->originalSpeed;
             break;
         case 1: // STUCK
-            player->speed = player->originalSpeed / 3;
+            for (int i = 0; i < MAX_PLAYERS; i++) {
+                if (pGame->players[i].type == SPRINTER) {
+                    pGame->players[i].speed = 0.5 * pGame->players[i].originalSpeed;
+                }
+            }
             break;
     }
     perk->startTime = SDL_GetTicks();
@@ -462,35 +448,6 @@ int loadGameResources(SDL_Renderer *renderer, Game *pGame) {
         return 0;
     }
     return 1;
-}
-
-void updatePerkMovement(Game *pGame, int deltaMs) {
-    float speedFactor = 0.012;  // Minska denna faktor för långsammare rörelse
-    for (int i = 0; i < pGame->numPerks; i++)
-    {
-        if (pGame->perks[i].active)
-        {
-            pGame->perks[i].position.x += (int)(pGame->perks[i].dx * speedFactor * (deltaMs / 1000.0));
-            pGame->perks[i].position.y += (int)(pGame->perks[i].dy * speedFactor * (deltaMs / 1000.0));
-            if (pGame->perks[i].position.x < 0 || pGame->perks[i].position.x + pGame->perks[i].position.w > WINDOW_WIDTH)
-            {
-                pGame->perks[i].dx = -pGame->perks[i].dx;
-                pGame->perks[i].position.x += (int)(pGame->perks[i].dx * speedFactor * (deltaMs / 1000.0));
-            }
-            if (pGame->perks[i].position.y < 0 || pGame->perks[i].position.y + pGame->perks[i].position.h > WINDOW_HEIGHT)
-            {
-                pGame->perks[i].dy = -pGame->perks[i].dy;
-                pGame->perks[i].position.y += (int)(pGame->perks[i].dy * speedFactor * (deltaMs / 1000.0));
-            }
-            pGame->perks[i].perkSpawnTimer += deltaMs;
-            if (pGame->perks[i].perkSpawnTimer >= 5000)
-            {
-                pGame->perks[i].position.x = rand() % (WINDOW_WIDTH - pGame->perks[i].position.w);
-                pGame->perks[i].position.y = rand() % (WINDOW_HEIGHT - pGame->perks[i].position.h);
-                pGame->perks[i].perkSpawnTimer = 0;
-            }
-        }
-    }
 }
 
 void renderPerks(Game *pGame) {
