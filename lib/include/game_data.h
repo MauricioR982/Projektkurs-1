@@ -6,6 +6,7 @@
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
 #define MAX_PLAYERS 2
+#define MAX_PERKS 4
 
 #define HUNTER 0
 #define SPRINTER 1
@@ -39,6 +40,8 @@ typedef enum {
 typedef struct {
     ClientCommand command; // Command type
     int playerNumber;      // Which player is sending the command
+    int seqNum;             // Sekvensnummer för spårning av paket
+    bool ack;               // Flagga för att indikera om detta är en bekräftelse
 } ClientData;
 
 // Enumeration for player roles
@@ -55,12 +58,27 @@ typedef struct {
     SDL_RendererFlip flip; // Flip state for rendering
 } PlayerData;
 
+typedef struct {
+    int type; // 0 för SPEED, 1 för STUCK
+    SDL_Rect position; // Position på spelkartan
+    int duration; // Varaktighet för perken
+    bool active; // Om perk är aktiv
+    Uint32 startTime; // När perken aktiverades
+    int perkSpawnTimer;  // Timer för att kontrollera när nästa perk ska skapas
+    int perkSpawnInterval;  // Tid i millisekunder mellan perk spawns
+    int dx;  // Horisontell rörelsehastighet
+    int dy;  // Vertikal rörelsehastighet
+} Perk;
+
 // Data structure sent from the server to the clients
 typedef struct {
     PlayerData players[MAX_PLAYERS]; // Player data for all players
     int playerNr;                    // Index of the player to which the data is being sent
     GameState state;                 // Current state of the game
     int remainingTime;  // Remaining time in seconds
+    Perk perks[MAX_PERKS];
+    int seqNum; // Sekvensnummer
+    bool ack;   // Flagga för bekräftelse
 } ServerData;
 
 // Structure for each player in the game
@@ -73,6 +91,10 @@ typedef struct {
     int currentFrame;      // Current frame of animation
     int isActive;          // Indicates if the player is active
     int type;              // Type of the player (HUNTER or SPRINTER)
+    float speed;           // Hastighetsvariabel
+    float originalSpeed;   // Ursprunglig hastighet för återställning
+    Uint32 perkStartTime;  // Tidsstämpel för när perken började appliceras
+    int activePerkType;    // Typ av aktiv perk
 } Player;
 
 // Structure for transmitting player movement information

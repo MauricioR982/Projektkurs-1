@@ -4,6 +4,7 @@
     "sdl_net.h": "c",
     "sdl_ttf.h": "c",
     "sdl_image.h": "c",
-    "hunter.h": "c"
+    "hunter.h": "c",
+    "game_data.h": "c"
   }
 }
