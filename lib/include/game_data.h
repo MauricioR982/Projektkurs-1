@@ -10,24 +10,22 @@
 
 #define HUNTER 0
 #define SPRINTER 1
-#define HORIZONTAL_MARGIN 20 // Margin for character movement constraints
-#define NUM_OBSTACLES 23     // Number of obstacles
+#define HORIZONTAL_MARGIN 20 
+#define NUM_OBSTACLES 23     
 
-// Enumerations for different game states
 typedef enum {
-    GAME_MENU, // Game menu
-    GAME_TUTORIAL, // Game tutorial
-    GAME_WAITING, // Waiting for players to be ready
-    GAME_READY,   // Player has signaled readiness
-    GAME_START,   // Start the game
-    GAME_ONGOING, // Game is in progress
-    GAME_OVER,     // Game has ended
-    GAME_ENTER_IP // New state for entering IP address
+    GAME_MENU, 
+    GAME_TUTORIAL, 
+    GAME_WAITING, 
+    GAME_READY,   
+    GAME_START,   
+    GAME_ONGOING, 
+    GAME_OVER,     
+    GAME_ENTER_IP 
 } GameState;
 
-// Commands that can be sent from the client to the server
 typedef enum {
-    CMD_READY, // Command to signal readiness to start the game
+    CMD_READY, 
     CMD_RUN,
     CMD_LEFT,
     CMD_RIGHT,
@@ -36,78 +34,78 @@ typedef enum {
     CMD_RESET
 } ClientCommand;
 
-// Structure for client commands
+
 typedef struct {
-    ClientCommand command; // Command type
-    int playerNumber;      // Which player is sending the command
-    int seqNum;            // Sequence number for packet tracking
-    bool ack;              // Flag to indicate if this is an acknowledgment
+    ClientCommand command; 
+    int playerNumber;      
+    int seqNum;            
+    bool ack;              
 } ClientData;
 
-// Enumeration for player roles
+
 typedef enum {
     ROLE_SPRINTER,
     ROLE_HUNTER
 } PlayerRole;
 
-// Structure representing a player's position, size, and role
+
 typedef struct {
     float x, y, w, h;
-    PlayerRole role; // Role of the player (hunter or sprinter)
-    int currentFrame; // Current animation frame
-    SDL_RendererFlip flip; // Flip state for rendering
+    PlayerRole role; 
+    int currentFrame;
+    SDL_RendererFlip flip;
 } PlayerData;
 
 typedef struct {
-    int type; // 0 for SPEED, 1 for STUCK
-    SDL_Rect position; // Position on the game map
-    int duration; // Duration of the perk
-    bool active; // Whether the perk is active
-    Uint32 startTime; // When the perk was activated
-    int perkSpawnTimer; // Timer to control when the next perk will spawn
-    int perkSpawnInterval; // Time in milliseconds between perk spawns
-    int dx; // Horizontal movement speed
-    int dy; // Vertical movement speed
+    int type;
+    SDL_Rect position;
+    int duration;
+    bool active;
+    Uint32 startTime;
+    int perkSpawnTimer;
+    int perkSpawnInterval;
+    int dx;
+    int dy;
 } Perk;
 
-// Data structure sent from the server to the clients
+
 typedef struct {
-    PlayerData players[MAX_PLAYERS]; // Player data for all players
-    int playerNr; // Index of the player to which the data is being sent
-    GameState state; // Current state of the game
-    int remainingTime; // Remaining time in seconds
+    PlayerData players[MAX_PLAYERS]; 
+    int playerNr; 
+    GameState state; 
+    int remainingTime;
     Perk perks[MAX_PERKS];
-    int seqNum; // Sequence number
-    bool ack; // Acknowledgment flag
+    int seqNum; 
+    bool ack; 
 } ServerData;
 
-// Structure for each player in the game
+
 typedef struct {
-    int playerId; // Unique identifier for each player
-    SDL_Rect position; // Position and size of the player
-    SDL_Texture *texture; // Texture used for rendering the player
-    SDL_Rect spriteClips[8]; // Animation frames for the player
-    SDL_RendererFlip flip; // Rendering flip state
-    int currentFrame; // Current frame of animation
-    int isActive; // Indicates if the player is active
-    int type; // Type of the player (HUNTER or SPRINTER)
-    float speed; // Speed variable
-    float originalSpeed; // Original speed for reset
-    Uint32 perkStartTime; // Timestamp for when the perk was applied
-    int activePerkType; // Type of active perk
+    int playerId;
+    SDL_Rect position; 
+    SDL_Texture *texture; 
+    SDL_Rect spriteClips[8];
+    SDL_RendererFlip flip; 
+    int currentFrame; 
+    int isActive; 
+    int type; 
+    float speed; 
+    float originalSpeed; 
+    Uint32 perkStartTime; 
+    int activePerkType;
 } Player;
 
-// Structure for transmitting player movement information
+
 typedef struct {
-    int playerId; // Player ID
-    int x, y; // New coordinates of the player
+    int playerId; 
+    int x, y; 
 } PlayerMovement;
 
-// Spawn points for sprinters (adjusted to 3 players)
+
 SDL_Point sprinterSpawnPoints[] = {
-    {100, 64}, // First sprinter position
-    {100, 550}, // Second sprinter position
-    {1100, 64} // Third sprinter position
+    {100, 64},
+    {100, 550},
+    {1100, 64}
 };
 
 #endif // GAME_DATA_H
