@@ -106,7 +106,7 @@ int initiate(Game *pGame) {
         close(pGame);
         return 0;
     }
-    // Load game resources, including fonts
+    
     if (!loadGameResources(pGame->pRenderer, pGame)) {
         SDL_DestroyRenderer(pGame->pRenderer);
         SDL_DestroyWindow(pGame->pWindow);
@@ -144,14 +144,13 @@ int initiate(Game *pGame) {
     initObstacles(obstacles, NUM_OBSTACLES);
     initializePlayers(pGame);
 
-    // Initialize Menu
+    
     if (!initiateMenu(pGame)) {
         printf("Error creating menu items.\n");
         close(pGame);
         return 0;
     }
 
-    // Create the "Press Enter to play again!" text
     pGame->pResetText = createText(pGame->pRenderer, 255, 255, 255, pGame->pFont, "Press Enter to play again!", 640, 650);
     if (!pGame->pResetText) {
         printf("Error creating reset text: %s\n", SDL_GetError());
@@ -159,7 +158,7 @@ int initiate(Game *pGame) {
         return 0;
     }
     pGame->startTime = SDL_GetTicks();  // Record start time
-    pGame->gameDuration = 90000;        // 1.5 minutes in milliseconds
+    pGame->gameDuration = 90000;        
 
     pGame->pTimerText = createText(pGame->pRenderer, 255, 255, 255, pGame->pFont, "01:00", WINDOW_WIDTH / 2, 30);
     if (!pGame->pTimerText) {
@@ -185,7 +184,6 @@ void run(Game *pGame) {
     while (running) {
         switch (pGame->state) {
             case GAME_MENU:
-                // Render the menu screen
                 renderMenu(pGame);
                 while (SDL_PollEvent(&e)) {
                     if (e.type == SDL_QUIT) {
@@ -193,36 +191,35 @@ void run(Game *pGame) {
                     } else if (e.type == SDL_KEYDOWN) {
                         switch (e.key.keysym.scancode) {
                             case SDL_SCANCODE_UP:
-                                pGame->menu.selectedItem = (pGame->menu.selectedItem + 2) % 3; // Cycle backward
+                                pGame->menu.selectedItem = (pGame->menu.selectedItem + 2) % 3;
                                 break;
                             case SDL_SCANCODE_DOWN:
-                                pGame->menu.selectedItem = (pGame->menu.selectedItem + 1) % 3; // Cycle forward
+                                pGame->menu.selectedItem = (pGame->menu.selectedItem + 1) % 3;
                                 break;
                             case SDL_SCANCODE_RETURN:
-                                // Select the menu item
                                 if (pGame->menu.selectedItem == 0) {
-                                    pGame->state = GAME_ENTER_IP; // Transition to IP entry state
+                                    pGame->state = GAME_ENTER_IP; 
                                     SDL_StartTextInput();
                                 } else if (pGame->menu.selectedItem == 1) {
-                                    pGame->state = GAME_TUTORIAL; // Switch to tutorial screen
+                                    pGame->state = GAME_TUTORIAL; 
                                 } else if (pGame->menu.selectedItem == 2) {
-                                    running = false; // Exit game
+                                    running = false; 
                                 }
                                 break;
                         }
                     } else if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT) {
-                        // Get mouse click position
+                        
                         int mouseX = e.button.x;
                         int mouseY = e.button.y;
 
-                        // Check which menu item was clicked
+                       
                         if (SDL_PointInRect(&(SDL_Point){mouseX, mouseY}, &pGame->menu.pStartText->rect)) {
-                            pGame->state = GAME_ENTER_IP; // Transition to IP entry state
+                            pGame->state = GAME_ENTER_IP; 
                             SDL_StartTextInput();
                         } else if (SDL_PointInRect(&(SDL_Point){mouseX, mouseY}, &pGame->menu.pTutorialText->rect)) {
-                            pGame->state = GAME_TUTORIAL; // Switch to tutorial screen
+                            pGame->state = GAME_TUTORIAL; 
                         } else if (SDL_PointInRect(&(SDL_Point){mouseX, mouseY}, &pGame->menu.pExitText->rect)) {
-                            running = false; // Exit game
+                            running = false; 
                         }
                     }
                 }
@@ -231,7 +228,6 @@ void run(Game *pGame) {
             case GAME_ENTER_IP:
                 SDL_RenderClear(pGame->pRenderer);
 
-                // Render the same background as the menu
                 if (pGame->menuBackgroundTexture) {
                     SDL_RenderCopy(pGame->pRenderer, pGame->menuBackgroundTexture, NULL, NULL);
                 }
@@ -241,7 +237,7 @@ void run(Game *pGame) {
                     printf("Error: Failed to create IP prompt text\n");
                 }
 
-                // Ensure the IP input text is visible immediately
+                
                 Text *pIpInputText = createText(pGame->pRenderer, 255, 255, 255, pGame->pFont, *ipAddress ? ipAddress : " ", 640, 300);
                 if (!pIpInputText) {
                     printf("Error: Failed to create IP input text\n");
@@ -330,7 +326,7 @@ void run(Game *pGame) {
             case GAME_OVER:
                 SDL_RenderClear(pGame->pRenderer);
 
-                // Display the appropriate game-over screen based on the player's role
+                
                 if (pGame->players[pGame->playerNr].type == HUNTER) {
                     if (pGame->gameOverHunterTexture) {
                         SDL_RenderCopy(pGame->pRenderer, pGame->gameOverHunterTexture, NULL, NULL);
@@ -531,7 +527,7 @@ void renderPlayers(Game *pGame) {
 
 void handlePlayerInput(Game *pGame, SDL_Event *pEvent) {
     int deltaX = 0, deltaY = 0;
-    int frame1 = 0, frame2 = 1; // Default frames
+    int frame1 = 0, frame2 = 1; 
     SDL_RendererFlip flip = SDL_FLIP_NONE;
 
     if (pEvent->type == SDL_KEYDOWN) {
@@ -543,29 +539,29 @@ void handlePlayerInput(Game *pGame, SDL_Event *pEvent) {
             case SDL_SCANCODE_UP:
                 deltaY -= 8;
                 cData.command = CMD_UP;
-                frame1 = 4; // Facing up
+                frame1 = 4; 
                 frame2 = 5;
                 break;
             case SDL_SCANCODE_S:
             case SDL_SCANCODE_DOWN:
                 deltaY += 8;
                 cData.command = CMD_DOWN;
-                frame1 = 0; // Facing down
+                frame1 = 0; 
                 frame2 = 1;
                 break;
             case SDL_SCANCODE_A:
             case SDL_SCANCODE_LEFT:
                 deltaX -= 8;
                 cData.command = CMD_LEFT;
-                frame1 = 2; // Right-facing sprites
+                frame1 = 2; 
                 frame2 = 3;
-                flip = SDL_FLIP_HORIZONTAL; // Apply flip
+                flip = SDL_FLIP_HORIZONTAL; 
                 break;
             case SDL_SCANCODE_D:
             case SDL_SCANCODE_RIGHT:
                 deltaX += 8;
                 cData.command = CMD_RIGHT;
-                frame1 = 2; // Right-facing sprites
+                frame1 = 2; 
                 frame2 = 3;
                 flip = SDL_FLIP_NONE;
                 break;
@@ -586,7 +582,7 @@ void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, int type, Obstacle
 
     for (int i = 0; i < numObstacles; i++) {
         if (checkCollision(newPos, obstacles[i].bounds)) {
-            return;  // Collision detected, do not update position
+            return;  
         }
     }
     newPos.x = SDL_clamp(newPos.x, HORIZONTAL_MARGIN, WINDOW_WIDTH - newPos.w - HORIZONTAL_MARGIN);
@@ -599,7 +595,7 @@ void updateFrame(int *frame, int frame1, int frame2) {
 }
 
 bool checkCollision(SDL_Rect a, SDL_Rect b) {
-    // Check if there's no overlap
+    
     if (a.x + a.w <= b.x || b.x + b.w <= a.x ||
         a.y + a.h <= b.y || b.y + b.h <= a.y) {
         return false;
@@ -614,7 +610,6 @@ void updateWithServerData(Game *pGame) {
     pGame->state = sData.state;
     pGame->playerNr = sData.playerNr;
 
-    // Use the remaining time from the server
     char timerStr[6];
     snprintf(timerStr, sizeof(timerStr), "%02d:%02d", sData.remainingTime / 60, sData.remainingTime % 60);
     updateText(pGame->pTimerText, pGame->pRenderer, timerStr);
@@ -703,15 +698,15 @@ void handleTextInput(SDL_Event *e, char *inputText, int maxLength) {
 
 void initiatePerks(Game *pGame) {
     pGame->numPerks = MAX_PERKS;
-    // Assign fixed locations for perks
-    createFixedPerk(pGame, 0, 0, 200, 300); // Speed perk (left)
-    createFixedPerk(pGame, 1, 0, 1080, 300); // Speed perk (right)
-    createFixedPerk(pGame, 2, 1, 640, 50); // Stuck perk (top)
-    createFixedPerk(pGame, 3, 1, 640, 500); // Stuck perk (bottom)
+    
+    createFixedPerk(pGame, 0, 0, 200, 300); 
+    createFixedPerk(pGame, 1, 0, 1080, 300); 
+    createFixedPerk(pGame, 2, 1, 640, 50); 
+    createFixedPerk(pGame, 3, 1, 640, 500); 
 }
 
 void createFixedPerk(Game *pGame, int index, int type, int x, int y) {
     pGame->perks[index].active = true;
-    pGame->perks[index].type = type; // Speed (0) or Stuck (1)
+    pGame->perks[index].type = type; 
     pGame->perks[index].position = (SDL_Rect){x, y, 32, 32};
 }
