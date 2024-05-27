@@ -282,20 +282,20 @@ void sendGameData(Game *pGame) {
 
 void add(IPaddress address, IPaddress client[], int *pnrOfClients) {
     if ((*pnrOfClients) >= MAX_PLAYERS) {
-        printf("Maximum players reached. Cannot add more players.\n");
+        //printf("Maximum players reached. Cannot add more players.\n");
         return;
     }
 
     for (int i = 0; i < (*pnrOfClients); i++) {
         if (client[i].host == address.host && client[i].port == address.port) {
-            printf("Client already added.\n");
+            //printf("Client already added.\n");
             return;
         }
     }
 
     client[(*pnrOfClients)] = address;
     (*pnrOfClients)++;
-    printf("Player added successfully, total clients: %d\n", (*pnrOfClients));
+    //printf("Player added successfully, total clients: %d\n", (*pnrOfClients));
 }
 
 
