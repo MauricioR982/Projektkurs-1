@@ -640,6 +640,7 @@ void updateWithServerData(Game *pGame) {
     }
 }
 
+
 void initializePlayers(Game *pGame) {
     int sprinterIndex = 0;
 

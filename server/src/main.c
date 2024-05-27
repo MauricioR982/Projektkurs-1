@@ -241,6 +241,7 @@ void resetPerk(Player *player) {
 
 void setUpGame(Game *pGame){
     pGame->state = GAME_ONGOING;
+    pGame->startTime = SDL_GetTicks();  // Reset the start time when the game starts
 }
 
 void sendGameData(Game *pGame) {
