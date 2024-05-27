@@ -159,7 +159,7 @@ int initiate(Game *pGame) {
         return 0;
     }
     pGame->startTime = SDL_GetTicks();  // Record start time
-    pGame->gameDuration = 90000;        // 1.5 minutes in milliseconds
+    pGame->gameDuration = 100000;        // timer
 
     pGame->pTimerText = createText(pGame->pRenderer, 255, 255, 255, pGame->pFont, "01:00", WINDOW_WIDTH / 2, 30);
     if (!pGame->pTimerText) {
@@ -524,7 +524,7 @@ void setupPlayerClips(Player *player) {
 }
 
 void renderPlayers(Game *pGame) {
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < MAX_PLAYERS; i++) {
         renderPlayer(pGame->pRenderer, &pGame->players[i]);
     }
 }

@@ -5,7 +5,7 @@
 
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
-#define MAX_PLAYERS 2
+#define MAX_PLAYERS 4
 #define MAX_PERKS 4
 
 #define HUNTER 0
@@ -106,7 +106,8 @@ typedef struct {
 SDL_Point sprinterSpawnPoints[] = {
     {100, 64},   // First sprinter position
     {100, 550},  // Second sprinter position
-    {1100, 64}   // Third sprinter position
+    {1100, 64},  // Third sprinter position
+    {1100, 550}  // Fourth sprinter position
 };
 
 #endif // GAME_DATA_H

@@ -146,7 +146,7 @@ int initiate(Game *pGame) {
     pGame->nrOfClients =0;
 
     pGame->startTime = SDL_GetTicks();  // Record start time
-    pGame->gameDuration = 90000;        // 1.5 minutes in milliseconds
+    pGame->gameDuration = 100000;        // timer
 
     return 1;
 }
@@ -280,26 +280,24 @@ void sendGameData(Game *pGame) {
     }
 }
 
-void add(IPaddress address, IPaddress client[] , int *pnrOfClients){
-    if ((*pnrOfClients) >= MAX_PLAYERS)
-    {
-        //printf("Abort adding player\n");
+void add(IPaddress address, IPaddress client[], int *pnrOfClients) {
+    if ((*pnrOfClients) >= MAX_PLAYERS) {
+        printf("Maximum players reached. Cannot add more players.\n");
+        return;
     }
-    for (size_t i = 0; i < (*pnrOfClients); i++)
-    {
-        if (client[i].host == address.host && client[i].port == address.port)
-        {
-            //printf("Abort adding player\n");
+
+    for (int i = 0; i < (*pnrOfClients); i++) {
+        if (client[i].host == address.host && client[i].port == address.port) {
+            printf("Client already added.\n");
             return;
         }
     }
+
     client[(*pnrOfClients)] = address;
-    printf("\n\n%d\n\n",address.host);
-    printf("\n\n%d\n\n",address.port);
     (*pnrOfClients)++;
-    printf("\n\nnrOfClients: %d\n\n",(*pnrOfClients));
-    printf("Player added successfully\n");
+    printf("Player added successfully, total clients: %d\n", (*pnrOfClients));
 }
+
 
 void executeCommand(Game *pGame, ClientData cData) {
     int deltaX = 0, deltaY = 0;
@@ -482,7 +480,7 @@ void setupPlayerClips(SDL_Rect spriteClips[]) {
 }
 
 void renderPlayers(Game *pGame) {
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < MAX_PLAYERS; i++) {
         renderPlayer(pGame->pRenderer, &pGame->players[i]);
     }
 }
@@ -523,7 +521,7 @@ void initializePlayers(Game *pGame) {
     pGame->players[0].texture = pGame->hunterTexture;
     pGame->players[0].position = (SDL_Rect){getHunterPositionX(hunter), getHunterPositionY(hunter), 32, 32};
     pGame->players[0].type = HUNTER;
-    setupPlayerClips(pGame->players[0].spriteClips);  // Använd setupPlayerClips
+    setupPlayerClips(pGame->players[0].spriteClips);
     for (int i = 1; i < MAX_PLAYERS; i++) {
         SDL_Point spawn = sprinterSpawnPoints[sprinterIndex];
         sprinters[sprinterIndex] = createSprinterMan(spawn.x, spawn.y);
@@ -531,7 +529,7 @@ void initializePlayers(Game *pGame) {
         pGame->players[i].texture = pGame->sprinterTexture;
         pGame->players[i].position = (SDL_Rect){getSprinterPositionX(sprinters[sprinterIndex]), getSprinterPositionY(sprinters[sprinterIndex]), 32, 32};
         pGame->players[i].type = SPRINTER;
-        setupPlayerClips(pGame->players[i].spriteClips);  // Använd setupPlayerClips
+        setupPlayerClips(pGame->players[i].spriteClips);
         sprinterIndex++;
     }
 }
