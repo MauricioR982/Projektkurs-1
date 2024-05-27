@@ -30,17 +30,16 @@ typedef struct {
 
     Uint32 startTime;
     int gameDuration;
-    SDL_Texture *speedPerkTexture;   // Texture för SPEED perk
-    SDL_Texture *stuckPerkTexture;   // Texture för STUCK perk
+    SDL_Texture *speedPerkTexture;
+    SDL_Texture *stuckPerkTexture; 
     Perk perks[MAX_PERKS];
     int numPerks;
 } Game;
 
 Obstacle obstacles[NUM_OBSTACLES];
 Hunter hunter;  // One hunter
-Sprinter sprinters[MAX_PLAYERS - 1]; //Remaining players become sprinters
+Sprinter sprinters[MAX_PLAYERS - 1];
 
-// Function declarations
 int initiate(Game *pGame);
 void run(Game *pGame);
 void close(Game *pGame);
@@ -117,7 +116,7 @@ int initiate(Game *pGame) {
         return 0;
     }
 
-    if (!(pGame->udpSocket = SDLNet_UDP_Open(2000))) // Bind to port 2000
+    if (!(pGame->udpSocket = SDLNet_UDP_Open(2000)))
     {
         printf("SDLNet_UDP_Open: %s\n", SDLNet_GetError());
 		close(pGame);
@@ -145,7 +144,7 @@ int initiate(Game *pGame) {
     pGame->state = GAME_START;
     pGame->nrOfClients =0;
 
-    pGame->startTime = SDL_GetTicks();  // Record start time
+    pGame->startTime = SDL_GetTicks();
     pGame->gameDuration = 90000;        // 1.5 minutes in milliseconds
 
     return 1;
@@ -153,11 +152,10 @@ int initiate(Game *pGame) {
 
 void initiatePerks(Game *pGame) {
     pGame->numPerks = MAX_PERKS;
-    // Assign fixed locations for perks
-    createFixedPerk(pGame, 0, 0, 200, 300); // Speed perk (left)
-    createFixedPerk(pGame, 1, 0, 1080, 300); // Speed perk (right)
-    createFixedPerk(pGame, 2, 1, 640, 50); // Stuck perk (top)
-    createFixedPerk(pGame, 3, 1, 640, 500); // Stuck perk (bottom)
+    createFixedPerk(pGame, 0, 0, 200, 300);
+    createFixedPerk(pGame, 1, 0, 1080, 300);
+    createFixedPerk(pGame, 2, 1, 640, 50);
+    createFixedPerk(pGame, 3, 1, 640, 500);
 }
 
 void createFixedPerk(Game *pGame, int index, int type, int x, int y) {
@@ -216,7 +214,7 @@ void run(Game *pGame) {
                             running = false;
                         }
                     }
-                    SDL_Delay(100);  // Prevents high CPU usage in this loop
+                    SDL_Delay(100);
                 }
                 break;
 
@@ -248,7 +246,7 @@ void sendGameData(Game *pGame) {
     Uint32 currentTime = SDL_GetTicks();
     int elapsedTime = currentTime - pGame->startTime;
     int remainingTime = (pGame->gameDuration - elapsedTime) / 1000;
-    if (remainingTime < 0) remainingTime = 0;  // Prevent negative values
+    if (remainingTime < 0) remainingTime = 0; 
 
     pGame->sData.remainingTime = remainingTime;
     pGame->sData.state = pGame->state;
@@ -304,7 +302,7 @@ void add(IPaddress address, IPaddress client[] , int *pnrOfClients){
 
 void executeCommand(Game *pGame, ClientData cData) {
     int deltaX = 0, deltaY = 0;
-    int frame1 = 0, frame2 = 1; // Default frame values
+    int frame1 = 0, frame2 = 1;
     SDL_RendererFlip flip = SDL_FLIP_NONE;
     switch (cData.command) {
          case CMD_UP:
@@ -321,7 +319,7 @@ void executeCommand(Game *pGame, ClientData cData) {
             deltaX -= 8;
             frame1 = 2; // Right-facing sprites
             frame2 = 3;
-            flip = SDL_FLIP_HORIZONTAL; // Apply horizontal flip
+            flip = SDL_FLIP_HORIZONTAL;
             break;
         case CMD_RIGHT:
             deltaX += 8;
@@ -361,7 +359,7 @@ void executeCommand(Game *pGame, ClientData cData) {
                     pGame->players[cData.playerNumber].texture = pGame->sprinterTexture;
                     pGame->players[cData.playerNumber].currentFrame = 0;
 
-                    break; // Avsluta loopen efter en lyckad byte
+                    break;
                 }
             }
         }
@@ -492,7 +490,7 @@ void moveCharacter(SDL_Rect *charPos, int deltaX, int deltaY, float speed, Obsta
     SDL_Rect newPos = {charPos->x + deltaX * speed, charPos->y + deltaY * speed, charPos->w, charPos->h};
     for (int i = 0; i < numObstacles; i++) {
         if (checkCollision(newPos, obstacles[i].bounds)) {
-            return;  // Collision detected, do not update position
+            return;
         }
     }
     newPos.x = SDL_clamp(newPos.x, HORIZONTAL_MARGIN, WINDOW_WIDTH - newPos.w - HORIZONTAL_MARGIN);
@@ -505,7 +503,6 @@ void updateFrame(int *frame, int frame1, int frame2) {
 }
 
 bool checkCollision(SDL_Rect a, SDL_Rect b) {
-    // Check if there's no overlap
     if (a.x + a.w <= b.x || b.x + b.w <= a.x ||
         a.y + a.h <= b.y || b.y + b.h <= a.y) {
         return false;
@@ -524,7 +521,7 @@ void initializePlayers(Game *pGame) {
     pGame->players[0].texture = pGame->hunterTexture;
     pGame->players[0].position = (SDL_Rect){getHunterPositionX(hunter), getHunterPositionY(hunter), 32, 32};
     pGame->players[0].type = HUNTER;
-    setupPlayerClips(pGame->players[0].spriteClips);  // Använd setupPlayerClips
+    setupPlayerClips(pGame->players[0].spriteClips);
     for (int i = 1; i < MAX_PLAYERS; i++) {
         SDL_Point spawn = sprinterSpawnPoints[sprinterIndex];
         sprinters[sprinterIndex] = createSprinterMan(spawn.x, spawn.y);
@@ -532,24 +529,21 @@ void initializePlayers(Game *pGame) {
         pGame->players[i].texture = pGame->sprinterTexture;
         pGame->players[i].position = (SDL_Rect){getSprinterPositionX(sprinters[sprinterIndex]), getSprinterPositionY(sprinters[sprinterIndex]), 32, 32};
         pGame->players[i].type = SPRINTER;
-        setupPlayerClips(pGame->players[i].spriteClips);  // Använd setupPlayerClips
+        setupPlayerClips(pGame->players[i].spriteClips);
         sprinterIndex++;
     }
 }
 
 void swapHunterAndSprinter(Player *hunter, Player *sprinter, SDL_Texture *hunterTexture, SDL_Texture *sprinterTexture) {
-    // Swap positions
     SDL_Rect tempPos = hunter->position;
     hunter->position = sprinter->position;
     sprinter->position = tempPos;
 
-    // Swap roles and textures
     hunter->type = SPRINTER;
     hunter->texture = sprinterTexture;
     sprinter->type = HUNTER;
     sprinter->texture = hunterTexture;
 
-    // Reset to frame 0
     hunter->currentFrame = 0;
     sprinter->currentFrame = 0;
 }
@@ -559,7 +553,6 @@ void checkGameOverCondition(Game *pGame) {
     int elapsedTime = currentTime - pGame->startTime;
     int remainingTime = (pGame->gameDuration - elapsedTime) / 1000;
     if (remainingTime <= 0) {
-        pGame->state = GAME_OVER;  // Set game state to GAME_OVER
-        // Optionally, add further game-over logic here
+        pGame->state = GAME_OVER;
     }
 }
